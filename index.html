@@ -17,6 +17,15 @@
 
 
     /* ── RESPONSIVE ── */
+
+    @media print {
+      @page { size: 80mm 55mm; margin: 2mm; }
+      body > * { display:none !important; }
+      #camely-print-area { display:block !important; }
+      #camely-print-area * { -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+    }
+    #camely-print-area { display:none; }
+
     @media (min-width: 768px) {
       #app-root { max-width:100% !important; flex-direction:row !important; }
       #app-header { position:fixed; top:0; left:0; right:0; z-index:200; }
@@ -128,6 +137,7 @@
 </head>
 <body>
 <div id="root"></div>
+<div id="camely-print-area"></div>
 <script type="text/babel">
 const { useState, useEffect, useRef, useCallback } = React;
 
@@ -229,17 +239,19 @@ async function sheetsLoad() {
 
 const CATS = ["Ropa","Zapatos","Carteras","Accesorios","Perfumes","Otros"];
 const CLIENTES_SEED = ["ABIGAIL PANCHIS","ABIGAIL SUAREZ","ADRIANA AMEZAGA","ADRIANA MOSQUERA","ADRIANA SISALEMA","ALE TIPICO","ALEJANDRA 07","ALEJANDRA TIPICO","ALEJANDRO BURGOS","ALEXANDRA AVILA","ALEXANDRA BRAVO","ALEXI MOREIRA","ALEXIS MOREIRA","ALIS ANTUÑEZ","ALONDRA","ALONDRITA","AMANDA ORDOÑEZ","AMCELY POSLIGUA","AMELIA YAGUAL","ANA VALERO","ANA ZAMBRANO","ANABEL CUNISCUMA","ANAHI","ANAHI LEON","ANCELI POSLIGUA","ANDREA MAJO","ANDREA NOBOA","ANDREA SISA","ANDREA TITO","ANDREA VARGAS","ANDRES GUERRERO","ANGELICA A","ANGIE","ANGIE SERRANO","ANGIE VARGAS","ANGRY BRAVO","ANGY MORAN","ANGY SERRANO","ANGY VARGAS","ANI ALCIVAR","ANIKITA","ARACELY","ARELIS SANCAN","ARELYS SACAN","ASHLEY TORRES","AZUCENA AVILA","BARZOLA","BEATRIZ RIVERA","BELEN MORAN","BELGICA","BELLA SUAREZ","BRIGITTE","CABANILLA","CANDIDA","CANDY SHOP","CARITO DELGADO","CARLA TAPIA","CARLOS REQUENA","CARMEN ACOSTA","CAROLA","CECIBEL VIVAS","CHIKI ZAMBRANO","CINDY BODERO","CINTHIA","CINTHIA LUCERO","CINTHIA RG","CLAUDIA","CRIS 46","DAISY OLIVO","DANIELA GUEVARA","DARI PACHO","DAYSI CALVA","DAYSI OLIVO","DENIS FAJARDO","DENIS FERNANDEZ","DENIS LINDAO","DENISSE FERNANDEZ","DIANA BARRAGAN","DIANA CHACON","DIANA ORTEGA","DIANA PEREZ","DIANA PILLAJO","DIANA PINCAY","DOLORES CEVALLOS","DORIS GARCIA","EDITH DELGADO","ELI REA","ELIANA CEDEÑO","ELIANA MOREIRA","ELIZABETH CAMPUZANO","ELIZABETH MORAN","ELIZABETH NUEVO","ELIZABETH ZAMBRANO","ELSI GARCIA","EMILY MORALES","ENRIQUE KARLA","ERIKA ARTEAGA","ERIKA MIÑAN","ERIKA MOREIRA","ESTEFANIA CORONEL","ESTEFANIA FRANCO","ESTHER","EVELYN","EVELYN LEON","EVELYN MEJIA","EVELYN PARRALES","FABIOLA MONSERRATE","FANNY","FATIMA FRANCO","FERNANDA CHOEZ","FORTY","GABRIELA BAQUE","GABRIELA CONTRERAS","GABRIELA GUEVARA","GABRIELA MENDOZA","GABY CONTRERAS","GEANELLA","GEORGE","GIOMARY FIGUEROA","GISELLA HOLGUIN","GISELLA PARRAGA","GLORIA GARCIA","GRACE","GUISEL","HELEN LINO","IMELDA AREVALO","INES","IRENE","IVANNA","JANINA","JEANET MARTINEZ","JENIFER CARRANZA","JENNY VERA","JESSENIA","JESSENIA ROXANA","JESSI DELPA","JESSICA OROZCO","JESSY DELPA","JESSY LINDAO","JESSY NUEVO","JESY DELPA","JOEL","JOHANA ESPINOZA","JOHANA YELA","JOSUE BENITEZ","JUANA MUÑOZ","JUDITH","JULIANA","JULISA DUARTE","JULISSA DUARTE","JULITSA JURADO","JULY","JUVIANA CEVALLOS","KARELYS","KARELYS BZ","KAREN ESPINOZA","KAREN FLORES","KAREN MACIAS","KAREN SACON","KAREN VASQUEZ","KARINA SANCHEZ","KARITO DELGADO","KARLA BAQUE","KARLA SALINAS","KARLA TAPIA","KARLA ZAMORA","KARLITA SUAREZ","KATHERINE ORELLANA","KATHERINE QUIMIS","KATITO","KATITO CHAVEZ","KATIUSKA LOOR","KATRINA","KATTY CHOEZ","KATTY ELIZA","KATTY QUIMIS","KATY ELISA","KATY ISAMAR","KATY NOEMI","KATY SALTOS","KATY YANE","KENDRA","KENYA","KENYA MARIA","KERLY FLORES","KERLY GARCIA","KERLY LISSETTE","KEYLA","KIARA","KRIS","KRISTEL LLERENA","KRISTI DURAN","LADY CLOSET","LADY HERRERA","LADY ROCA","LAURA DURAN","LEONELA CEPEDA","LESLI ROBLES","LESLI ROCA","LESLIE","LESLIE BENITEZ","LESLIE ROCA","LILI POZO","LILI ROBLES","LILIAN VALDIVIESO","LISSETTE","LISSETTE MERCHAN","LIZ ALCIVAR","LOLI","LORDES VERA","LORE","LOURDES VERA","LUCIA","LULU","MABEL HOLGUIN","MAFER CELI","MAGDALENA RIVERA","MAJO FREIRE","MALEH","MALULI MIRANDA","MAMA DE ANDRES GUERRERO","MARCELA ORDOÑEZ","MARCOS GONZALEZ","MARIA ALEJANDRA","MARIA ALVAREZ","MARIA ESPINOZA","MARIA FELIX","MARIA JOSE","MARIA MORA","MARICELA CORDOVA","MARIO MOREIRA","MARIUXI MELENDRES","MARIUXI ZHINDON","MARJORIE CACERES","MARLIN TOALA","MARTHA CABANILLA","MARY MERCHAN","MAY GUZMAN","MAYLI PINCAY","MAYRA ALEJANDRA","MAYRA GLENDA","MAYRA GUAPI","MAYRA LOPEZ","MEGAN","MEI GUZMAN","MELANIE DENISS","MELANIE MORALES","MELANIE NIC","MELFI TOVAR","MELI","MELISA ESPINOZA","MELISA MARCO","MERCY MIRABA","MEY GUZMAN","MICA","MICHELLE BUITRON","MICHELLE CONSTANTE","MICHELLE MALDONADO","MICHI","MILI","MIRELLA","MIRKA BUSTILLOS","MISHELL BUITRON","MISHELL CONSTANTE","MISS DIANA","MISS ERICKA","MISS ROSITA","MONCHIS","MONICA FALCONI","MORAIMA","NARDI","NATALI INTRIAGO","NATALY","NATALY CAIZA","NATALY CERVANTES","NATALY INTRIAGO","NATALY NUEVO","NATALY VIVERO","NEFERTARY","NENA","NENITA","NIKI","NILI","NOEMI DAULE","NOVIO MAYLIN","ODALYS SALAZAR","OJITOS SARITA","OMY","PAMELA","PAMELA VARGAS","PAOLA PILA","PAOLA PRIMA","PAOLA SANCHEZ","PAOLA ZAMBRANO","PATRICIA NOBOA","PATY ZAMBRANO","PRIMA DE SOL","PRISCILA FLORES","RAFAELA","RAFFAELA","RENATA","RICKY","RINA VANESSA","ROCIO SANCHEZ","ROCIO YEPEZ","ROSA OLVERA","ROSA VALENCIA","ROXANA SERRANO","RUBY","SAIDA","SAIRA","SAMARA","SAMBITA","SANI SANCHEZ","SEBAS GARCIA","SHIRLEY PEÑAFIEL","SILVI","SILVIA ANCHUNDIA","SILVIA BORJA","SILVIA CARRASCO","SILVIA SANCHEZ","SOL KEVIN","SOLANGE","SONIA IBARRA","SRA MARTHA","STEFANIA CORONEL","STEFY","STEFY FRANCO","STEFY VALLEJO","TAMI","TAMY","TANYA MOREIRA","TEFY","TEVI","TIA BERTHA","TOÑO","VALESKA RUIZ","VANESSA PERALTA","VERONICA","VERONICA OLIVO","VERONICA SALAZAR","VERONICA VARGAS","VICTORIA","VIRGINA","VIVIANA CABRERA","VIVIANA REYES","WENDY AYONA","WENDY JIMENEZ","WENDY LEO","YADIRA OSORTO","YANIRA BARZOLA","YARELIS","YESSY NUEVO","YOKONDA MIRANDA","YUCHIKO ZUMBA","YULEXSI IZQUIERDO","YULI","YULIANA","YULISA DUARTE","YULISITA"];
-const K = { pedidos:"c-pedidos", abonos:"c-abonos", live:"c-live", clientes:"c-clientes", inventario:"c-inventario" };
+const K = { pedidos:"c-pedidos", abonos:"c-abonos", live:"c-live", clientes:"c-clientes", inventario:"c-inventario", tarjetas:"c-tarjetas", cargos:"c-cargos", imports:"c-imports", gastos:"c-gastos", estadosCuenta:"c-estados" };
 
+const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+function fmtLive(n,m,y){return "Live "+n+" - "+m+"/"+y;}
 function hoy() {
   const n=new Date(),d=n.getDate().toString().padStart(2,"0");
   return `${d}-${["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][n.getMonth()]}-${n.getFullYear()}`;
 }
-function liveDefault(){ return "Live "+hoy(); }
+function liveDefault(){ const n=new Date(); return fmtLive(1,MESES[n.getMonth()],String(n.getFullYear()).slice(2)); }
 
 // localStorage + Sheets sync (see helpers above)
 
-function App({onLogout}){
+function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].includes((currentUser||"").toLowerCase()); const canAdmin=(currentUser||"").toLowerCase()==="admin";
   const [tab,setTab]=useState("pedido");
   const [winW,setWinW]=useState(typeof window!=="undefined"?window.innerWidth:390);
   useEffect(()=>{
@@ -264,6 +276,60 @@ function App({onLogout}){
   const [editingCliente,setEditingCliente]=useState(null);
   const [showPerfilModal,setShowPerfilModal]=useState(null);
   const [showInvModal,setShowInvModal]=useState(false);
+  // Tarjetas CxP
+  const [tarjetas,setTarjetas]=useState([]);
+  const [cargosTarjeta,setCargosTarjeta]=useState([]);
+  // Importaciones
+  const [importaciones,setImportaciones]=useState([]);
+  const [gastos,setGastos]=useState([]);
+  const [estadosCuenta,setEstadosCuenta]=useState([]);
+  // Resumen date filter
+  const [resMes,setResMes]=useState("todos");
+  const [resAno,setResAno]=useState(String(new Date().getFullYear()));
+  // Estado cuenta modal
+  const [showEstadoCuentaModal,setShowEstadoCuentaModal]=useState(false);
+  const [ecTarjetaId,setEcTarjetaId]=useState("");
+  const [ecMes,setEcMes]=useState("");
+  const [ecAno,setEcAno]=useState(String(new Date().getFullYear()));
+  const [ecMonto,setEcMonto]=useState("");
+  const [ecFechaMax,setEcFechaMax]=useState("");
+  const [ecFileB64,setEcFileB64]=useState(null);
+  const [ecFileType,setEcFileType]=useState("");
+  const [ecFilePrev,setEcFilePrev]=useState(null);
+  const ecFileRef=useRef();
+  // Gasto modal
+  const [showGastoModal,setShowGastoModal]=useState(false);
+  const [gastoForm,setGastoForm]=useState({tipo:"servientrega",descripcion:"",monto:"",fecha:hoy(),tarjetaId:""});
+  const [expandedResultRow,setExpandedResultRow]=useState(null);
+  const xmlSrvRef=useRef();
+  // Import status change modal
+  const [showStatusModal,setShowStatusModal]=useState(false);
+  const [expandedECTarjeta,setExpandedECTarjeta]=useState(null);
+  const [statusImpId,setStatusImpId]=useState(null);
+  const [statusTarjetaId,setStatusTarjetaId]=useState("");
+  // Import items
+  const [importItems,setImportItems]=useState([]);
+  // Finanzas sub-tab
+  const [finSub,setFinSub]=useState("resumen");
+  // Saldos filters
+  const [saldoFiltroCliente,setSaldoFiltroCliente]=useState("");
+  const [saldoFiltroLive,setSaldoFiltroLive]=useState("");
+  const [expandedCliente,setExpandedCliente]=useState(null);
+  // Live modal new format
+  const [liveNum,setLiveNum]=useState(1);
+  const [liveMes,setLiveMes]=useState(MESES[new Date().getMonth()]);
+  const [liveAno,setLiveAno]=useState(String(new Date().getFullYear()).slice(2));
+  // Modals nuevos
+  const [showTarjetaModal,setShowTarjetaModal]=useState(false);
+  const [editingTarjetaId,setEditingTarjetaId]=useState(null);
+  const [showCargoModal,setShowCargoModal]=useState(false);
+  const [showImportModal,setShowImportModal]=useState(false);
+  const [tarjetaForm,setTarjetaForm]=useState({nombre:"",banco:"",limite:"",color:"#1BB6C8"});
+  const [cargoForm,setCargoForm]=useState({tarjetaId:"",descripcion:"",monto:"",tipo:"cargo",fecha:hoy()});
+  const [importForm,setImportForm]=useState({proveedor:"",numPrendas:"",costoTotal:"",tarjetaId:"",notas:""});
+  const [importImgPrev,setImportImgPrev]=useState(null);
+  const [readingImport,setReadingImport]=useState(false);
+  const importFileRef=useRef();
   const [editingInv,setEditingInv]=useState(null);
 
   const [form,setForm]=useState({cliente:"",prenda:"",pvp:"",qty:"1",invId:null});
@@ -283,6 +349,12 @@ function App({onLogout}){
     // Try Google Sheets first, fallback to localStorage
     let remote = await sheetsLoad();
     const p   = remote?.pedidos    || lGet(K.pedidos)    || [];
+    const tarj= remote?.tarjetas    || lGet(K.tarjetas)  || [];
+    const carg= remote?.cargos      || lGet(K.cargos)    || [];
+    const imps= remote?.imports     || lGet(K.imports)   || [];
+    const gast= remote?.gastos      || lGet(K.gastos)    || [];
+    const ecs = remote?.estadosCuenta|| lGet(K.estadosCuenta) || [];
+    setTarjetas(tarj); setCargosTarjeta(carg); setImportaciones(imps); setGastos(gast); setEstadosCuenta(ecs);
     const a   = remote?.abonos     || lGet(K.abonos)     || [];
     const inv = remote?.inventario || lGet(K.inventario) || [];
     const l   = remote?.live       || lGetS(K.live)      || liveDefault();
@@ -440,7 +512,24 @@ function App({onLogout}){
     const qty=parseInt(form.qty)||1,pvp=parseFloat(form.pvp);
     const item={id:Date.now(),fecha:hoy(),live,cliente:form.cliente.trim().toUpperCase(),prenda:form.prenda.trim()||"-",pvp,qty,total:pvp*qty,invId:form.invId||null};
     const upd=[...pedidos,item];setPedidos(upd);lSet(K.pedidos,upd);sheetsSync("savePedidos",upd);
-    setLabelItem({...item,tiktok:perfil(item.cliente)?.tiktok||""});
+    const labelData={...item,tiktok:perfil(item.cliente)?.tiktok||"",printDate:hoy()};
+    setLabelItem(labelData);
+    // Populate print area
+    const pa=document.getElementById("camely-print-area");
+    if(pa){
+      const prf=perfil(item.cliente);
+      const tiktokLine=prf&&prf.tiktok?'<div style="text-align:center;font-size:8pt;color:#F0057F;margin-bottom:2mm">'+prf.tiktok+'</div>':"";
+      const prendaLine=item.prenda!=="-"?'<div style="text-align:center;font-size:8pt;color:#888;margin-bottom:1mm">'+(item.qty>1?item.qty+"x ":"")+item.prenda+'</div>':"";
+      pa.innerHTML='<div style="width:76mm;padding:3mm;font-family:Arial,sans-serif;box-sizing:border-box">'
+        +'<div style="display:flex;justify-content:space-between;font-size:8pt;color:#555;border-bottom:1px solid #ddd;padding-bottom:2mm;margin-bottom:2mm">'
+        +'<span>'+item.live+'</span><span>'+item.fecha+'</span></div>'
+        +'<div style="font-size:16pt;font-weight:900;color:#1BB6C8;text-align:center;margin:2mm 0">'+item.cliente+'</div>'
+        +tiktokLine+prendaLine
+        +'<div style="text-align:center;font-size:20pt;font-weight:900;color:#1A1A1A;margin:2mm 0">$'+item.total.toFixed(2)+'</div>'
+        +'<div style="text-align:right;font-size:7pt;color:#AAA;border-top:1px solid #eee;padding-top:1mm;margin-top:1mm">Impreso: '+hoy()+'</div>'
+        +'</div>';
+      setTimeout(function(){window.print();},400);
+    }
     setForm(f=>({...f,prenda:"",pvp:"",qty:"1",invId:null}));setShowCS(false);
   }
   function selInv(inv){setForm(f=>({...f,prenda:inv.descripcion,pvp:inv.precio.toString(),invId:inv.id}));setShowInvPicker(false);}
@@ -490,6 +579,171 @@ function App({onLogout}){
     setInvF(item?{descripcion:item.descripcion,categoria:item.categoria,talla:item.talla||"",qty:item.qty.toString(),precio:item.precio.toString(),importacion:item.importacion||""}:{descripcion:"",categoria:"Ropa",talla:"",qty:"",precio:"",importacion:""});
     setShowInvModal(true);
   }
+  // ── Eliminar pedido ──
+  async function eliminarPedido(pedidoId){
+    if(!window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")) return;
+    const upd=pedidos.filter(p=>p.id!==pedidoId);
+    setPedidos(upd); lSet(K.pedidos,upd); sheetsSync("savePedidos",upd);
+    toast_("Pedido eliminado");
+  }
+  async function eliminarPedidosCliente(alias){
+    if(!window.confirm("¿Eliminar TODOS los pedidos de "+alias+"? Esta acción no se puede deshacer.")) return;
+    const upd=pedidos.filter(p=>p.cliente!==alias);
+    setPedidos(upd); lSet(K.pedidos,upd); sheetsSync("savePedidos",upd);
+    toast_("Pedidos de "+alias+" eliminados");
+  }
+  // ── Estado de importación ──
+  async function cambiarEstadoImport(impId, nuevoEstado, tarjetaId){
+    const imp=importaciones.find(i=>i.id===impId);
+    if(!imp) return;
+    const upd=importaciones.map(i=>i.id===impId?{...i,estado:nuevoEstado,...(nuevoEstado==="pagada"&&tarjetaId?{tarjetaId}:{})}:i);
+    setImportaciones(upd); lSet(K.imports,upd); sheetsSync("saveImports",upd);
+    if(nuevoEstado==="pagada"&&tarjetaId){
+      const cargo={id:Date.now(),fecha:hoy(),tarjetaId,descripcion:imp.nombre+" (importación)",monto:imp.costoTotal,tipo:"cargo"};
+      const updC=[...cargosTarjeta,cargo]; setCargosTarjeta(updC); lSet(K.cargos,updC); sheetsSync("saveCargos",updC);
+      toast_("Cargo de $"+imp.costoTotal.toFixed(2)+" registrado en tarjeta ✓");
+    }
+    setShowStatusModal(false); setStatusTarjetaId("");
+  }
+  // ── Estados de cuenta ──
+  async function handleEcFile(e){
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=()=>{setEcFileB64(reader.result.split(",")[1]);setEcFileType(file.type);setEcFilePrev(reader.result);};
+    reader.readAsDataURL(file);
+  }
+  async function guardarEstadoCuenta(){
+    if(!ecTarjetaId||!ecMonto) return;
+    const ec={id:Date.now(),tarjetaId:ecTarjetaId,mes:ecMes,ano:ecAno,montoTotal:parseFloat(ecMonto),fechaMaxPago:ecFechaMax,archivoB64:ecFileB64||null,mediaType:ecFileType,fecha:hoy()};
+    const upd=[...estadosCuenta,ec]; setEstadosCuenta(upd); lSet(K.estadosCuenta,upd); sheetsSync("saveEstadosCuenta",upd);
+    setShowEstadoCuentaModal(false); setEcTarjetaId(""); setEcMonto(""); setEcFechaMax(""); setEcFileB64(null); setEcFilePrev(null);
+    toast_("Estado de cuenta guardado ✓");
+  }
+  // ── Gastos ──
+  async function procesarXMLServientrega(files){
+    let total=0; const desc=[];
+    for(const file of Array.from(files)){
+      try{
+        const text=await file.text();
+        // Try to extract importeTotal from SRI XML (handles CDATA wrapper)
+        const raw=text.replace(/<!\[CDATA\[/g,"").replace(/\]\]>/g,"");
+        const parser=new DOMParser();
+        const doc=parser.parseFromString(raw,"text/xml");
+        const imp=doc.querySelector("importeTotal,totalConImpuestos,valorTotal");
+        if(imp){const v=parseFloat(imp.textContent.trim());if(!isNaN(v)){total+=v;desc.push(file.name.replace(".xml","").slice(0,20)+": $"+v.toFixed(2));}}
+      }catch(e){}
+    }
+    if(total>0){
+      setGastoForm(f=>({...f,monto:total.toFixed(2),descripcion:"Servientrega ("+files.length+" facturas)"+(desc.length?" - "+desc.slice(0,2).join(", ")+(desc.length>2?"...":""):"")}));
+      toast_("✓ "+files.length+" XMLs → $"+total.toFixed(2));
+    } else toast_("No se encontraron valores en los XMLs");
+  }
+  async function guardarGasto(){
+    if(!gastoForm.monto) return;
+    const g={...gastoForm,id:Date.now(),monto:parseFloat(gastoForm.monto)};
+    const upd=[...gastos,g]; setGastos(upd); lSet(K.gastos,upd); sheetsSync("saveGastos",upd);
+    setShowGastoModal(false); setGastoForm({tipo:"servientrega",descripcion:"",monto:"",fecha:hoy()});
+    toast_("Gasto registrado ✓");
+  }
+  // ── Import items helpers ──
+  function addImportItem(){ setImportItems(p=>[...p,{id:Date.now(),categoria:"ropa",tipoRopa:"niña",talla:"",cantidad:1,descripcion:""}]); }
+  function removeImportItem(id){ setImportItems(p=>p.filter(i=>i.id!==id)); }
+  function updateImportItem(id,field,val){ setImportItems(p=>p.map(i=>i.id===id?{...i,[field]:val}:i)); }
+  // ── Resumen period filter helper ──
+  // Parses DD-Mon-YYYY, DD/MM/YYYY, YYYY-MM-DD
+  function parseFecha(fecha){
+    if(!fecha) return {mes:null,ano:null};
+    const m1=fecha.match(/^\d{1,2}-([A-Za-z]{3})-(\d{4})$/);
+    if(m1) return {mes:m1[1],ano:m1[2]};
+    const m2=fecha.match(/^\d{1,2}\/(\d{1,2})\/(\d{4})$/);
+    if(m2) return {mes:MESES[parseInt(m2[1])-1]||null,ano:m2[2]};
+    const m3=fecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if(m3) return {mes:MESES[parseInt(m3[2])-1]||null,ano:m3[1]};
+    return {mes:null,ano:null};
+  }
+  function filtroPeriodo(items){
+    if(resMes==="todos"&&resAno==="todos") return items;
+    return items.filter(p=>{
+      const {mes,ano}=parseFecha(p.fecha);
+      const mesOK=resMes==="todos"||mes===resMes;
+      const anoOK=resAno==="todos"||ano===resAno;
+      return mesOK&&anoOK;
+    });
+  }
+  async function guardarTarjeta(){
+    if(!tarjetaForm.nombre.trim()) return;
+    let upd;
+    if(editingTarjetaId){
+      upd=tarjetas.map(t=>t.id===editingTarjetaId?{...t,...tarjetaForm}:t);
+    } else {
+      upd=[...tarjetas,{...tarjetaForm,id:Date.now()}];
+    }
+    setTarjetas(upd); lSet(K.tarjetas,upd); sheetsSync("saveTarjetas",upd);
+    setShowTarjetaModal(false); setEditingTarjetaId(null);
+    setTarjetaForm({nombre:"",banco:"",limite:"",color:"#1BB6C8"});
+  }
+  async function eliminarTarjeta(id){
+    if(!window.confirm("¿Eliminar esta tarjeta y todos sus movimientos?")) return;
+    const upd=tarjetas.filter(t=>t.id!==id); setTarjetas(upd); lSet(K.tarjetas,upd); sheetsSync("saveTarjetas",upd);
+    const updC=cargosTarjeta.filter(c=>c.tarjetaId!==id); setCargosTarjeta(updC); lSet(K.cargos,updC); sheetsSync("saveCargos",updC);
+    const updE=estadosCuenta.filter(e=>e.tarjetaId!==id); setEstadosCuenta(updE); lSet(K.estadosCuenta,updE); sheetsSync("saveEstadosCuenta",updE);
+    toast_("Tarjeta eliminada");
+  }
+  async function eliminarCargo(id){
+    const upd=cargosTarjeta.filter(c=>c.id!==id); setCargosTarjeta(upd); lSet(K.cargos,upd); sheetsSync("saveCargos",upd);
+    toast_("Movimiento eliminado");
+  }
+  async function eliminarGasto(id){
+    if(!window.confirm("¿Eliminar este gasto?")) return;
+    const upd=gastos.filter(g=>g.id!==id); setGastos(upd); lSet(K.gastos,upd); sheetsSync("saveGastos",upd);
+    toast_("Gasto eliminado");
+  }
+  async function eliminarImportacion(id){
+    if(!window.confirm("¿Eliminar esta importación?")) return;
+    const upd=importaciones.filter(i=>i.id!==id); setImportaciones(upd); lSet(K.imports,upd); sheetsSync("saveImports",upd);
+    toast_("Importación eliminada");
+  }
+  async function guardarCargo(){
+    if(!cargoForm.tarjetaId||!cargoForm.monto) return;
+    const c={...cargoForm,id:Date.now(),monto:parseFloat(cargoForm.monto)};
+    const upd=[...cargosTarjeta,c]; setCargosTarjeta(upd); lSet(K.cargos,upd); sheetsSync("saveCargos",upd);
+    setShowCargoModal(false); setCargoForm({tarjetaId:"",descripcion:"",monto:"",tipo:"cargo",fecha:hoy()});
+  }
+  function saldoTarjeta(id){
+    const t=tarjetas.find(t=>t.id===id); if(!t) return 0;
+    return cargosTarjeta.filter(c=>c.tarjetaId===id).reduce((s,c)=>c.tipo==="cargo"?s+c.monto:s-c.monto,0);
+  }
+  async function handleImportImg(e){
+    const file=e.target.files[0]; if(!file) return;
+    const reader=new FileReader();
+    reader.onload=async()=>{
+      const b64=reader.result.split(",")[1], mime=file.type||"image/jpeg";
+      setImportImgPrev(reader.result); setReadingImport(true);
+      try{
+        const isImg=mime.startsWith("image");
+        const msgContent=isImg
+          ?[{type:"image",source:{type:"base64",media_type:mime,data:b64}},{type:"text",text:"Esta es una factura de compra de ropa. Extrae: 1) número total de prendas/items, 2) costo total en USD. Responde SOLO en JSON: {prendas:NUMBER, costoUSD:NUMBER}"}]
+          :[{type:"text",text:"Analiza esta factura: extrae número de prendas y costo total. Responde SOLO: {prendas:NUMBER, costoUSD:NUMBER}"}];
+        const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:100,messages:[{role:"user",content:msgContent}]})});
+        const d=await res.json(); const raw=d.content?.[0]?.text||"{}";
+        const parsed=JSON.parse(raw.replace(/```json|```/g,"").trim());
+        if(parsed.prendas) setImportForm(f=>({...f,numPrendas:String(parsed.prendas)}));
+        if(parsed.costoUSD) setImportForm(f=>({...f,costoTotal:String(parsed.costoUSD)}));
+      }catch{}
+      setReadingImport(false);
+    };
+    reader.readAsDataURL(file);
+  }
+  async function guardarImportacion(){
+    const totalPrendas=importItems.length>0?importItems.reduce((s,i)=>s+parseInt(i.cantidad||1),0):parseInt(importForm.numPrendas)||0;
+    if(!totalPrendas||!importForm.costoTotal) return;
+    const num=importaciones.filter(i=>i.fecha?.slice(3,10)===hoy().slice(3,10)).length+1;
+    const nombre="Importacion "+num+" - "+hoy().slice(3);
+    const costoUnit=(parseFloat(importForm.costoTotal)/totalPrendas).toFixed(2);
+    const imp={...importForm,id:Date.now(),nombre,fecha:hoy(),costoUnit,costoTotal:parseFloat(importForm.costoTotal),numPrendas:totalPrendas,estado:"ingresada",items:importItems};
+    const upd=[...importaciones,imp]; setImportaciones(upd); lSet(K.imports,upd); sheetsSync("saveImports",upd);
+    setShowImportModal(false); setImportForm({proveedor:"",numPrendas:"",costoTotal:"",tarjetaId:"",notas:""}); setImportImgPrev(null); setImportItems([]);
+  }
   async function guardarInv(){
     if(!invF.descripcion.trim()||!invF.qty)return;
     const e={...invF,qty:parseInt(invF.qty),precio:parseFloat(invF.precio)||0};
@@ -517,7 +771,7 @@ function App({onLogout}){
           <span style={{fontSize:8,opacity:0.6,display:"block",letterSpacing:1}}>LIVE ACTIVO</span>
           <span style={{fontWeight:800,fontSize:12,whiteSpace:"nowrap",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",display:"block"}}>{live} ▾</span>
         </button>
-        <button onClick={onLogout} title="Cerrar sesión" style={{background:"transparent",border:"1px solid #3A3A3A",color:"#888",borderRadius:8,padding:"4px 8px",cursor:"pointer",fontSize:11,flexShrink:0}}>⏻</button>
+        <button onClick={onLogout} title="Cerrar sesión" style={{background:"#E53935",border:"none",color:"#fff",borderRadius:8,padding:"5px 10px",cursor:"pointer",fontSize:11,flexShrink:0,fontWeight:700}}>⏻</button>
       </div>
 
       {/* MODAL LIVE */}
@@ -537,16 +791,21 @@ function App({onLogout}){
       {/* MODAL ETIQUETA */}
       {labelItem&&<div style={S.ov} onClick={()=>setLabelItem(null)}>
         <div style={S.sh} onClick={e=>e.stopPropagation()}>
-          <div style={{textAlign:"center",fontSize:10,letterSpacing:2,color:"#AAA",marginBottom:10,textTransform:"uppercase"}}>Etiqueta lista</div>
-          <div style={S.labelCard}>
-            <div style={{fontSize:9,color:"#F0057F",letterSpacing:2,textTransform:"uppercase",marginBottom:5}}>{labelItem.live} · {labelItem.fecha}</div>
-            <div style={{fontSize:26,fontWeight:900,color:"#1A1A1A",letterSpacing:-0.5,fontFamily:"Georgia,serif"}}>{labelItem.cliente}</div>
-            {labelItem.tiktok&&<div style={{fontSize:13,color:"#F0057F",marginTop:3,fontWeight:700}}>{labelItem.tiktok}</div>}
-            {labelItem.prenda!=="-"&&<div style={{fontSize:12,color:"#888",marginTop:6}}>{labelItem.qty>1?`${labelItem.qty}x `:""}{labelItem.prenda}</div>}
-            <div style={{fontSize:30,fontWeight:900,color:"#F0057F",marginTop:8,fontFamily:"Georgia,serif"}}>${labelItem.total.toFixed(2)}</div>
+          <div style={{textAlign:"center",fontSize:10,letterSpacing:2,color:"#1BB6C8",marginBottom:10,textTransform:"uppercase",fontWeight:700}}>✓ Pedido registrado</div>
+          <div style={{...S.labelCard,padding:"14px 12px"}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"#AAA",marginBottom:6}}>
+              <span>{labelItem.live}</span><span>{labelItem.fecha}</span>
+            </div>
+            <div style={{fontSize:22,fontWeight:900,color:"#1BB6C8",letterSpacing:-0.5}}>{labelItem.cliente}</div>
+            {labelItem.tiktok&&<div style={{fontSize:11,color:"#F0057F",marginTop:2,fontWeight:700}}>{labelItem.tiktok}</div>}
+            {labelItem.prenda!=="-"&&<div style={{fontSize:11,color:"#888",marginTop:4}}>{labelItem.qty>1?`${labelItem.qty}x `:""}{labelItem.prenda}</div>}
+            <div style={{fontSize:24,fontWeight:900,color:"#1A1A1A",marginTop:6}}>${labelItem.total.toFixed(2)}</div>
           </div>
-          <div style={{fontSize:11,color:"#aaa",textAlign:"center",marginBottom:12}}>Imprime con Phomemo o toma screenshot</div>
-          <button onClick={()=>setLabelItem(null)} style={S.btnD}>✓ Listo</button>
+          <div style={{fontSize:11,color:"#1BB6C8",textAlign:"center",marginBottom:12}}>🖨 Impresión enviada automáticamente</div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>{const pa=document.getElementById("camely-print-area");if(pa&&pa.innerHTML)window.print();}} style={{...S.btnD,flex:1,fontSize:13}}>Reimprimir</button>
+            <button onClick={()=>setLabelItem(null)} style={{...S.btnD,flex:1,fontSize:13,background:"#EEE",color:"#555"}}>Cerrar</button>
+          </div>
         </div>
       </div>}
 
@@ -601,6 +860,124 @@ function App({onLogout}){
           ))}
           <button onClick={guardarCliente} disabled={!cliF.alias.trim()||!cliF.nombre.trim()} style={{...S.btnD,opacity:(!cliF.alias.trim()||!cliF.nombre.trim())?0.4:1,marginBottom:8}}>Guardar</button>
           <button onClick={()=>setShowClienteModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* MODAL TARJETA */}
+      {showTarjetaModal&&<div style={S.ov} onClick={()=>setShowTarjetaModal(false)}>
+        <div style={{...S.sh,maxHeight:"80vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>{editingTarjetaId?"Editar Tarjeta":"Nueva Tarjeta"}</div>
+          {[{k:"nombre",l:"NOMBRE / ALIAS",ph:"Visa Banco Pichincha"},{k:"banco",l:"BANCO",ph:"Banco Pichincha"},{k:"limite",l:"LÍMITE ($)",ph:"5000"}].map(({k,l,ph})=>(
+            <div key={k} style={{marginBottom:10}}><label style={S.lbl}>{l}</label>
+              <input style={S.inp} placeholder={ph} value={tarjetaForm[k]} onChange={e=>setTarjetaForm(f=>({...f,[k]:e.target.value}))}/></div>
+          ))}
+          <div style={{marginBottom:14}}><label style={S.lbl}>COLOR</label>
+            <div style={{display:"flex",gap:8,marginTop:4}}>
+              {["#1BB6C8","#F0057F","#2D6A4F","#B7570A","#7B2D8B","#E53935"].map(c=>(
+                <div key={c} onClick={()=>setTarjetaForm(f=>({...f,color:c}))} style={{width:28,height:28,borderRadius:"50%",background:c,cursor:"pointer",border:tarjetaForm.color===c?"3px solid #1A1A1A":"3px solid transparent"}}/>
+              ))}
+            </div>
+          </div>
+          <button onClick={guardarTarjeta} disabled={!tarjetaForm.nombre.trim()} style={{...S.btnD,opacity:!tarjetaForm.nombre.trim()?0.4:1,marginBottom:8}}>Guardar</button>
+          <button onClick={()=>setShowTarjetaModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* MODAL CARGO/ABONO TARJETA */}
+      {showCargoModal&&<div style={S.ov} onClick={()=>setShowCargoModal(false)}>
+        <div style={S.sh} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>{cargoForm.tipo==="cargo"?"Registrar Cargo":"Registrar Abono"}</div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>TARJETA</label>
+            <select style={S.inp} value={cargoForm.tarjetaId} onChange={e=>setCargoForm(f=>({...f,tarjetaId:e.target.value}))}>
+              <option value="">Selecciona tarjeta...</option>
+              {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre} — ${saldoTarjeta(t.id).toFixed(2)}</option>)}
+            </select>
+          </div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>DESCRIPCIÓN</label>
+            <input style={S.inp} placeholder="Ej: Compra mercadería mayo" value={cargoForm.descripcion} onChange={e=>setCargoForm(f=>({...f,descripcion:e.target.value}))}/></div>
+          <div style={{display:"flex",gap:10,marginBottom:14}}>
+            <div style={{flex:1}}><label style={S.lbl}>MONTO ($)</label>
+              <input type="number" style={S.inp} placeholder="0.00" inputMode="decimal" value={cargoForm.monto} onChange={e=>setCargoForm(f=>({...f,monto:e.target.value}))}/></div>
+            <div style={{flex:1}}><label style={S.lbl}>FECHA</label>
+              <input style={S.inp} value={cargoForm.fecha} onChange={e=>setCargoForm(f=>({...f,fecha:e.target.value}))}/></div>
+          </div>
+          <button onClick={guardarCargo} disabled={!cargoForm.tarjetaId||!cargoForm.monto} style={{...S.btnD,opacity:(!cargoForm.tarjetaId||!cargoForm.monto)?0.4:1,background:cargoForm.tipo==="cargo"?"#F0057F":"#2D6A4F",marginBottom:8}}>
+            {cargoForm.tipo==="cargo"?"Registrar Cargo":"Registrar Abono"}
+          </button>
+          <button onClick={()=>setShowCargoModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* MODAL IMPORTACIÓN */}
+      {showImportModal&&<div style={S.ov} onClick={()=>setShowImportModal(false)}>
+        <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>Nueva Importación</div>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>FACTURA (foto o PDF — la IA lee los datos)</label>
+            <input ref={importFileRef} type="file" accept="image/*,application/pdf" style={{display:"none"}} onChange={handleImportImg}/>
+            <button onClick={()=>importFileRef.current.click()} style={S.btnComp}>
+              {readingImport?"⏳ Leyendo factura...":importImgPrev?"📎 Factura cargada — toca para cambiar":"📷 Subir factura (imagen o PDF)"}
+            </button>
+            {importImgPrev&&!readingImport&&<div style={{marginTop:8,borderRadius:12,overflow:"hidden",border:"2px solid #D0F2F6",maxHeight:120}}><img src={importImgPrev} style={{width:"100%",objectFit:"cover"}} alt="factura"/></div>}
+            {readingImport&&<div style={{textAlign:"center",padding:12,color:"#1BB6C8",fontSize:13,background:"#E8F9FB",borderRadius:12,marginTop:8}}>🤖 Leyendo factura con IA...</div>}
+          </div>
+          <div style={{display:"flex",gap:10,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}># PRENDAS</label>
+              <input type="number" style={{...S.inp,background:importForm.numPrendas?"#F0FFF6":"#FDFAF8"}} placeholder="0" value={importForm.numPrendas} onChange={e=>setImportForm(f=>({...f,numPrendas:e.target.value}))}/></div>
+            <div style={{flex:1}}><label style={S.lbl}>COSTO TOTAL ($)</label>
+              <input type="number" style={{...S.inp,background:importForm.costoTotal?"#F0FFF6":"#FDFAF8"}} placeholder="0.00" value={importForm.costoTotal} onChange={e=>setImportForm(f=>({...f,costoTotal:e.target.value}))}/></div>
+          </div>
+          {importForm.numPrendas&&importForm.costoTotal&&<div style={{background:"#E8F9FB",borderRadius:10,padding:"10px",textAlign:"center",marginBottom:10,fontSize:13,color:"#1BB6C8",fontWeight:700}}>
+            Costo por prenda: ${(parseFloat(importForm.costoTotal)/parseInt(importForm.numPrendas)).toFixed(2)}
+          </div>}
+          <div style={{marginBottom:10}}><label style={S.lbl}>PROVEEDOR</label>
+            <input style={S.inp} placeholder="Nombre de la proveedora" value={importForm.proveedor} onChange={e=>setImportForm(f=>({...f,proveedor:e.target.value}))}/></div>
+          {tarjetas.length>0&&<div style={{marginBottom:10}}><label style={S.lbl}>TARJETA (pagado con)</label>
+            <select style={S.inp} value={importForm.tarjetaId} onChange={e=>setImportForm(f=>({...f,tarjetaId:e.target.value}))}>
+              <option value="">Sin tarjeta / efectivo</option>
+              {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre}</option>)}
+            </select>
+          </div>}
+          {/* Items de la importación */}
+          <div style={{marginBottom:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+              <label style={S.lbl}>DETALLE DE ITEMS</label>
+              <button onClick={addImportItem} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:8,padding:"4px 12px",fontSize:11,fontWeight:700,cursor:"pointer"}}>+ Item</button>
+            </div>
+            {importItems.length===0?<div style={{fontSize:11,color:"#AAA",textAlign:"center",padding:"8px 0"}}>Sin items — agrega uno o usa # prendas directo</div>:
+              importItems.map((it,idx)=>(
+                <div key={it.id} style={{background:"#F5FDFE",borderRadius:10,padding:"8px 10px",marginBottom:6}}>
+                  <div style={{display:"flex",gap:6,marginBottom:6,alignItems:"center"}}>
+                    <select style={{...S.inp,flex:1,fontSize:11,padding:"5px 8px"}} value={it.categoria} onChange={e=>updateImportItem(it.id,"categoria",e.target.value)}>
+                      <option value="ropa">Ropa</option>
+                      <option value="zapatos">Zapatos</option>
+                      <option value="carteras">Carteras</option>
+                      <option value="accesorios">Accesorios</option>
+                    </select>
+                    {it.categoria==="ropa"&&<select style={{...S.inp,flex:1,fontSize:11,padding:"5px 8px"}} value={it.tipoRopa} onChange={e=>updateImportItem(it.id,"tipoRopa",e.target.value)}>
+                      <option value="niña">Niña</option>
+                      <option value="niño">Niño</option>
+                      <option value="bebe">Bebé</option>
+                      <option value="dama">Dama</option>
+                    </select>}
+                    <button onClick={()=>removeImportItem(it.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:6,padding:"4px 8px",fontSize:12,cursor:"pointer",flexShrink:0}}>✕</button>
+                  </div>
+                  <div style={{display:"flex",gap:6}}>
+                    <input style={{...S.inp,flex:1,fontSize:11,padding:"5px 8px"}} placeholder={it.categoria==="zapatos"?"Nro (ej: 36)":"Talla (S,M,L...)"} value={it.talla} onChange={e=>updateImportItem(it.id,"talla",e.target.value)}/>
+                    <input type="number" min="1" style={{...S.inp,width:60,fontSize:11,padding:"5px 8px"}} placeholder="Cant" value={it.cantidad} onChange={e=>updateImportItem(it.id,"cantidad",e.target.value)}/>
+                    <input style={{...S.inp,flex:2,fontSize:11,padding:"5px 8px"}} placeholder="Descripción..." value={it.descripcion} onChange={e=>updateImportItem(it.id,"descripcion",e.target.value)}/>
+                  </div>
+                </div>
+              ))
+            }
+            {importItems.length>0&&<div style={{fontSize:11,color:"#1BB6C8",fontWeight:700,textAlign:"center",marginTop:4}}>
+              Total: {importItems.reduce((s,i)=>s+parseInt(i.cantidad||1),0)} prendas
+            </div>}
+          </div>
+          <div style={{marginBottom:14}}><label style={S.lbl}>NOTAS</label>
+            <input style={S.inp} placeholder="Detalles adicionales..." value={importForm.notas} onChange={e=>setImportForm(f=>({...f,notas:e.target.value}))}/></div>
+          <button onClick={guardarImportacion} disabled={importItems.length===0&&(!importForm.numPrendas||!importForm.costoTotal)} style={{...S.btnD,opacity:(!importForm.numPrendas||!importForm.costoTotal)?0.4:1,marginBottom:8}}>Guardar Importación</button>
+          <button onClick={()=>setShowImportModal(false)} style={S.cancelBtn}>Cancelar</button>
         </div>
       </div>}
 
@@ -795,35 +1172,537 @@ function App({onLogout}){
 
         {/* ─── SALDOS ─── */}
         {tab==="saldos"&&<div className="app-section" style={S.sec}>
-          <div style={S.summCard}>
-            <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
-            <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginTop:4}}>${clientesConSaldo.reduce((s,c)=>s+c.saldo,0).toFixed(2)}</div>
-            <div style={{opacity:0.5,fontSize:12,marginTop:4}}>{clientesConSaldo.length} clientes con saldo</div>
-          </div>
-          {clientesConSaldo.length===0?<div style={{textAlign:"center",padding:"30px 0",color:"#aaa",fontSize:14}}>🎉 Sin saldos pendientes</div>:(
-            <div className={isDesk?"desktop-grid":""} style={isDesk?{gap:16}:{}}>
-              {clientesConSaldo.map((c,i)=>(
-                <div key={c.alias} style={{...S.li,borderBottom:i<clientesConSaldo.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13,cursor:"pointer"}} onClick={()=>setShowPerfilModal(c)}>
-                  <div style={{flex:1}}><div style={{fontSize:14,fontWeight:800,color:"#1A1A1A"}}>{c.alias}</div>
-                    {c.p&&<div style={{fontSize:11,color:"#AAA",marginTop:1}}>{c.p.nombre}</div>}
-                    <div style={{display:"flex",gap:10,marginTop:4,fontSize:11,color:"#AAA"}}><span>Compró <b style={{color:"#555"}}>${c.tc.toFixed(2)}</b></span><span>Abonó <b style={{color:"#2D6A4F"}}>${c.ta.toFixed(2)}</b></span></div>
+          {(()=>{
+            const allLives=[...new Set(pedidos.map(p=>p.live))].sort();
+            const filtrados=clientesConSaldo.filter(c=>{
+              const matchCli=!saldoFiltroCliente||c.alias.includes(saldoFiltroCliente.toUpperCase())||(c.p?.nombre||"").toLowerCase().includes(saldoFiltroCliente.toLowerCase());
+              const matchLive=!saldoFiltroLive||pedidos.some(p=>p.cliente===c.alias&&p.live===saldoFiltroLive);
+              return matchCli&&matchLive;
+            });
+            const totalFiltrado=filtrados.reduce((s,c)=>s+c.saldo,0);
+            return(<>
+              <div style={S.summCard}>
+                <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
+                <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginTop:4}}>${totalFiltrado.toFixed(2)}</div>
+                <div style={{opacity:0.5,fontSize:12,marginTop:4}}>{filtrados.length} clientes{saldoFiltroLive?` · ${saldoFiltroLive}`:""}</div>
+              </div>
+              {/* Filtros */}
+              <div style={{display:"flex",gap:8,marginBottom:12}}>
+                <input style={{...S.inp,flex:1,fontSize:13}} placeholder="🔍 Buscar cliente..." value={saldoFiltroCliente}
+                  onChange={e=>setSaldoFiltroCliente(e.target.value)}/>
+                <select style={{...S.inp,width:130,fontSize:12}} value={saldoFiltroLive} onChange={e=>setSaldoFiltroLive(e.target.value)}>
+                  <option value="">Todos los lives</option>
+                  {allLives.map(l=><option key={l} value={l}>{l}</option>)}
+                </select>
+              </div>
+              {filtrados.length===0?<div style={{textAlign:"center",padding:"30px 0",color:"#aaa",fontSize:14}}>🎉 Sin saldos</div>:(
+                <div>
+                  {filtrados.map((c,i)=>{
+                    const isExp=expandedCliente===c.alias;
+                    const compras=pedidos.filter(p=>p.cliente===c.alias&&(!saldoFiltroLive||p.live===saldoFiltroLive));
+                    return(
+                      <div key={c.alias} style={{background:"#fff",borderRadius:14,marginBottom:8,boxShadow:"0 2px 8px rgba(0,0,0,0.06)",overflow:"hidden"}}>
+                        <div style={{display:"flex",alignItems:"flex-start",padding:"12px 14px",cursor:"pointer"}}
+                          onClick={()=>setExpandedCliente(isExp?null:c.alias)}>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:14,fontWeight:800,color:"#1A1A1A"}}>{c.alias}</div>
+                            {c.p&&<div style={{fontSize:11,color:"#AAA",marginTop:1}}>{c.p.nombre}</div>}
+                            <div style={{display:"flex",gap:10,marginTop:4,fontSize:11,color:"#AAA"}}>
+                              <span>Compró <b style={{color:"#555"}}>${c.tc.toFixed(2)}</b></span>
+                              <span>Abonó <b style={{color:"#2D6A4F"}}>${c.ta.toFixed(2)}</b></span>
+                            </div>
+                          </div>
+                          <div style={{textAlign:"right",flexShrink:0}}>
+                            <div style={{color:"#F0057F",fontWeight:800,fontSize:16}}>${c.saldo.toFixed(2)}</div>
+                            <div style={{fontSize:10,marginTop:2,color:c.ta>=10?"#2D6A4F":"#E07040"}}>{c.ta>=10?"✓ abono":"sin abono"}</div>
+                            <div style={{fontSize:11,color:"#1BB6C8",marginTop:2}}>{isExp?"▲ cerrar":"▼ ver compras"}</div>
+                          </div>
+                        </div>
+                        {isExp&&<div style={{borderTop:"1px solid #E8F9FB",padding:"10px 14px",background:"#F8FDFE"}}>
+                          <div style={{fontSize:10,color:"#1BB6C8",letterSpacing:1,textTransform:"uppercase",marginBottom:8,fontWeight:700}}>Detalle de compras</div>
+                          {compras.length===0?<div style={{fontSize:12,color:"#aaa"}}>Sin compras en este live</div>:
+                            compras.map(p=>(
+                              <div key={p.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:"1px solid #EEF",fontSize:12}}>
+                                <div style={{flex:1}}><span style={{color:"#AAA",fontSize:10}}>{p.live} · {p.fecha}</span><br/><span style={{fontWeight:600}}>{p.prenda!=="-"?p.prenda:"Prenda"}</span></div>
+                                <div style={{textAlign:"right",fontWeight:700,color:"#1BB6C8",marginRight:8}}>${p.total.toFixed(2)}</div>
+                                <button onClick={()=>eliminarPedido(p.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:6,padding:"3px 7px",fontSize:11,cursor:"pointer",flexShrink:0}}>✕</button>
+                              </div>
+                            ))
+                          }
+                          <div style={{display:"flex",gap:8,marginTop:10}}>
+                            <button onClick={()=>setShowPerfilModal(c)} style={{...S.btnD,flex:1,padding:"8px",fontSize:12}}>📋 Datos envío</button>
+                            <button onClick={()=>eliminarPedidosCliente(c.alias)} style={{flex:1,background:"#FFE4E4",color:"#D00",border:"none",borderRadius:10,padding:"8px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗑 Borrar todos</button>
+                          </div>
+                        </div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </>);})()} {/* fin resumen */}
+        </div>}
+        {/* ─── FINANCIERO (solo Stefy y Admin) ─── */}
+        {tab==="financiero"&&<div className="app-section" style={S.sec}>
+          {!canFinanciero?(
+            <div style={{textAlign:"center",padding:"60px 20px",color:"#aaa"}}>
+              <div style={{fontSize:40,marginBottom:12}}>🔒</div>
+              <div style={{fontSize:16}}>Acceso restringido</div>
+            </div>
+          ):(()=>{
+            const finSubNav=(
+              <div style={{display:"flex",gap:6,marginBottom:14,background:"#E8F9FB",borderRadius:14,padding:4}}>
+                {[{id:"resumen",l:"📊 Resumen"},{id:"cxp",l:"💳 CxP"},{id:"compras",l:"🚢 Compras"},{id:"resultados",l:"📈 Resultados"}].map(s=>(
+                  <button key={s.id} onClick={()=>setFinSub(s.id)} style={{flex:1,padding:"8px 4px",border:"none",borderRadius:10,fontSize:12,fontWeight:finSub===s.id?700:400,background:finSub===s.id?"#fff":"transparent",color:finSub===s.id?"#1BB6C8":"#888",cursor:"pointer",boxShadow:finSub===s.id?"0 2px 8px rgba(27,182,200,0.15)":"none"}}>
+                    {s.l}
+                  </button>
+                ))}
+              </div>
+            );
+            return(<>{finSubNav}
+              {finSub==="resumen"&&(()=>{
+                const ANOS=["todos",...[...new Set(pedidos.map(p=>p.fecha?.split("-")[2]).filter(Boolean))].sort()];
+                const ped=filtroPeriodo(pedidos);
+                const abo=filtroPeriodo(abonos);
+                const tv=ped.reduce((s,p)=>s+p.total,0);
+                const tc=abo.reduce((s,a)=>s+a.monto,0);
+                const tp=tv-tc;
+                const pct=tv>0?Math.round((tc/tv)*100):0;
+                const byLive={};
+                ped.forEach(p=>{if(!byLive[p.live])byLive[p.live]={live:p.live,v:0,n:0};byLive[p.live].v+=p.total;byLive[p.live].n++;});
+                const livesD=Object.values(byLive).sort((a,b)=>b.v-a.v);
+                const maxV=livesD[0]?.v||1;
+                const byC={};
+                ped.forEach(p=>{if(!byC[p.cliente])byC[p.cliente]={c:p.cliente,t:0,n:0};byC[p.cliente].t+=p.total;byC[p.cliente].n++;});
+                const topC=Object.values(byC).sort((a,b)=>b.t-a.t).slice(0,8);
+                return(<>
+                  {/* Filtro de período */}
+                  <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center",background:"#E8F9FB",borderRadius:12,padding:"10px 12px"}}>
+                    <span style={{fontSize:11,color:"#1BB6C8",fontWeight:700,flexShrink:0}}>📅 PERÍODO</span>
+                    <select style={{...S.inp,flex:1,fontSize:12,padding:"6px 10px"}} value={resMes} onChange={e=>setResMes(e.target.value)}>
+                      <option value="todos">Todos los meses</option>
+                      {MESES.map(m=><option key={m} value={m}>{m}</option>)}
+                    </select>
+                    <select style={{...S.inp,width:90,fontSize:12,padding:"6px 10px"}} value={resAno} onChange={e=>setResAno(e.target.value)}>
+                      <option value="todos">Todos</option>
+                      {ANOS.filter(a=>a!=="todos").map(a=><option key={a} value={a}>{a}</option>)}
+                    </select>
                   </div>
-                  <div style={{textAlign:"right",flexShrink:0}}>
-                    <div style={{color:"#F0057F",fontWeight:800,fontSize:17}}>${c.saldo.toFixed(2)}</div>
-                    <div style={{fontSize:10,marginTop:3,color:c.ta>=10?"#2D6A4F":"#E07040"}}>{c.ta>=10?"✓ con abono":"sin abono"}</div>
-                    {c.p&&<div style={{fontSize:10,color:"#F0057F",marginTop:2}}>ver datos envío ›</div>}
+                  <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+                    {[{l:"Total Ventas",v:"$"+tv.toFixed(2),c:"#1BB6C8",bg:"#E8F9FB",i:"🛍"},{l:"Total Cobrado",v:"$"+tc.toFixed(2),c:"#2D6A4F",bg:"#E6F4EC",i:"💵"},{l:"Por Cobrar",v:"$"+tp.toFixed(2),c:"#F0057F",bg:"#FFF0F8",i:"⏳"},{l:"% Cobrado",v:pct+"%",c:pct>=80?"#2D6A4F":pct>=50?"#B7570A":"#F0057F",bg:pct>=80?"#E6F4EC":pct>=50?"#FFF5E0":"#FFF0F8",i:"📈"}].map(k=>(
+                      <div key={k.l} style={{background:k.bg,borderRadius:16,padding:"14px 12px",textAlign:"center"}}>
+                        <div style={{fontSize:20,marginBottom:4}}>{k.i}</div>
+                        <div style={{fontSize:10,color:"#AAA",letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>{k.l}</div>
+                        <div style={{fontSize:20,fontWeight:900,color:k.c}}>{k.v}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {livesD.length>0&&<div style={{background:"#fff",borderRadius:18,padding:"16px 14px",marginBottom:12,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+                    <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:"#1A1A1A",marginBottom:14,textTransform:"uppercase"}}>Ventas por Live</div>
+                    {livesD.slice(0,10).map(d=>(
+                      <div key={d.live} style={{marginBottom:10}}>
+                        <div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:13}}>
+                          <span style={{fontWeight:600,color:"#333"}}>{d.live}</span>
+                          <span style={{color:"#1BB6C8",fontWeight:700}}>${d.v.toFixed(2)} <span style={{color:"#AAA",fontWeight:400}}>({d.n} prendas)</span></span>
+                        </div>
+                        <div style={{background:"#F0FBFD",borderRadius:6,height:8,overflow:"hidden"}}>
+                          <div style={{height:"100%",background:"linear-gradient(90deg,#1BB6C8,#0E9CAD)",width:Math.round((d.v/maxV)*100)+"%",borderRadius:6}}/>
+                        </div>
+                      </div>
+                    ))}
+                  </div>}
+                  {topC.length>0&&<div style={{background:"#fff",borderRadius:18,padding:"16px 14px",marginBottom:12,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
+                    <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:"#1A1A1A",marginBottom:14,textTransform:"uppercase"}}>Top Clientes</div>
+                    {topC.map((c,i)=>{
+                      const ab=abonos.filter(a=>a.cliente===c.c).reduce((s,a)=>s+a.monto,0);
+                      return(<div key={c.c} style={{display:"flex",alignItems:"center",gap:10,padding:"9px 0",borderBottom:i<topC.length-1?"1px solid #F5EDE4":"none"}}>
+                        <div style={{width:26,height:26,borderRadius:"50%",background:"linear-gradient(135deg,#1BB6C8,#0E9CAD)",display:"flex",alignItems:"center",justifyContent:"center",color:"#fff",fontWeight:800,fontSize:12,flexShrink:0}}>{i+1}</div>
+                        <div style={{flex:1}}><div style={{fontSize:13,fontWeight:700,color:"#1A1A1A"}}>{c.c}</div><div style={{fontSize:11,color:"#AAA"}}>{c.n} compras</div></div>
+                        <div style={{textAlign:"right"}}><div style={{fontSize:14,fontWeight:800,color:"#1BB6C8"}}>${c.t.toFixed(2)}</div>{(c.t-ab)>0&&<div style={{fontSize:10,color:"#F0057F"}}>debe ${(c.t-ab).toFixed(2)}</div>}</div>
+                      </div>);
+                    })}
+                  </div>}
+                </>);
+              })()}
+
+
+            {/* ──── CxP — TARJETAS ──── */}
+            {finSub==="cxp"&&(()=>{
+              const totalDeuda=tarjetas.reduce((s,t)=>s+saldoTarjeta(t.id),0);
+              const totalCxC=clientesConSaldo.reduce((s,c)=>s+c.saldo,0);
+              return(<>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+                  <div style={{background:"#FFF0F8",borderRadius:14,padding:"14px 12px",textAlign:"center"}}>
+                    <div style={{fontSize:9,color:"#F0057F",letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Por Cobrar (CxC)</div>
+                    <div style={{fontSize:20,fontWeight:900,color:"#F0057F"}}>${totalCxC.toFixed(2)}</div>
+                  </div>
+                  <div style={{background:"#FFF5E0",borderRadius:14,padding:"14px 12px",textAlign:"center"}}>
+                    <div style={{fontSize:9,color:"#B7570A",letterSpacing:1,textTransform:"uppercase",marginBottom:4}}>Por Pagar (CxP)</div>
+                    <div style={{fontSize:20,fontWeight:900,color:"#B7570A"}}>${totalDeuda.toFixed(2)}</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+                <div style={{background:totalCxC>=totalDeuda?"#E6F4EC":"#FFF0F8",borderRadius:14,padding:"12px 14px",marginBottom:14,textAlign:"center"}}>
+                  <div style={{fontSize:10,color:"#888",letterSpacing:1}}>POSICIÓN NETA</div>
+                  <div style={{fontSize:22,fontWeight:900,color:totalCxC>=totalDeuda?"#2D6A4F":"#F0057F"}}>{totalCxC>=totalDeuda?"+":""}{(totalCxC-totalDeuda).toFixed(2)}</div>
+                </div>
+                {/* Tarjetas */}
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                  <div style={{fontSize:12,fontWeight:700,letterSpacing:1,textTransform:"uppercase",color:"#1A1A1A"}}>Mis Tarjetas</div>
+                  <button onClick={()=>{setEditingTarjetaId(null);setTarjetaForm({nombre:"",banco:"",limite:"",color:"#1BB6C8"});setShowTarjetaModal(true);}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>+ Tarjeta</button>
+                </div>
+                {tarjetas.length===0?<div style={{textAlign:"center",color:"#aaa",padding:"16px",fontSize:13}}>No hay tarjetas registradas</div>:
+                  tarjetas.map(t=>{
+                    const saldo=saldoTarjeta(t.id);
+                    const historial=cargosTarjeta.filter(c=>c.tarjetaId===t.id).slice(-4).reverse();
+                    const ecsTarjeta=estadosCuenta.filter(ec=>ec.tarjetaId===t.id).sort((a,b)=>b.id-a.id);
+                    const isECOpen=expandedECTarjeta===t.id;
+                    return(
+                      <div key={t.id} style={{background:"#fff",borderRadius:16,padding:"14px",marginBottom:10,boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:14,fontWeight:800,color:"#1A1A1A"}}>{t.nombre}</div>
+                            <div style={{fontSize:11,color:"#AAA"}}>{t.banco}{t.limite?" · Límite: $"+t.limite:""}</div>
+                          </div>
+                          <div style={{textAlign:"right",display:"flex",alignItems:"center",gap:8}}>
+                            <div>
+                              <div style={{fontSize:18,fontWeight:900,color:"#B7570A"}}>${saldo.toFixed(2)}</div>
+                              <div style={{fontSize:10,color:"#AAA"}}>saldo deuda</div>
+                            </div>
+                            {canAdmin&&<div style={{display:"flex",flexDirection:"column",gap:4}}>
+                              <button onClick={()=>{setEditingTarjetaId(t.id);setTarjetaForm({nombre:t.nombre,banco:t.banco||"",limite:t.limite||"",color:t.color||"#1BB6C8"});setShowTarjetaModal(true);}} style={{background:"#E8F9FB",color:"#1BB6C8",border:"none",borderRadius:6,padding:"4px 8px",fontSize:11,cursor:"pointer",fontWeight:700}}>✏️</button>
+                              <button onClick={()=>eliminarTarjeta(t.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:6,padding:"4px 8px",fontSize:11,cursor:"pointer",fontWeight:700}}>🗑</button>
+                            </div>}
+                          </div>
+                        </div>
+                        <div style={{display:"flex",gap:6,marginBottom:8}}>
+                          <button onClick={()=>{setCargoForm(f=>({...f,tarjetaId:t.id,tipo:"cargo"}));setShowCargoModal(true);}} style={{flex:1,background:"#FFF0F8",color:"#F0057F",border:"none",borderRadius:8,padding:"7px",fontSize:11,fontWeight:700,cursor:"pointer"}}>+ Cargo</button>
+                          <button onClick={()=>{setCargoForm(f=>({...f,tarjetaId:t.id,tipo:"abono"}));setShowCargoModal(true);}} style={{flex:1,background:"#E6F4EC",color:"#2D6A4F",border:"none",borderRadius:8,padding:"7px",fontSize:11,fontWeight:700,cursor:"pointer"}}>+ Abono</button>
+                          <button onClick={()=>{setEcTarjetaId(t.id);setShowEstadoCuentaModal(true);}} style={{flex:1,background:"#E8F9FB",color:"#1BB6C8",border:"none",borderRadius:8,padding:"7px",fontSize:11,fontWeight:700,cursor:"pointer"}}>+ Estado</button>
+                        </div>
+                        {historial.length>0&&<div style={{borderTop:"1px solid #F5EDE4",paddingTop:8,marginBottom:8}}>
+                          {historial.map(c=>(
+                            <div key={c.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:11,padding:"3px 0",color:"#555"}}>
+                              <span style={{flex:1}}>{c.fecha} · {c.descripcion||c.tipo}</span>
+                              <span style={{fontWeight:700,color:c.tipo==="cargo"?"#F0057F":"#2D6A4F",marginRight:6}}>{c.tipo==="cargo"?"+":"-"}${c.monto.toFixed(2)}</span>
+                              {canAdmin&&<button onClick={()=>eliminarCargo(c.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:4,padding:"2px 5px",fontSize:10,cursor:"pointer"}}>✕</button>}
+                            </div>
+                          ))}
+                        </div>}
+                        {ecsTarjeta.length>0&&<div>
+                          <button onClick={()=>setExpandedECTarjeta(isECOpen?null:t.id)} style={{width:"100%",background:"#F5FDFE",border:"1px solid #D0F2F6",borderRadius:8,padding:"6px",fontSize:11,color:"#1BB6C8",cursor:"pointer",fontWeight:600}}>
+                            {isECOpen?"▲ Ocultar":"▼"} Estados de cuenta ({ecsTarjeta.length})
+                          </button>
+                          {isECOpen&&<div style={{marginTop:6}}>
+                            {ecsTarjeta.map(ec=>(
+                              <div key={ec.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 0",borderBottom:"1px solid #F0FBFD",fontSize:12}}>
+                                <div>
+                                  <div style={{fontWeight:600}}>{ec.mes} {ec.ano}</div>
+                                  <div style={{fontSize:10,color:"#AAA"}}>Vence: {ec.fechaMaxPago||"N/D"} · {ec.fecha}</div>
+                                </div>
+                                <div style={{textAlign:"right"}}>
+                                  <div style={{fontWeight:800,color:"#B7570A"}}>${parseFloat(ec.montoTotal).toFixed(2)}</div>
+                                  {ec.archivoB64&&<a href={"data:"+ec.mediaType+";base64,"+ec.archivoB64} download={"estado-"+ec.mes+"-"+ec.ano+".pdf"} style={{fontSize:10,color:"#1BB6C8"}}>📄 Ver PDF</a>}
+                                </div>
+                              </div>
+                            ))}
+                          </div>}
+                        </div>}
+                      </div>
+                    );
+                  })
+                }
+              </>);
+            })()}
+
+            {/* ──── COMPRAS / IMPORTACIONES ──── */}
+            {finSub==="compras"&&(()=>{
+              const totalImportado=importaciones.reduce((s,i)=>s+i.costoTotal,0);
+              const estadoColor={"ingresada":"#FFF5E0","pagada":"#E8F9FB","recibida":"#E6F4EC"};
+              const estadoText={"ingresada":"#B7570A","pagada":"#1BB6C8","recibida":"#2D6A4F"};
+              const estadoLabel={"ingresada":"📋 Ingresada","pagada":"💳 Pagada","recibida":"✅ Recibida"};
+              const nextEstado={"ingresada":"pagada","pagada":"recibida"};
+              return(<>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+                  {[["Ingresadas",importaciones.filter(i=>i.estado==="ingresada"||!i.estado).length,"#B7570A"],
+                    ["Pagadas",importaciones.filter(i=>i.estado==="pagada").length,"#1BB6C8"],
+                    ["Recibidas",importaciones.filter(i=>i.estado==="recibida").length,"#2D6A4F"]].map(([l,v,c])=>(
+                    <div key={l} style={{background:"#fff",borderRadius:12,padding:"10px 8px",textAlign:"center",boxShadow:"0 2px 8px rgba(0,0,0,0.05)"}}>
+                      <div style={{fontSize:9,color:"#AAA",textTransform:"uppercase",letterSpacing:1}}>{l}</div>
+                      <div style={{fontSize:20,fontWeight:900,color:c}}>{v}</div>
+                    </div>
+                  ))}
+                </div>
+                <div style={{background:"linear-gradient(135deg,#1BB6C8,#0E9CAD)",borderRadius:14,padding:"12px 14px",marginBottom:14,color:"#fff",display:"flex",justifyContent:"space-between"}}>
+                  <div><div style={{fontSize:10,opacity:0.7}}>TOTAL IMPORTADO</div><div style={{fontSize:22,fontWeight:900}}>${totalImportado.toFixed(2)}</div></div>
+                  <div style={{textAlign:"right"}}><div style={{fontSize:10,opacity:0.7}}>IMPORTACIONES</div><div style={{fontSize:22,fontWeight:900}}>{importaciones.length}</div></div>
+                </div>
+                <button onClick={()=>{setImportItems([]);setShowImportModal(true);}} style={{...S.btnD,marginBottom:14}}>+ Nueva Importación</button>
+                {importaciones.length===0?<div style={{textAlign:"center",color:"#aaa",padding:"20px",fontSize:13}}>Sin importaciones</div>:
+                  [...importaciones].reverse().map(imp=>{
+                    const est=imp.estado||"ingresada";
+                    const canEdit=est!=="recibida";
+                    return(
+                      <div key={imp.id} style={{background:"#fff",borderRadius:16,padding:"14px",marginBottom:10,boxShadow:"0 2px 10px rgba(0,0,0,0.07)"}}>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:8}}>
+                          <div style={{flex:1}}>
+                            <div style={{fontSize:14,fontWeight:800,color:"#1A1A1A"}}>{imp.nombre}</div>
+                            <div style={{fontSize:11,color:"#AAA"}}>{imp.proveedor||"Sin proveedor"} · {imp.fecha}</div>
+                          </div>
+                          <div style={{textAlign:"right",flexShrink:0,marginLeft:10}}>
+                            <div style={{fontSize:16,fontWeight:900,color:"#1BB6C8"}}>${imp.costoTotal.toFixed(2)}</div>
+                            <div style={{fontSize:10,color:"#AAA"}}>${imp.costoUnit}/prenda</div>
+                          </div>
+                        </div>
+                        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                          <span style={{background:estadoColor[est]||"#F5F5F5",color:estadoText[est]||"#888",borderRadius:8,padding:"3px 10px",fontSize:11,fontWeight:700}}>{estadoLabel[est]||est}</span>
+                          <span style={{fontSize:11,color:"#888"}}>🧺 {imp.numPrendas} prendas · ${imp.costoUnit}/u</span>
+                        </div>
+                        {imp.items&&imp.items.length>0&&<div style={{background:"#F5FDFE",borderRadius:8,padding:"8px 10px",marginBottom:8}}>
+                          {imp.items.map((it,idx)=>(
+                            <div key={it.id||idx} style={{display:"flex",justifyContent:"space-between",fontSize:11,padding:"2px 0",color:"#555"}}>
+                              <span>{it.categoria==="ropa"?(it.tipoRopa?" "+it.tipoRopa:"")+" "+it.categoria:it.categoria}{it.talla?" T:"+it.talla:""}{it.descripcion?" - "+it.descripcion:""}</span>
+                              <span style={{fontWeight:700,color:"#1BB6C8"}}>{it.cantidad} uds</span>
+                            </div>
+                          ))}
+                        </div>}
+                        {imp.tarjetaId&&tarjetas.find(t=>t.id===imp.tarjetaId)&&<div style={{fontSize:11,color:"#888",marginBottom:8}}>💳 {tarjetas.find(t=>t.id===imp.tarjetaId)?.nombre}</div>}
+                        <div style={{display:"flex",gap:6}}>
+                          {canEdit&&nextEstado[est]&&<button onClick={()=>{setStatusImpId(imp.id);setStatusTarjetaId(imp.tarjetaId||"");setShowStatusModal(true);}} style={{flex:1,background:nextEstado[est]==="pagada"?"#FFF0F8":"#E8F9FB",color:nextEstado[est]==="pagada"?"#F0057F":"#1BB6C8",border:"none",borderRadius:8,padding:"8px",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                            {nextEstado[est]==="pagada"?"Marcar como Pagada →":"Marcar como Recibida →"}
+                          </button>}
+                          {canAdmin&&<button onClick={()=>eliminarImportacion(imp.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:8,padding:"8px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗑</button>}
+                        </div>
+                      </div>
+                    );
+                  })
+                }
+              </>);
+            })()}
+            {finSub==="resultados"&&(()=>{
+              const year=resAno!=="todos"?resAno:String(new Date().getFullYear());
+              const ANOS_DISP=["todos",...[...new Set([...abonos,...gastos,...importaciones].map(x=>x.fecha?.split("-")[2]).filter(Boolean))].sort()];
+              // Build monthly data
+              const dm=MESES.map(mes=>{
+                const ab=abonos.filter(a=>{const p=a.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
+                const ped=pedidos.filter(a=>{const p=a.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
+                const imps=importaciones.filter(i=>{if(i.estado!=="recibida")return false;const p=i.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
+                const gm=gastos.filter(g=>{const p=g.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
+                const cobrado=ab.reduce((s,a)=>s+a.monto,0);
+                const ventas=ped.reduce((s,p)=>s+p.total,0);
+                const costo=imps.reduce((s,i)=>s+i.costoTotal,0);
+                const srv=gm.filter(g=>g.tipo==="servientrega").reduce((s,g)=>s+g.monto,0);
+                const isd=gm.filter(g=>g.tipo==="isd").reduce((s,g)=>s+g.monto,0);
+                const int=gm.filter(g=>g.tipo==="interes").reduce((s,g)=>s+g.monto,0);
+                const otr=gm.filter(g=>g.tipo==="otro").reduce((s,g)=>s+g.monto,0);
+                const tGastos=srv+isd+int+otr;
+                return{mes,cobrado,ventas,costo,srv,isd,int,otr,tGastos,uBruta:cobrado-costo,uNeta:cobrado-costo-tGastos};
+              });
+              const tot={
+                cobrado:dm.reduce((s,d)=>s+d.cobrado,0),ventas:dm.reduce((s,d)=>s+d.ventas,0),
+                costo:dm.reduce((s,d)=>s+d.costo,0),srv:dm.reduce((s,d)=>s+d.srv,0),
+                isd:dm.reduce((s,d)=>s+d.isd,0),int:dm.reduce((s,d)=>s+d.int,0),
+                otr:dm.reduce((s,d)=>s+d.otr,0),tGastos:dm.reduce((s,d)=>s+d.tGastos,0),
+                uBruta:dm.reduce((s,d)=>s+d.uBruta,0),uNeta:dm.reduce((s,d)=>s+d.uNeta,0),
+              };
+              const fv=v=>v===0?"—":"$"+v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g,",");
+              const fc=v=>v===0?"—":v;
+              const cell=(v,bold,color)=>(<td style={{padding:"7px 10px",textAlign:"right",fontWeight:bold?"700":"400",color:color||"#333",whiteSpace:"nowrap",fontSize:12}}>{fv(v)}</td>);
+              const hdrCell=(label,cyan)=>(<th style={{padding:"7px 10px",textAlign:"right",fontSize:10,fontWeight:700,background:cyan?"#1BB6C8":"#1A1A1A",color:"#fff",whiteSpace:"nowrap",letterSpacing:0.5}}>{label}</th>);
+              const rows=[
+                {label:"💵 Cobrado (Ingresos)",key:"cobrado",section:"ingresos",bold:true,color:"#1BB6C8"},
+                {label:"🛍 Ventas (pedidos)",key:"ventas",section:"ingresos",bold:false,color:"#555"},
+                null,
+                {label:"🚢 Costo de Venta",key:"costo",section:"costo",bold:true,color:"#B7570A"},
+                null,
+                {label:"= Utilidad Bruta",key:"uBruta",section:"util",bold:true,isUtil:true},
+                null,
+                {label:"🚚 Servientrega",key:"srv",section:"gastos",bold:false,color:"#555"},
+                {label:"🏦 ISD",key:"isd",section:"gastos",bold:false,color:"#555"},
+                {label:"💳 Intereses",key:"int",section:"gastos",bold:false,color:"#555"},
+                {label:"📋 Otros",key:"otr",section:"gastos",bold:false,color:"#555"},
+                {label:"Total Gastos",key:"tGastos",section:"gastos",bold:true,color:"#F0057F"},
+                null,
+                {label:"= UTILIDAD NETA",key:"uNeta",section:"util",bold:true,isUtil:true,big:true},
+              ];
+              return(<>
+                {/* Year selector */}
+                <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
+                  <span style={{fontSize:11,color:"#1BB6C8",fontWeight:700}}>📅 AÑO:</span>
+                  <select style={{...S.inp,width:100,fontSize:12,padding:"6px 10px"}} value={resAno} onChange={e=>setResAno(e.target.value)}>
+                    {ANOS_DISP.map(a=><option key={a} value={a}>{a==="todos"?"Todos":a}</option>)}
+                  </select>
+                  <button onClick={()=>setShowGastoModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>+ Gasto</button>
+                </div>
+                {/* Monthly table */}
+                <div style={{overflowX:"auto",borderRadius:14,boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
+                  <table style={{borderCollapse:"collapse",minWidth:900,width:"100%",background:"#fff"}}>
+                    <thead>
+                      <tr>
+                        <th style={{padding:"8px 12px",textAlign:"left",fontSize:11,fontWeight:700,background:"#1A1A1A",color:"#fff",minWidth:160,position:"sticky",left:0}}>CONCEPTO</th>
+                        {dm.map(d=>hdrCell(d.mes.toUpperCase(),false))}
+                        {hdrCell("TOTAL "+year.toUpperCase(),true)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rows.map((row,ri)=>{
+                        if(row===null) return(<tr key={ri}><td colSpan={14} style={{height:4,background:"#F5FDFE"}}></td></tr>);
+                        const isNeg=row.isUtil&&tot[row.key]<0;
+                        const rowBg=row.section==="util"?(tot[row.key]>=0?"#F0FDFA":"#FFF0F8"):ri%2===0?"#FAFAFA":"#fff";
+                        const totColor=row.isUtil?(tot[row.key]>=0?"#2D6A4F":"#F0057F"):row.color||"#333";
+                        return(<tr key={row.key} style={{background:rowBg}}>
+                          <td style={{padding:"7px 12px",fontWeight:row.bold?"700":"400",color:row.color||"#333",fontSize:row.big?13:12,borderLeft:row.isUtil?"3px solid #1BB6C8":"none",position:"sticky",left:0,background:rowBg}}>{row.label}</td>
+                          {dm.map(d=>{
+                            const v=d[row.key];
+                            const c=row.isUtil?(v>=0?"#2D6A4F":"#F0057F"):row.color||"#333";
+                            return(<td key={d.mes} style={{padding:"7px 10px",textAlign:"right",fontSize:12,fontWeight:row.bold?"700":"400",color:v===0?"#CCC":c}}>{fv(v)}</td>);
+                          })}
+                          <td style={{padding:"7px 10px",textAlign:"right",fontWeight:"800",color:totColor,fontSize:row.big?14:12,background:"#E8F9FB"}}>{fv(tot[row.key])}</td>
+                        </tr>);
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                {/* Historial gastos */}
+                {gastos.filter(g=>{const p=g.fecha?.split("-");return p&&(resAno==="todos"||p[2]?.startsWith(year));}).length>0&&<div style={{background:"#fff",borderRadius:14,padding:"14px",marginTop:12,boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
+                  <div style={{fontSize:11,fontWeight:700,letterSpacing:1,color:"#1A1A1A",marginBottom:10,textTransform:"uppercase"}}>Detalle de gastos {year}</div>
+                  {[...gastos].filter(g=>{const p=g.fecha?.split("-");return p&&(resAno==="todos"||p[2]?.startsWith(year));}).reverse().map(g=>(
+                    <div key={g.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #F5F5F5",fontSize:12}}>
+                      <div style={{flex:1}}><span style={{fontWeight:600}}>{{"servientrega":"🚚","isd":"🏦","interes":"💳","otro":"📋"}[g.tipo]||"📋"} {g.descripcion||g.tipo}</span><br/><span style={{color:"#AAA",fontSize:10}}>{g.fecha}</span></div>
+                      <span style={{fontWeight:800,color:"#F0057F",marginRight:8}}>${g.monto.toFixed(2)}</span>
+                      {canAdmin&&<button onClick={()=>eliminarGasto(g.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:6,padding:"3px 7px",fontSize:11,cursor:"pointer"}}>✕</button>}
+                    </div>
+                  ))}
+                </div>}
+              </>);
+            })()}
+
+            </>);
+          })()}
         </div>}
 
       </div>
 
+
+      {/* MODAL ESTADO IMPORTACIÓN */}
+      {showStatusModal&&statusImpId&&(()=>{
+        const imp=importaciones.find(i=>i.id===statusImpId);
+        if(!imp) return null;
+        const est=imp.estado||"ingresada";
+        const nxt={"ingresada":"pagada","pagada":"recibida"}[est];
+        const isPagada=nxt==="recibida";
+        return(<div style={S.ov} onClick={()=>setShowStatusModal(false)}>
+          <div style={S.sh} onClick={e=>e.stopPropagation()}>
+            <div style={S.shT}>Cambiar estado</div>
+            <div style={{textAlign:"center",marginBottom:14}}>
+              <div style={{fontSize:14,fontWeight:700,color:"#1A1A1A",marginBottom:4}}>{imp.nombre}</div>
+              <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:8,fontSize:12}}>
+                <span style={{background:"#FFF5E0",color:"#B7570A",borderRadius:8,padding:"3px 10px",fontWeight:700}}>{est}</span>
+                <span>→</span>
+                <span style={{background:isPagada?"#E6F4EC":"#E8F9FB",color:isPagada?"#2D6A4F":"#1BB6C8",borderRadius:8,padding:"3px 10px",fontWeight:700}}>{nxt}</span>
+              </div>
+            </div>
+            {nxt==="pagada"&&<div style={{marginBottom:14}}>
+              <label style={S.lbl}>TARJETA CON QUE SE PAGÓ</label>
+              <select style={S.inp} value={statusTarjetaId} onChange={e=>setStatusTarjetaId(e.target.value)}>
+                <option value="">Sin tarjeta / efectivo</option>
+                {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre} — ${saldoTarjeta(t.id).toFixed(2)}</option>)}
+              </select>
+              <div style={{fontSize:11,color:"#1BB6C8",marginTop:4}}>Al confirmar se creará un cargo de ${imp.costoTotal.toFixed(2)} en la tarjeta seleccionada</div>
+            </div>}
+            <button onClick={()=>cambiarEstadoImport(statusImpId,nxt,statusTarjetaId)} style={{...S.btnD,background:nxt==="pagada"?"#F0057F":"#2D6A4F",marginBottom:8}}>
+              Confirmar → {nxt}
+            </button>
+            <button onClick={()=>setShowStatusModal(false)} style={S.cancelBtn}>Cancelar</button>
+          </div>
+        </div>);
+      })()}
+
+      {/* MODAL ESTADO DE CUENTA */}
+      {showEstadoCuentaModal&&<div style={S.ov} onClick={()=>setShowEstadoCuentaModal(false)}>
+        <div style={{...S.sh,maxHeight:"85vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>Cargar Estado de Cuenta</div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>TARJETA</label>
+            <select style={S.inp} value={ecTarjetaId} onChange={e=>setEcTarjetaId(e.target.value)}>
+              <option value="">Selecciona tarjeta...</option>
+              {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre}</option>)}
+            </select>
+          </div>
+          <div style={{display:"flex",gap:10,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>MES</label>
+              <select style={S.inp} value={ecMes} onChange={e=>setEcMes(e.target.value)}>
+                <option value="">Selecciona...</option>
+                {MESES.map(m=><option key={m} value={m}>{m}</option>)}
+              </select>
+            </div>
+            <div style={{flex:1}}><label style={S.lbl}>AÑO</label>
+              <input style={S.inp} value={ecAno} onChange={e=>setEcAno(e.target.value)} placeholder="2026"/></div>
+          </div>
+          <div style={{display:"flex",gap:10,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>MONTO TOTAL ($)</label>
+              <input type="number" style={S.inp} placeholder="0.00" value={ecMonto} onChange={e=>setEcMonto(e.target.value)}/></div>
+            <div style={{flex:1}}><label style={S.lbl}>FECHA MÁX. PAGO</label>
+              <input style={S.inp} placeholder="14-Jun-2026" value={ecFechaMax} onChange={e=>setEcFechaMax(e.target.value)}/></div>
+          </div>
+          <div style={{marginBottom:14}}>
+            <label style={S.lbl}>PDF DEL ESTADO DE CUENTA</label>
+            <input ref={ecFileRef} type="file" accept="application/pdf,image/*" style={{display:"none"}} onChange={handleEcFile}/>
+            <button onClick={()=>ecFileRef.current.click()} style={S.btnComp}>
+              {ecFilePrev?"📎 Archivo cargado — toca para cambiar":"📄 Subir PDF o imagen"}
+            </button>
+            {ecFilePrev&&<div style={{fontSize:11,color:"#2D6A4F",marginTop:4}}>✓ Archivo listo para guardar</div>}
+          </div>
+          <button onClick={guardarEstadoCuenta} disabled={!ecTarjetaId||!ecMonto} style={{...S.btnD,opacity:(!ecTarjetaId||!ecMonto)?0.4:1,marginBottom:8}}>Guardar</button>
+          <button onClick={()=>setShowEstadoCuentaModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* MODAL GASTO */}
+      {showGastoModal&&<div style={S.ov} onClick={()=>setShowGastoModal(false)}>
+        <div style={S.sh} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>Registrar Gasto</div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>TIPO</label>
+            <select style={S.inp} value={gastoForm.tipo} onChange={e=>setGastoForm(f=>({...f,tipo:e.target.value,tarjetaId:""}))}>
+              <option value="servientrega">🚚 Servientrega</option>
+              <option value="isd">🏦 Impuesto Salida Divisas</option>
+              <option value="interes">💳 Intereses Tarjeta</option>
+              <option value="otro">📋 Otro</option>
+            </select>
+          </div>
+          {gastoForm.tipo==="servientrega"&&<div style={{marginBottom:10}}>
+            <label style={S.lbl}>CARGAR XMLs DEL SRI (uno o varios)</label>
+            <input ref={xmlSrvRef} type="file" accept=".xml" multiple style={{display:"none"}} onChange={e=>procesarXMLServientrega(e.target.files)}/>
+            <button onClick={()=>xmlSrvRef.current.click()} style={{...S.btnComp,marginBottom:4}}>📂 Cargar XMLs Servientrega</button>
+            <div style={{fontSize:10,color:"#AAA"}}>Se sumará el importeTotal de cada XML y se auto-llenará el monto</div>
+          </div>}
+          {gastoForm.tipo==="interes"&&tarjetas.length>0&&<div style={{marginBottom:10}}>
+            <label style={S.lbl}>TARJETA</label>
+            <select style={S.inp} value={gastoForm.tarjetaId} onChange={e=>setGastoForm(f=>({...f,tarjetaId:e.target.value}))}>
+              <option value="">Sin tarjeta específica</option>
+              {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre}</option>)}
+            </select>
+          </div>}
+          {gastoForm.tipo==="isd"&&tarjetas.length>0&&<div style={{marginBottom:10}}>
+            <label style={S.lbl}>TARJETA RELACIONADA</label>
+            <select style={S.inp} value={gastoForm.tarjetaId} onChange={e=>setGastoForm(f=>({...f,tarjetaId:e.target.value}))}>
+              <option value="">Sin tarjeta específica</option>
+              {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre}</option>)}
+            </select>
+          </div>}
+          <div style={{marginBottom:10}}><label style={S.lbl}>DESCRIPCIÓN</label>
+            <input style={S.inp} placeholder="Detalle del gasto..." value={gastoForm.descripcion} onChange={e=>setGastoForm(f=>({...f,descripcion:e.target.value}))}/></div>
+          <div style={{display:"flex",gap:10,marginBottom:14}}>
+            <div style={{flex:1}}><label style={S.lbl}>MONTO ($)</label>
+              <input type="number" style={S.inp} placeholder="0.00" value={gastoForm.monto} onChange={e=>setGastoForm(f=>({...f,monto:e.target.value}))}/></div>
+            <div style={{flex:1}}><label style={S.lbl}>FECHA</label>
+              <input style={S.inp} placeholder={hoy()} value={gastoForm.fecha} onChange={e=>setGastoForm(f=>({...f,fecha:e.target.value}))}/></div>
+          </div>
+          <button onClick={guardarGasto} disabled={!gastoForm.monto} style={{...S.btnD,opacity:!gastoForm.monto?0.4:1,marginBottom:8}}>Registrar Gasto</button>
+          <button onClick={()=>setShowGastoModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
       {/* BOTTOM NAV */}
       <div id="app-bnav" style={S.bnav}>
-        {[{id:"pedido",icon:"🛍",l:"Pedido"},{id:"pago",icon:"💵",l:"Pago"},{id:"inventario",icon:"📦",l:"Stock"},{id:"clientes",icon:"👥",l:"Clientes"},{id:"saldos",icon:"📋",l:"Saldos"}].map(t=>(
+        {[{id:"pedido",icon:"🛍",l:"Pedido"},{id:"pago",icon:"💵",l:"Pago"},{id:"inventario",icon:"📦",l:"Stock"},{id:"clientes",icon:"👥",l:"Clientes"},{id:"saldos",icon:"📋",l:"Saldos"},...(canFinanciero?[{id:"financiero",icon:"📊",l:"Finanzas"}]:[])].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{...S.navI,color:tab===t.id?"#F0057F":"#CCC"}}>
             <span style={{fontSize:18}}>{t.icon}</span>
             <span style={{fontSize:isDesk?13:9,fontWeight:tab===t.id?700:400,marginTop:isDesk?0:1}}>{t.l}</span>
@@ -875,8 +1754,9 @@ const st={
 
 function Root() {
   const [authed, setAuthed] = React.useState(!!getSesion());
-  if (!authed) return <LoginScreen onLogin={() => setAuthed(true)}/>;
-  return <App onLogout={cerrarSesion}/>;
+  const [currentUser, setCurrentUser] = React.useState(getSesion()||"");
+  if (!authed) return <LoginScreen onLogin={(u)=>{setAuthed(true);setCurrentUser(u);}}/>;
+  return <App onLogout={cerrarSesion} currentUser={currentUser}/>;
 }
 ReactDOM.createRoot(document.getElementById('root')).render(<Root/>);
 </script>
