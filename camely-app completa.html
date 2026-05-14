@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>CAMELY — Gestión de Pedidos</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #FDF6F0; font-family: Georgia, serif; }
+    input, button, select { font-family: inherit; }
+    input:focus { outline: 2px solid #C45C26; outline-offset: 1px; }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: #EDE0D7; border-radius: 4px; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ═══════════════════════════════════════════════════════════════
+// CONFIGURACIÓN — CAMBIA ESTA URL POR LA DE TU APPS SCRIPT
+// ═══════════════════════════════════════════════════════════════
+const SHEETS_URL = "https://script.google.com/macros/s/AKfycbweDlQ47XST6YezmFLu3E5ihs_GyurM6Q2Tm7JSa465h0n6fLIYYVhCU236TSCMehVg/exec";
+// ═══════════════════════════════════════════════════════════════
+
+// ─── STORAGE: localStorage (instantáneo) + Google Sheets (sync) ───
+function lSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} }
+function lGet(k)    { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } }
+function lSetS(k,v) { try { localStorage.setItem(k, v); } catch {} }
+function lGetS(k)   { try { return localStorage.getItem(k); } catch { return null; } }
+
+function sheetsSync(action, data) {
+  if (!SHEETS_URL || SHEETS_URL.includes("PEGA")) return;
+  fetch(SHEETS_URL, {
+    method: "POST", mode: "no-cors",
+    headers: {"Content-Type": "text/plain"},
+    body: JSON.stringify({action, data})
+  }).catch(() => {});
+}
+
+async function sheetsLoad() {
+  if (!SHEETS_URL || SHEETS_URL.includes("PEGA")) return null;
+  try {
+    const res = await fetch(SHEETS_URL + "?action=getAll&t=" + Date.now());
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.error ? null : data;
+  } catch { return null; }
+}
+
+const CATS = ["Ropa","Zapatos","Carteras","Accesorios","Perfumes","Otros"];
+const CLIENTES_SEED = ["ABIGAIL PANCHIS","ABIGAIL SUAREZ","ADRIANA AMEZAGA","ADRIANA MOSQUERA","ADRIANA SISALEMA","ALE TIPICO","ALEJANDRA 07","ALEJANDRA TIPICO","ALEJANDRO BURGOS","ALEXANDRA AVILA","ALEXANDRA BRAVO","ALEXI MOREIRA","ALEXIS MOREIRA","ALIS ANTUÑEZ","ALONDRA","ALONDRITA","AMANDA ORDOÑEZ","AMCELY POSLIGUA","AMELIA YAGUAL","ANA VALERO","ANA ZAMBRANO","ANABEL CUNISCUMA","ANAHI","ANAHI LEON","ANCELI POSLIGUA","ANDREA MAJO","ANDREA NOBOA","ANDREA SISA","ANDREA TITO","ANDREA VARGAS","ANDRES GUERRERO","ANGELICA A","ANGIE","ANGIE SERRANO","ANGIE VARGAS","ANGRY BRAVO","ANGY MORAN","ANGY SERRANO","ANGY VARGAS","ANI ALCIVAR","ANIKITA","ARACELY","ARELIS SANCAN","ARELYS SACAN","ASHLEY TORRES","AZUCENA AVILA","BARZOLA","BEATRIZ RIVERA","BELEN MORAN","BELGICA","BELLA SUAREZ","BRIGITTE","CABANILLA","CANDIDA","CANDY SHOP","CARITO DELGADO","CARLA TAPIA","CARLOS REQUENA","CARMEN ACOSTA","CAROLA","CECIBEL VIVAS","CHIKI ZAMBRANO","CINDY BODERO","CINTHIA","CINTHIA LUCERO","CINTHIA RG","CLAUDIA","CRIS 46","DAISY OLIVO","DANIELA GUEVARA","DARI PACHO","DAYSI CALVA","DAYSI OLIVO","DENIS FAJARDO","DENIS FERNANDEZ","DENIS LINDAO","DENISSE FERNANDEZ","DIANA BARRAGAN","DIANA CHACON","DIANA ORTEGA","DIANA PEREZ","DIANA PILLAJO","DIANA PINCAY","DOLORES CEVALLOS","DORIS GARCIA","EDITH DELGADO","ELI REA","ELIANA CEDEÑO","ELIANA MOREIRA","ELIZABETH CAMPUZANO","ELIZABETH MORAN","ELIZABETH NUEVO","ELIZABETH ZAMBRANO","ELSI GARCIA","EMILY MORALES","ENRIQUE KARLA","ERIKA ARTEAGA","ERIKA MIÑAN","ERIKA MOREIRA","ESTEFANIA CORONEL","ESTEFANIA FRANCO","ESTHER","EVELYN","EVELYN LEON","EVELYN MEJIA","EVELYN PARRALES","FABIOLA MONSERRATE","FANNY","FATIMA FRANCO","FERNANDA CHOEZ","FORTY","GABRIELA BAQUE","GABRIELA CONTRERAS","GABRIELA GUEVARA","GABRIELA MENDOZA","GABY CONTRERAS","GEANELLA","GEORGE","GIOMARY FIGUEROA","GISELLA HOLGUIN","GISELLA PARRAGA","GLORIA GARCIA","GRACE","GUISEL","HELEN LINO","IMELDA AREVALO","INES","IRENE","IVANNA","JANINA","JEANET MARTINEZ","JENIFER CARRANZA","JENNY VERA","JESSENIA","JESSENIA ROXANA","JESSI DELPA","JESSICA OROZCO","JESSY DELPA","JESSY LINDAO","JESSY NUEVO","JESY DELPA","JOEL","JOHANA ESPINOZA","JOHANA YELA","JOSUE BENITEZ","JUANA MUÑOZ","JUDITH","JULIANA","JULISA DUARTE","JULISSA DUARTE","JULITSA JURADO","JULY","JUVIANA CEVALLOS","KARELYS","KARELYS BZ","KAREN ESPINOZA","KAREN FLORES","KAREN MACIAS","KAREN SACON","KAREN VASQUEZ","KARINA SANCHEZ","KARITO DELGADO","KARLA BAQUE","KARLA SALINAS","KARLA TAPIA","KARLA ZAMORA","KARLITA SUAREZ","KATHERINE ORELLANA","KATHERINE QUIMIS","KATITO","KATITO CHAVEZ","KATIUSKA LOOR","KATRINA","KATTY CHOEZ","KATTY ELIZA","KATTY QUIMIS","KATY ELISA","KATY ISAMAR","KATY NOEMI","KATY SALTOS","KATY YANE","KENDRA","KENYA","KENYA MARIA","KERLY FLORES","KERLY GARCIA","KERLY LISSETTE","KEYLA","KIARA","KRIS","KRISTEL LLERENA","KRISTI DURAN","LADY CLOSET","LADY HERRERA","LADY ROCA","LAURA DURAN","LEONELA CEPEDA","LESLI ROBLES","LESLI ROCA","LESLIE","LESLIE BENITEZ","LESLIE ROCA","LILI POZO","LILI ROBLES","LILIAN VALDIVIESO","LISSETTE","LISSETTE MERCHAN","LIZ ALCIVAR","LOLI","LORDES VERA","LORE","LOURDES VERA","LUCIA","LULU","MABEL HOLGUIN","MAFER CELI","MAGDALENA RIVERA","MAJO FREIRE","MALEH","MALULI MIRANDA","MAMA DE ANDRES GUERRERO","MARCELA ORDOÑEZ","MARCOS GONZALEZ","MARIA ALEJANDRA","MARIA ALVAREZ","MARIA ESPINOZA","MARIA FELIX","MARIA JOSE","MARIA MORA","MARICELA CORDOVA","MARIO MOREIRA","MARIUXI MELENDRES","MARIUXI ZHINDON","MARJORIE CACERES","MARLIN TOALA","MARTHA CABANILLA","MARY MERCHAN","MAY GUZMAN","MAYLI PINCAY","MAYRA ALEJANDRA","MAYRA GLENDA","MAYRA GUAPI","MAYRA LOPEZ","MEGAN","MEI GUZMAN","MELANIE DENISS","MELANIE MORALES","MELANIE NIC","MELFI TOVAR","MELI","MELISA ESPINOZA","MELISA MARCO","MERCY MIRABA","MEY GUZMAN","MICA","MICHELLE BUITRON","MICHELLE CONSTANTE","MICHELLE MALDONADO","MICHI","MILI","MIRELLA","MIRKA BUSTILLOS","MISHELL BUITRON","MISHELL CONSTANTE","MISS DIANA","MISS ERICKA","MISS ROSITA","MONCHIS","MONICA FALCONI","MORAIMA","NARDI","NATALI INTRIAGO","NATALY","NATALY CAIZA","NATALY CERVANTES","NATALY INTRIAGO","NATALY NUEVO","NATALY VIVERO","NEFERTARY","NENA","NENITA","NIKI","NILI","NOEMI DAULE","NOVIO MAYLIN","ODALYS SALAZAR","OJITOS SARITA","OMY","PAMELA","PAMELA VARGAS","PAOLA PILA","PAOLA PRIMA","PAOLA SANCHEZ","PAOLA ZAMBRANO","PATRICIA NOBOA","PATY ZAMBRANO","PRIMA DE SOL","PRISCILA FLORES","RAFAELA","RAFFAELA","RENATA","RICKY","RINA VANESSA","ROCIO SANCHEZ","ROCIO YEPEZ","ROSA OLVERA","ROSA VALENCIA","ROXANA SERRANO","RUBY","SAIDA","SAIRA","SAMARA","SAMBITA","SANI SANCHEZ","SEBAS GARCIA","SHIRLEY PEÑAFIEL","SILVI","SILVIA ANCHUNDIA","SILVIA BORJA","SILVIA CARRASCO","SILVIA SANCHEZ","SOL KEVIN","SOLANGE","SONIA IBARRA","SRA MARTHA","STEFANIA CORONEL","STEFY","STEFY FRANCO","STEFY VALLEJO","TAMI","TAMY","TANYA MOREIRA","TEFY","TEVI","TIA BERTHA","TOÑO","VALESKA RUIZ","VANESSA PERALTA","VERONICA","VERONICA OLIVO","VERONICA SALAZAR","VERONICA VARGAS","VICTORIA","VIRGINA","VIVIANA CABRERA","VIVIANA REYES","WENDY AYONA","WENDY JIMENEZ","WENDY LEO","YADIRA OSORTO","YANIRA BARZOLA","YARELIS","YESSY NUEVO","YOKONDA MIRANDA","YUCHIKO ZUMBA","YULEXSI IZQUIERDO","YULI","YULIANA","YULISA DUARTE","YULISITA"];
+const K = { pedidos:"c-pedidos", abonos:"c-abonos", live:"c-live", clientes:"c-clientes", inventario:"c-inventario" };
+
+function hoy() {
+  const n=new Date(),d=n.getDate().toString().padStart(2,"0");
+  return `${d}-${["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][n.getMonth()]}-${n.getFullYear()}`;
+}
+function liveDefault(){ return "Live "+hoy(); }
+
+// localStorage + Sheets sync (see helpers above)
+
+function App(){
+  const [tab,setTab]=useState("pedido");
+  const [live,setLive]=useState(liveDefault());
+  const [pedidos,setPedidos]=useState([]);
+  const [abonos,setAbonos]=useState([]);
+  const [clientes,setClientes]=useState([]);
+  const [inventario,setInventario]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [toast,setToast]=useState(null);
+
+  const [labelItem,setLabelItem]=useState(null);
+  const [showLiveModal,setShowLiveModal]=useState(false);
+  const [liveInput,setLiveInput]=useState("");
+  const [showInvPicker,setShowInvPicker]=useState(false);
+  const [showClienteModal,setShowClienteModal]=useState(false);
+  const [editingCliente,setEditingCliente]=useState(null);
+  const [showPerfilModal,setShowPerfilModal]=useState(null);
+  const [showInvModal,setShowInvModal]=useState(false);
+  const [editingInv,setEditingInv]=useState(null);
+
+  const [form,setForm]=useState({cliente:"",prenda:"",pvp:"",qty:"1",invId:null});
+  const [showCS,setShowCS]=useState(false);
+  const [pagoF,setPagoF]=useState({cliente:"",monto:"",nota:""});
+  const [showPS,setShowPS]=useState(false);
+  const [imgPrev,setImgPrev]=useState(null);
+  const [reading,setReading]=useState(false);
+  const fileRef=useRef();
+  const [cliF,setCliF]=useState({alias:"",nombre:"",cedula:"",telefono:"",tiktok:"",whatsapp:""});
+  const [searchCli,setSearchCli]=useState("");
+  const [invF,setInvF]=useState({descripcion:"",categoria:"Ropa",talla:"",qty:"",precio:"",importacion:""});
+  const [searchInv,setSearchInv]=useState("");
+
+  useEffect(()=>{load();},[]);
+  async function load(){
+    // Try Google Sheets first, fallback to localStorage
+    let remote = await sheetsLoad();
+    const p   = remote?.pedidos    || lGet(K.pedidos)    || [];
+    const a   = remote?.abonos     || lGet(K.abonos)     || [];
+    const inv = remote?.inventario || lGet(K.inventario) || [];
+    const l   = remote?.live       || lGetS(K.live)      || liveDefault();
+    const c   = remote?.clientes   || lGet(K.clientes);
+    setPedidos(p); setAbonos(a); setInventario(inv); setLive(l);
+    const DR={
+      "SANY SANCHEZ":{nombre:"SANNY GALUD SANCHEZ FERNANDEZ",telefono:"0991250115",whatsapp:"0991250115",direccion:"MUCHO LOTE 2 URB VICTORIA DEL RIO MZ 2963 VILLA 21",ciudad:"GUAYAQUIL"},
+      "SANNI SANCHEZ":{nombre:"SANNY GALUD SANCHEZ FERNANDEZ",telefono:"0991250115",whatsapp:"0991250115",direccion:"MUCHO LOTE 2 URB VICTORIA DEL RIO MZ 2963 VILLA 21",ciudad:"GUAYAQUIL"},
+      "CARMEN ACOSTA":{nombre:"CARMEN ACOSTA CEVALLOS",telefono:"0983349560",whatsapp:"0983349560",direccion:"URB DURAN CITY ETAPA BROMELIA MZ11V 17 CERCA DEL PEAJE DURAN BOLICHE",ciudad:"DURAN"},
+      "VERONICA VARGAS":{nombre:"VERONICA VARGAS LOPEZ",telefono:"0991984681",whatsapp:"0991984681",direccion:"RETIRA EN CS - CALLE BOLIVAR S/N Y SUCRE MZ 7 SL 2 JTO A AGRIPAC",ciudad:"SAMBORONDON"},
+      "ANGIE VARGAS":{nombre:"ANGIE VARGAS CRUZ",telefono:"0988354701",whatsapp:"0988354701",direccion:"RETIRA EN CS - QUININDE PRINCIPAL AV 6 DE DICIEMBRE S/N Y GUSTAVO BECERRA",ciudad:"QUININDE"},
+      "ANGY VARGAS":{nombre:"ANGIE VARGAS CRUZ",telefono:"0988354701",whatsapp:"0988354701",direccion:"RETIRA EN CS - QUININDE PRINCIPAL AV 6 DE DICIEMBRE S/N Y GUSTAVO BECERRA",ciudad:"QUININDE"},
+      "KARLA TAPIA":{nombre:"KARLA MARIANA TAPIA SANCHEZ",telefono:"0985533227",whatsapp:"0985533227",direccion:"URB FUENTE DEL RIO KM 10.5 VIA SAMBORONDON MZ 21 V 11",ciudad:"GUAYAQUIL"},
+      "EVELYN MEJIA":{nombre:"EVELYN MEJIA SANCHEZ",telefono:"0982507567",whatsapp:"0982507567",direccion:"COOP GUERREROS DEL FORTIN MZ 1178 SL 5 AV CASUARIANA Y ENTRADA DE LA 8",ciudad:"GUAYAQUIL"},
+      "BELLA SUAREZ":{nombre:"BELLA ALEJANDRINA SUAREZ SALTOS",telefono:"0967251079",whatsapp:"0967251079",direccion:"GALLEGOS LARA Y CRISTOBAL COLON CASA DOS PISOS VERDE FRENTE A LUBRICADORA",ciudad:"GUAYAQUIL"},
+      "MAYRA ALEJANDRA":{nombre:"MAYRA ALEJANDRA LASLUISA GUAGALANGO",telefono:"0987624311",whatsapp:"0987624311",direccion:"RETIRA EN CS QUITO LOMA PUENGASI - CONSTANTINO FERNANDEZ S5-320 Y RICARDO IZURIETA",ciudad:"QUITO"},
+      "ANCELI POSLIGUA":{nombre:"ANCELY POSLIGUA SOTOMAYOR",telefono:"0982538725",whatsapp:"0982538725",direccion:"ALBORADA SEPTIMA ETAPA MZ 0728 REF ANTES DE CLINICA PROANO",ciudad:"GUAYAQUIL"},
+      "AMCELY POSLIGUA":{nombre:"ANCELY POSLIGUA SOTOMAYOR",telefono:"0982538725",whatsapp:"0982538725",direccion:"ALBORADA SEPTIMA ETAPA MZ 0728 REF ANTES DE CLINICA PROANO",ciudad:"GUAYAQUIL"},
+      "JEANET MARTINEZ":{nombre:"JANETH MARTINEZ PAGUAY",telefono:"0980293552",whatsapp:"0980293552",direccion:"VIA LA COSTA CHONGO COLIBRI 2 ESTACION DE LA 140 MZ 1 SOLAR 20",ciudad:"GUAYAQUIL"},
+      "ADRIANA AMEZAGA":{nombre:"ADRIANA AMEZAGA PAREDES",telefono:"0960140830",whatsapp:"0960140830",direccion:"CHIMBORAZO 1122 ENTRE AYACUCHO Y MANABI",ciudad:"GUAYAQUIL"},
+      "RINA VANESSA":{nombre:"RINA VANESA PUIG ORTEGA",telefono:"0981580730",whatsapp:"0981580730",direccion:"MAPASIGUE ESTE COOP JAIME POLITM 222 VILLA 3",ciudad:"GUAYAQUIL"},
+      "ANGY MORAN":{nombre:"ANGGI DAYANA MORAN DOMINGUEZ",telefono:"0989970299",whatsapp:"0989970299",direccion:"CDLA PEDRO MENENDEZ GILBERT MZ 15 SL 8 DIAG AL COMISARIATO CONSTRUCTOR 5 DE JUNIO",ciudad:"GUAYAQUIL"},
+      "WENDY JIMENEZ":{nombre:"WENDY JIMENEZ",telefono:"0990276681",whatsapp:"0990276681",direccion:"RETIRA EN CS - TERMINAL TERRESTRE GYE DR JAIME ROLDOS AGUILERA LOCAL 47",ciudad:"GUAYAQUIL"},
+      "KRISTEL LLERENA":{nombre:"KRISTEL ELIZABETH LLERENA BALLESTEROS",telefono:"0968300414",whatsapp:"0968300414",direccion:"ESPEJO Y COLON PUERTA BLANCA",ciudad:"ESMERALDAS"},
+      "KRYSTEL LLERENA":{nombre:"KRISTEL ELIZABETH LLERENA BALLESTEROS",telefono:"0968300414",whatsapp:"0968300414",direccion:"ESPEJO Y COLON PUERTA BLANCA",ciudad:"ESMERALDAS"},
+      "MARICELA CORDOVA":{nombre:"MARICELA ISABEL CORDOVA QUICHIMBO",telefono:"0992426198",whatsapp:"0992426198",direccion:"CALLE MEXICO Y BRASIL",ciudad:"LOJA"},
+      "MARIA MORA":{nombre:"YETIVE MARIA MORA BURGOS",telefono:"0967280512",whatsapp:"0967280512",direccion:"RETIRA EN CS GYE PASCUALES AV 28 DE AGOSTO E/ CUARTA Y QUINTA FRTE AL TUTI",ciudad:"GUAYAQUIL"},
+      "LISSETTE MERCHAN":{nombre:"LISSETH GUSTYN MERCHAN MIRANDA",telefono:"0989779151",whatsapp:"0989779151",direccion:"SAN MARTIN Y LA 10MA #3504",ciudad:"GUAYAQUIL"},
+      "LISSETEE MERCHAN":{nombre:"LISSETH GUSTYN MERCHAN MIRANDA",telefono:"0989779151",whatsapp:"0989779151",direccion:"SAN MARTIN Y LA 10MA #3504",ciudad:"GUAYAQUIL"},
+      "FATIMA FRANCO":{nombre:"FATIMA MONSERRATE FRANCO TOMALA",telefono:"0968730974",whatsapp:"0968730974",direccion:"RETIRA EN CS - DAULE VILLA CLUB / LA AURORA CC PLAZA VICTORIA CLUB LOCAL 1A",ciudad:"DAULE"},
+      "LESLIE ROCA":{nombre:"LESLYE ROCA BORBOR",telefono:"0969245475",whatsapp:"0969245475",direccion:"AV 22 DE DICIEMBRE ENTRE CALLE 36 Y 41A CASA 4 PLANTAS VIDRIOS AZULES",ciudad:"SALINAS"},
+      "LESLY ROCA":{nombre:"LESLYE ROCA BORBOR",telefono:"0969245475",whatsapp:"0969245475",direccion:"AV 22 DE DICIEMBRE ENTRE CALLE 36 Y 41A CASA 4 PLANTAS VIDRIOS AZULES",ciudad:"SALINAS"},
+      "LESLI ROCA":{nombre:"LESLYE ROCA BORBOR",telefono:"0969245475",whatsapp:"0969245475",direccion:"AV 22 DE DICIEMBRE ENTRE CALLE 36 Y 41A CASA 4 PLANTAS VIDRIOS AZULES",ciudad:"SALINAS"},
+      "MARCOS GONZALEZ":{nombre:"MARCOS GEOVANNY GONZALEZ",telefono:"0984230218",whatsapp:"0984230218",direccion:"RETIRA EN CS - SALINAS SAN JOSE EDIFICIO GAMMA 5 LOCAL 5 JUNTO AL COLEGIO RUBIRA",ciudad:"SALINAS"},
+      "MARCOS GONZALES":{nombre:"MARCOS GEOVANNY GONZALEZ",telefono:"0984230218",whatsapp:"0984230218",direccion:"RETIRA EN CS - SALINAS SAN JOSE EDIFICIO GAMMA 5 LOCAL 5 JUNTO AL COLEGIO RUBIRA",ciudad:"SALINAS"},
+      "DIANA PILLAJO":{nombre:"DIANA PILLAJO FARIAS",telefono:"0939274691",whatsapp:"0939274691",direccion:"PARQUE HERRADURA 4TA ETAPA DEL RECREO",ciudad:"DURAN"},
+      "CECIBEL VIVAS":{nombre:"CECIBEL WILMARIA VIVAS CERNA",telefono:"0982876903",whatsapp:"0982876903",direccion:"RETIRA EN CS - GYE PARQUE CALIFORNIA KM 10.5 S/N VIA A DAULE",ciudad:"GUAYAQUIL"},
+      "LILI ROBLES":{nombre:"LILY ROBELES",telefono:"0969132768",whatsapp:"0969132768",direccion:"RETIRA EN CS - GYE MALL DEL FORTIN INMACONSA MZ 103 SL 2-3 LOCAL 112",ciudad:"GUAYAQUIL"},
+      "LESLIE BENITEZ":{nombre:"LESLY BENITEZ",telefono:"0968412033",whatsapp:"0968412033",direccion:"LIZARDO GARCIA ENTRE CALLE B Y CA LADO DE BAZAR FLOR MARIA",ciudad:"GUAYAQUIL"},
+      "LESLY BENITEZ":{nombre:"LESLY BENITEZ",telefono:"0968412033",whatsapp:"0968412033",direccion:"LIZARDO GARCIA ENTRE CALLE B Y CA LADO DE BAZAR FLOR MARIA",ciudad:"GUAYAQUIL"},
+      "JULITSA JURADO":{nombre:"YULITSA JURADO",telefono:"0993174811",whatsapp:"0993174811",direccion:"RETIRA EN CS - EL COCA CENTRO AV 9 DE OCTUBRE S/N Y RIO TIPUTINI",ciudad:"EL COCA"},
+      "PRISCILA FLORES":{nombre:"MARTHA PRISCILA FLORES ACOSTA",telefono:"0991894160",whatsapp:"0991894160",direccion:"VERA ERACLIDES LIZARDO GARCIA CATARAMA URADANETA",ciudad:"CATARAMA"},
+      "MAYRA LOPEZ":{nombre:"MAYRA LOPEZ",telefono:"0991116199",whatsapp:"0991116199",direccion:"RETIRA EN CS - GYE LOS ALMENDROS CDLA LOS ALMENDROS MZO SOLAR 34 FRENTE A DEPRATI SUR",ciudad:"GUAYAQUIL"},
+      "KATHERINE ORELLANA":{nombre:"JANETT KATHERINE ORELLANA VALENCIA",telefono:"0990836192",whatsapp:"0990836192",direccion:"RETIRA EN CS - GYE GUANGALA CALLE ERNESTO ALBAN MOSQUERA SOLAR 2 MZ E1 DIAG HOSP TEODORO MALDONADO",ciudad:"GUAYAQUIL"},
+    };
+    if(c&&c.length>0){
+      const enriched=c.map(cli=>{const x=DR[cli.alias];return(x&&!cli.nombre)?{...cli,...x}:cli;});
+      setClientes(enriched);lSet(K.clientes,enriched);sheetsSync("saveClientes",enriched);
+    } else {
+      const seeded=CLIENTES_SEED.map((alias,i)=>{const x=DR[alias]||{};return{id:i+1,alias,nombre:"",cedula:"",telefono:"",tiktok:"",whatsapp:"",direccion:"",ciudad:"",...x};});
+      setClientes(seeded);lSet(K.clientes,seeded);sheetsSync("saveClientes",seeded);
+    }
+    setLoading(false);
+  }
+  function toast_(msg,type="ok"){setToast({msg,type});setTimeout(()=>setToast(null),2600);}
+
+  const allAliases=[...new Set([...pedidos.map(p=>p.cliente),...abonos.map(a=>a.cliente),...clientes.map(c=>c.alias.toUpperCase())])].sort();
+  function perfil(alias){return clientes.find(c=>c.alias.toUpperCase()===alias?.toUpperCase());}
+  function balance(alias){
+    const tc=pedidos.filter(p=>p.cliente===alias).reduce((s,p)=>s+p.total,0);
+    const ta=abonos.filter(a=>a.cliente===alias).reduce((s,a)=>s+a.monto,0);
+    return{tc,ta,saldo:tc-ta};
+  }
+  function qtyR(item){
+    return item.qty-pedidos.filter(p=>p.invId===item.id).reduce((s,p)=>s+(p.qty||1),0);
+  }
+
+  const sugC=form.cliente.length>0?allAliases.filter(a=>a.includes(form.cliente.toUpperCase())).slice(0,5):[];
+  const sugP=pagoF.cliente.length>0?allAliases.filter(a=>a.includes(pagoF.cliente.toUpperCase())).slice(0,5):[];
+  const clientesConSaldo=allAliases.map(a=>({alias:a,p:perfil(a),...balance(a)})).filter(c=>c.saldo>0.009).sort((a,b)=>b.saldo-a.saldo);
+
+  const q=searchInv.trim().toLowerCase();
+  const invFiltrado=inventario.filter(i=>!q||
+    i.descripcion.toLowerCase().includes(q)||
+    i.categoria.toLowerCase().includes(q)||
+    (i.talla||"").toLowerCase().includes(q)||
+    (i.importacion||"").toLowerCase().includes(q)
+  );
+  const invDisp=inventario.filter(i=>qtyR(i)>0&&(!q||
+    i.descripcion.toLowerCase().includes(q)||
+    i.categoria.toLowerCase().includes(q)||
+    (i.talla||"").toLowerCase().includes(q)
+  ));
+
+  // ── PDF ──
+  function generarPDF(){
+    const rows=inventario.map(i=>{const r=qtyR(i);return{...i,rest:r,vendido:i.qty-r,valor:i.precio*r};});
+    const totUnid=rows.reduce((s,r)=>s+r.rest,0);
+    const totVend=rows.reduce((s,r)=>s+r.vendido,0);
+    const totValor=rows.reduce((s,r)=>s+r.valor,0);
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Inventario Valorado - CAMELY</title>
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;padding:24px;color:#222;font-size:12px}
+      .header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;border-bottom:3px solid #1A1A1A;padding-bottom:12px}
+      .brand{font-size:26px;font-weight:900;color:#1A1A1A;letter-spacing:-1px}
+      .brand span{color:#C45C26}
+      .meta{text-align:right;color:#888;font-size:11px;line-height:1.6}
+      table{width:100%;border-collapse:collapse;margin-top:4px}
+      th{background:#1A1A1A;color:#fff;padding:9px 10px;text-align:left;font-size:11px;letter-spacing:0.5px;text-transform:uppercase}
+      th.r,td.r{text-align:right}
+      td{padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top}
+      tr:nth-child(even) td{background:#fafafa}
+      .cat{font-size:10px;color:#AAA;margin-top:2px}
+      .talla{display:inline-block;background:#F5EDE4;color:#C45C26;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-top:3px}
+      .agotado{color:#D00;font-size:10px}
+      .bajo{color:#B7570A}
+      .ok{color:#2D6A4F}
+      .total-row td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26;padding-top:11px;padding-bottom:11px}
+      .grand{color:#C45C26;font-size:15px}
+      .footer{margin-top:20px;font-size:10px;color:#AAA;text-align:center}
+      @media print{body{padding:14px}button{display:none!important}}
+    </style></head><body>
+    <div class="header">
+      <div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Inventario Valorado</div></div>
+      <div class="meta">Generado: ${hoy()}<br>${rows.length} productos &nbsp;·&nbsp; ${totUnid} unidades disponibles<br>${totVend} unidades vendidas</div>
+    </div>
+    <table>
+      <thead><tr>
+        <th>Producto</th><th>Categoría</th><th>Talla</th>
+        <th class="r">Costo Unit.</th><th class="r">Ingresado</th>
+        <th class="r">Vendido</th><th class="r">Disponible</th><th class="r">Valor Stock</th>
+      </tr></thead>
+      <tbody>
+        ${rows.map(r=>`<tr>
+          <td><div style="font-weight:600">${r.descripcion}</div>${r.importacion?`<div class="cat">${r.importacion}</div>`:""}</td>
+          <td>${r.categoria}</td>
+          <td>${r.talla?`<span class="talla">${r.talla}</span>`:"-"}</td>
+          <td class="r">$${r.precio.toFixed(2)}</td>
+          <td class="r">${r.qty}</td>
+          <td class="r">${r.vendido}</td>
+          <td class="r ${r.rest<=0?"agotado":r.rest<=3?"bajo":"ok"}">${r.rest<=0?"Agotado":r.rest}</td>
+          <td class="r"><strong>$${r.valor.toFixed(2)}</strong></td>
+        </tr>`).join("")}
+        <tr class="total-row">
+          <td colspan="4"><strong>TOTAL INVENTARIO VALORADO</strong></td>
+          <td class="r">${rows.reduce((s,r)=>s+r.qty,0)}</td>
+          <td class="r">${totVend}</td>
+          <td class="r">${totUnid}</td>
+          <td class="r grand">$${totValor.toFixed(2)}</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="footer">CAMELY — Sistema de Gestión · ${hoy()}</div>
+    </body></html>`;
+    const w=window.open("","_blank");
+    w.document.write(html);
+    w.document.close();
+    setTimeout(()=>w.print(),600);
+  }
+
+  // ── PEDIDO ──
+  async function registrarPedido(){
+    if(!form.cliente.trim()||!form.pvp)return;
+    const qty=parseInt(form.qty)||1,pvp=parseFloat(form.pvp);
+    const item={id:Date.now(),fecha:hoy(),live,cliente:form.cliente.trim().toUpperCase(),prenda:form.prenda.trim()||"-",pvp,qty,total:pvp*qty,invId:form.invId||null};
+    const upd=[...pedidos,item];setPedidos(upd);lSet(K.pedidos,upd);sheetsSync("savePedidos",upd);
+    setLabelItem({...item,tiktok:perfil(item.cliente)?.tiktok||""});
+    setForm(f=>({...f,prenda:"",pvp:"",qty:"1",invId:null}));setShowCS(false);
+  }
+  function selInv(inv){setForm(f=>({...f,prenda:inv.descripcion,pvp:inv.precio.toString(),invId:inv.id}));setShowInvPicker(false);}
+
+  // ── PAGO ──
+  async function handleImg(e){
+    const file=e.target.files[0];if(!file)return;
+    const reader=new FileReader();
+    reader.onload=async()=>{
+      const b64=reader.result.split(",")[1],mime=file.type||"image/jpeg";
+      setImgPrev(reader.result);setReading(true);
+      try{
+        const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:60,messages:[{role:"user",content:[{type:"image",source:{type:"base64",media_type:mime,data:b64}},{type:"text",text:"Comprobante de pago bancario ecuatoriano. Responde SOLO con el monto numérico (ejemplo: 25.50). Sin texto, sin símbolo. Si no hay monto: 0"}]}]})});
+        const d=await res.json();const raw=d.content?.[0]?.text?.trim()||"0";
+        const amt=parseFloat(raw.replace(/[^0-9.]/g,""))||0;
+        if(amt>0){setPagoF(f=>({...f,monto:amt.toFixed(2)}));toast_("💡 Monto detectado: $"+amt.toFixed(2));}
+        else toast_("No pude leer el monto — ingrésalo tú","warn");
+      }catch{toast_("Error leyendo imagen","warn");}
+      setReading(false);
+    };
+    reader.readAsDataURL(file);
+  }
+  async function registrarPago(){
+    if(!pagoF.cliente.trim()||!pagoF.monto)return;
+    const a={id:Date.now(),fecha:hoy(),live,cliente:pagoF.cliente.trim().toUpperCase(),monto:parseFloat(pagoF.monto),nota:pagoF.nota.trim(),conComp:!!imgPrev};
+    const upd=[...abonos,a];setAbonos(upd);lSet(K.abonos,upd);sheetsSync("saveAbonos",upd);
+    setPagoF({cliente:"",monto:"",nota:""});setImgPrev(null);setShowPS(false);
+    toast_("Pago de $"+a.monto.toFixed(2)+" registrado ✓");
+  }
+
+  // ── CLIENTES ──
+  function abrirCliente(c=null){
+    setEditingCliente(c?.id||null);
+    setCliF(c?{alias:c.alias,nombre:c.nombre,cedula:c.cedula||"",telefono:c.telefono||"",tiktok:c.tiktok||"",whatsapp:c.whatsapp||"",direccion:c.direccion||"",ciudad:c.ciudad||""}:{alias:"",nombre:"",cedula:"",telefono:"",tiktok:"",whatsapp:"",direccion:"",ciudad:""});
+    setShowClienteModal(true);
+  }
+  async function guardarCliente(){
+    if(!cliF.alias.trim()||!cliF.nombre.trim())return;
+    const e={...cliF,alias:cliF.alias.toUpperCase(),direccion:cliF.direccion||"",ciudad:cliF.ciudad||""};
+    const upd=editingCliente?clientes.map(c=>c.id===editingCliente?{...c,...e}:c):[...clientes,{...e,id:Date.now()}];
+    setClientes(upd);lSet(K.clientes,upd);sheetsSync("saveClientes",upd);setShowClienteModal(false);toast_("Cliente guardado ✓");
+  }
+
+  // ── INVENTARIO ──
+  function abrirInv(item=null){
+    setEditingInv(item?.id||null);
+    setInvF(item?{descripcion:item.descripcion,categoria:item.categoria,talla:item.talla||"",qty:item.qty.toString(),precio:item.precio.toString(),importacion:item.importacion||""}:{descripcion:"",categoria:"Ropa",talla:"",qty:"",precio:"",importacion:""});
+    setShowInvModal(true);
+  }
+  async function guardarInv(){
+    if(!invF.descripcion.trim()||!invF.qty)return;
+    const e={...invF,qty:parseInt(invF.qty),precio:parseFloat(invF.precio)||0};
+    const upd=editingInv?inventario.map(i=>i.id===editingInv?{...i,...e}:i):[...inventario,{...e,id:Date.now(),fecha:hoy()}];
+    setInventario(upd);lSet(K.inventario,upd);sheetsSync("saveInventario",upd);setShowInvModal(false);toast_("Guardado ✓");
+  }
+
+  if(loading)return <div style={{display:"flex",alignItems:"center",justifyContent:"center",height:"100vh",background:"#FDF6F0",color:"#C45C26",fontFamily:"Georgia,serif",fontSize:18}}>Cargando...</div>;
+
+  const S=st;
+  return(
+    <div style={S.root}>
+      {toast&&<div style={{...S.toast,background:toast.type==="ok"?"#1A1A1A":"#C45C26"}}>{toast.msg}</div>}
+
+      {/* HEADER */}
+      <div style={S.hdr}>
+        <div><div style={S.hdrSub}>GESTIÓN DE PEDIDOS</div><div style={S.hdrTitle}>CAMELY</div></div>
+        <button onClick={()=>{setLiveInput(live);setShowLiveModal(true);}} style={S.liveBadge}>
+          <span style={{fontSize:8,opacity:0.6,display:"block",letterSpacing:1}}>LIVE ACTIVO</span>
+          <span style={{fontWeight:800,fontSize:12,whiteSpace:"nowrap",maxWidth:120,overflow:"hidden",textOverflow:"ellipsis",display:"block"}}>{live} ▾</span>
+        </button>
+      </div>
+
+      {/* MODAL LIVE */}
+      {showLiveModal&&<div style={S.ov} onClick={()=>setShowLiveModal(false)}>
+        <div style={S.sh} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>Nombre del Live</div>
+          <label style={S.lbl}>NOMBRE / FECHA</label>
+          <input style={{...S.inp,marginBottom:10}} value={liveInput} onChange={e=>setLiveInput(e.target.value)} placeholder={liveDefault()}/>
+          <button style={{...S.btnD,marginBottom:10}} onClick={async()=>{if(!liveInput.trim())return;setLive(liveInput.trim());lSetS(K.live,liveInput.trim());sheetsSync("saveLive",liveInput.trim());setShowLiveModal(false);}}>Confirmar</button>
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
+            {[liveDefault(),"Live Sábado","Live Domingo","Live Viernes"].map(s=><button key={s} onClick={async()=>{setLive(s);lSetS(K.live,s);sheetsSync("saveLive",s);setShowLiveModal(false);}} style={{...S.liveBtn,...(live===s?S.liveBtnOn:{})}}>{s}</button>)}
+          </div>
+          <button onClick={()=>setShowLiveModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* MODAL ETIQUETA */}
+      {labelItem&&<div style={S.ov} onClick={()=>setLabelItem(null)}>
+        <div style={S.sh} onClick={e=>e.stopPropagation()}>
+          <div style={{textAlign:"center",fontSize:10,letterSpacing:2,color:"#AAA",marginBottom:10,textTransform:"uppercase"}}>Etiqueta lista</div>
+          <div style={S.labelCard}>
+            <div style={{fontSize:9,color:"#C45C26",letterSpacing:2,textTransform:"uppercase",marginBottom:5}}>{labelItem.live} · {labelItem.fecha}</div>
+            <div style={{fontSize:26,fontWeight:900,color:"#1A1A1A",letterSpacing:-0.5,fontFamily:"Georgia,serif"}}>{labelItem.cliente}</div>
+            {labelItem.tiktok&&<div style={{fontSize:13,color:"#C45C26",marginTop:3,fontWeight:700}}>{labelItem.tiktok}</div>}
+            {labelItem.prenda!=="-"&&<div style={{fontSize:12,color:"#888",marginTop:6}}>{labelItem.qty>1?`${labelItem.qty}x `:""}{labelItem.prenda}</div>}
+            <div style={{fontSize:30,fontWeight:900,color:"#1A1A1A",marginTop:8,fontFamily:"Georgia,serif"}}>${labelItem.total.toFixed(2)}</div>
+          </div>
+          <div style={{fontSize:11,color:"#aaa",textAlign:"center",marginBottom:12}}>Imprime con Phomemo o toma screenshot</div>
+          <button onClick={()=>setLabelItem(null)} style={S.btnD}>✓ Listo</button>
+        </div>
+      </div>}
+
+      {/* MODAL PICKER INVENTARIO */}
+      {showInvPicker&&<div style={S.ov} onClick={()=>setShowInvPicker(false)}>
+        <div style={{...S.sh,maxHeight:"80vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>Seleccionar del Inventario</div>
+          <input style={{...S.inp,marginBottom:10}} placeholder="🔍 Buscar por nombre o talla..." value={searchInv} onChange={e=>setSearchInv(e.target.value)}/>
+          {invDisp.length===0?<div style={{textAlign:"center",color:"#aaa",padding:"20px 0",fontSize:13}}>Sin stock disponible</div>:
+            invDisp.map(i=>{const r=qtyR(i);return(
+              <button key={i.id} onClick={()=>selInv(i)} style={{width:"100%",textAlign:"left",background:"#FDF6F0",border:"1.5px solid #EDE0D7",borderRadius:12,padding:"12px 14px",marginBottom:8,cursor:"pointer"}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:14,color:"#1A1A1A"}}>{i.descripcion}</div>
+                    <div style={{fontSize:11,color:"#AAA",marginTop:2,display:"flex",gap:6,alignItems:"center"}}>
+                      {i.talla&&<span style={{background:"#F5EDE4",color:"#C45C26",borderRadius:4,padding:"1px 6px",fontWeight:700}}>{i.talla}</span>}
+                      <span>{i.categoria}</span>
+                    </div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{fontWeight:800,color:"#C45C26",fontSize:15}}>${i.precio.toFixed(2)}</div>
+                    <div style={{fontSize:11,color:r<=3?"#E07040":"#2D6A4F"}}>{r} disp.</div>
+                  </div>
+                </div>
+              </button>);})}
+          <button onClick={()=>setShowInvPicker(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* MODAL PERFIL */}
+      {showPerfilModal&&<div style={S.ov} onClick={()=>setShowPerfilModal(null)}>
+        <div style={S.sh} onClick={e=>e.stopPropagation()}>
+          <div style={{textAlign:"center",marginBottom:4}}>
+            <div style={{fontSize:10,letterSpacing:2,color:"#C45C26",textTransform:"uppercase"}}>Datos para envío</div>
+            <div style={{fontSize:21,fontWeight:900,fontFamily:"Georgia,serif",marginTop:4}}>{showPerfilModal.alias}</div>
+          </div>
+          {showPerfilModal.perfil?<div style={{background:"#FDF6F0",borderRadius:14,padding:16,marginTop:10}}>
+            {[["Nombre completo",showPerfilModal.perfil.nombre],["Cédula",showPerfilModal.perfil.cedula],["Teléfono",showPerfilModal.perfil.telefono],["WhatsApp",showPerfilModal.perfil.whatsapp],["TikTok",showPerfilModal.perfil.tiktok],["Ciudad",showPerfilModal.perfil.ciudad],["Dirección",showPerfilModal.perfil.direccion]].map(([k,v])=>v?(
+              <div key={k} style={{marginBottom:10}}><div style={{fontSize:10,color:"#AAA",letterSpacing:1,textTransform:"uppercase",marginBottom:1}}>{k}</div><div style={{fontSize:15,fontWeight:700,color:"#1A1A1A"}}>{v}</div></div>
+            ):null)}
+          </div>:<div style={{textAlign:"center",color:"#aaa",padding:"16px 0",fontSize:13}}>Sin perfil.<br/><br/><button onClick={()=>{setShowPerfilModal(null);abrirCliente();setCliF(f=>({...f,alias:showPerfilModal.alias}));}} style={{...S.btnD,width:"auto",padding:"10px 20px",fontSize:13}}>+ Agregar perfil</button></div>}
+          <button onClick={()=>setShowPerfilModal(null)} style={{...S.cancelBtn,marginTop:10}}>Cerrar</button>
+        </div>
+      </div>}
+
+      {/* MODAL CLIENTE */}
+      {showClienteModal&&<div style={S.ov} onClick={()=>setShowClienteModal(false)}>
+        <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>{editingCliente?"Editar":"Nuevo"} Cliente</div>
+          {[{k:"alias",l:"ALIAS / APODO",ph:"GABY GALAPAGOS",cap:"characters"},{k:"nombre",l:"NOMBRE COMPLETO",ph:"Gabriela Verdesoto",cap:"characters"},{k:"cedula",l:"CÉDULA",ph:"0912345678",cap:"none"},{k:"telefono",l:"TELÉFONO",ph:"0991234567",cap:"none"},{k:"whatsapp",l:"WHATSAPP",ph:"0991234567",cap:"none"},{k:"tiktok",l:"TIKTOK",ph:"@gabyv",cap:"none"},{k:"ciudad",l:"CIUDAD",ph:"Guayaquil, Durán, Samborondón...",cap:"characters"},{k:"direccion",l:"DIRECCIÓN DE ENVÍO",ph:"Urb. Las Orquídeas MZ 3 V 14",cap:"characters"}].map(({k,l,ph,cap})=>(
+            <div key={k} style={{marginBottom:10}}><label style={S.lbl}>{l}</label><input style={S.inp} placeholder={ph} autoCapitalize={cap} value={cliF[k]} onChange={e=>setCliF(f=>({...f,[k]:e.target.value}))}/></div>
+          ))}
+          <button onClick={guardarCliente} disabled={!cliF.alias.trim()||!cliF.nombre.trim()} style={{...S.btnD,opacity:(!cliF.alias.trim()||!cliF.nombre.trim())?0.4:1,marginBottom:8}}>Guardar</button>
+          <button onClick={()=>setShowClienteModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* MODAL INVENTARIO */}
+      {showInvModal&&<div style={S.ov} onClick={()=>setShowInvModal(false)}>
+        <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>{editingInv?"Editar Item":"Nueva Entrada"}</div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>DESCRIPCIÓN</label><input style={S.inp} placeholder="Ej: Blusa floreada" value={invF.descripcion} onChange={e=>setInvF(f=>({...f,descripcion:e.target.value}))}/></div>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>CATEGORÍA</label>
+            <div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:4}}>
+              {CATS.map(c=><button key={c} onClick={()=>setInvF(f=>({...f,categoria:c}))} style={{...S.chip,...(invF.categoria===c?{background:"#1A1A1A",color:"#fff",fontSize:11}:{})}}>{c}</button>)}
+            </div>
+          </div>
+          <div style={{marginBottom:10}}><label style={S.lbl}>TALLA (ej: S, M, L, 36, 38, Única)</label><input style={S.inp} placeholder="M" value={invF.talla} onChange={e=>setInvF(f=>({...f,talla:e.target.value}))}/></div>
+          <div style={{display:"flex",gap:10,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>CANTIDAD</label><input type="number" style={S.inp} placeholder="0" inputMode="numeric" value={invF.qty} onChange={e=>setInvF(f=>({...f,qty:e.target.value}))}/></div>
+            <div style={{flex:1}}><label style={S.lbl}>PRECIO VENTA ($)</label><input type="number" style={S.inp} placeholder="0.00" inputMode="decimal" value={invF.precio} onChange={e=>setInvF(f=>({...f,precio:e.target.value}))}/></div>
+          </div>
+          <div style={{marginBottom:14}}><label style={S.lbl}>IMPORTACIÓN / LOTE</label><input style={S.inp} placeholder="Ej: Imp. Mayo 2026" value={invF.importacion} onChange={e=>setInvF(f=>({...f,importacion:e.target.value}))}/></div>
+          <button onClick={guardarInv} disabled={!invF.descripcion.trim()||!invF.qty} style={{...S.btnD,opacity:(!invF.descripcion.trim()||!invF.qty)?0.4:1,marginBottom:8}}>Guardar</button>
+          <button onClick={()=>setShowInvModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
+      {/* CONTENT */}
+      <div style={S.content}>
+
+        {/* ─── PEDIDO ─── */}
+        {tab==="pedido"&&<div style={S.sec}>
+          <div style={S.card}>
+            <div style={S.cT}>Nuevo Pedido</div>
+            <div style={S.fg}>
+              <label style={S.lbl}>CLIENTE — escribe para buscar en tu lista</label>
+              <input style={S.inp} placeholder="Alias o apodo del cliente" value={form.cliente} autoCapitalize="characters"
+                onChange={e=>{setForm(f=>({...f,cliente:e.target.value}));setShowCS(true);}} onFocus={()=>setShowCS(true)}/>
+              {showCS&&sugC.length>0&&<div style={S.sug}>{sugC.map(a=>{const p=perfil(a);return(
+                <button key={a} style={S.sugI} onClick={()=>{setForm(f=>({...f,cliente:a}));setShowCS(false);}}>
+                  <span style={{fontWeight:700}}>{a}</span>
+                  {p&&<span style={{color:"#AAA",fontSize:11,marginLeft:8}}>→ {p.nombre}</span>}
+                  {p?.tiktok&&<span style={{color:"#C45C26",fontSize:11,marginLeft:4}}>{p.tiktok}</span>}
+                </button>);})}
+              </div>}
+            </div>
+            <div style={{marginBottom:10}}>
+              <label style={S.lbl}>PRENDA</label>
+              <div style={{display:"flex",gap:8}}>
+                <input style={{...S.inp,flex:1}} placeholder="Descripción de la prenda" value={form.prenda} onChange={e=>setForm(f=>({...f,prenda:e.target.value,invId:null}))}/>
+                <button onClick={()=>{setSearchInv("");setShowInvPicker(true);}} style={{background:form.invId?"#2D6A4F":"#F5EDE4",border:"none",borderRadius:12,padding:"0 12px",color:form.invId?"#fff":"#C45C26",fontWeight:700,fontSize:12,cursor:"pointer",flexShrink:0}}>
+                  {form.invId?"✓ Inv":"📦 Inv"}
+                </button>
+              </div>
+              {form.invId&&<div style={{fontSize:11,color:"#2D6A4F",marginTop:3}}>✓ Se descontará del inventario al registrar</div>}
+            </div>
+            <div style={{display:"flex",gap:10}}>
+              <div style={{...S.fg,flex:1}}><label style={S.lbl}>PRECIO ($)</label><input type="number" style={S.inp} placeholder="0.00" value={form.pvp} inputMode="decimal" onChange={e=>setForm(f=>({...f,pvp:e.target.value}))}/></div>
+              <div style={{...S.fg,width:72}}><label style={S.lbl}>CANT.</label><input type="number" style={S.inp} value={form.qty} min="1" inputMode="numeric" onChange={e=>setForm(f=>({...f,qty:e.target.value}))}/></div>
+            </div>
+            {form.pvp&&parseFloat(form.pvp)>0&&<div style={S.totP}><span style={{opacity:0.6,fontSize:12}}>Total</span><span style={{fontSize:22,fontWeight:800}}>${(parseFloat(form.pvp||0)*(parseInt(form.qty)||1)).toFixed(2)}</span></div>}
+            <button onClick={registrarPedido} disabled={!form.cliente.trim()||!form.pvp} style={{...S.btnD,opacity:(!form.cliente.trim()||!form.pvp)?0.4:1}}>Registrar + Etiqueta</button>
+          </div>
+          {pedidos.filter(p=>p.live===live).length>0&&<div style={S.card}>
+            <div style={{...S.cT,display:"flex",justifyContent:"space-between"}}>
+              <span>{live}</span><span style={{color:"#C45C26"}}>${pedidos.filter(p=>p.live===live).reduce((s,p)=>s+p.total,0).toFixed(2)}</span>
+            </div>
+            <div style={{maxHeight:200,overflowY:"auto"}}>
+              {[...pedidos.filter(p=>p.live===live)].reverse().map(p=><div key={p.id} style={S.li}><div><div style={S.liN}>{p.cliente}</div><div style={S.liS}>{p.prenda!=="-"?p.prenda:"—"}</div></div><div style={S.liA}>${p.total.toFixed(2)}</div></div>)}
+            </div>
+          </div>}
+        </div>}
+
+        {/* ─── PAGO ─── */}
+        {tab==="pago"&&<div style={S.sec}>
+          <div style={S.card}>
+            <div style={S.cT}>Registrar Pago</div>
+            <div style={{marginBottom:14}}>
+              <label style={S.lbl}>COMPROBANTE — la IA lee el monto automáticamente</label>
+              <input ref={fileRef} type="file" accept="image/*" capture="environment" style={{display:"none"}} onChange={handleImg}/>
+              <button onClick={()=>fileRef.current.click()} style={S.btnComp}>{reading?"⏳ Leyendo monto...":imgPrev?"📎 Comprobante cargado — toca para cambiar":"📷 Subir foto del comprobante"}</button>
+              {imgPrev&&!reading&&<div style={{marginTop:8,borderRadius:12,overflow:"hidden",border:"2px solid #EDE0D7",maxHeight:130}}><img src={imgPrev} style={{width:"100%",objectFit:"cover"}} alt="comp"/></div>}
+              {reading&&<div style={{textAlign:"center",padding:14,color:"#C45C26",fontSize:13,background:"#FFF3EC",borderRadius:12,marginTop:8}}>🤖 Leyendo monto del comprobante...</div>}
+            </div>
+            <div style={S.fg}>
+              <label style={S.lbl}>CLIENTE</label>
+              <input style={S.inp} placeholder="Alias del cliente" value={pagoF.cliente} autoCapitalize="characters"
+                onChange={e=>{setPagoF(f=>({...f,cliente:e.target.value}));setShowPS(true);}} onFocus={()=>setShowPS(true)}/>
+              {showPS&&sugP.length>0&&<div style={S.sug}>{sugP.map(a=>{const b=balance(a);return(
+                <button key={a} style={S.sugI} onClick={()=>{setPagoF(f=>({...f,cliente:a}));setShowPS(false);}}>
+                  <span style={{fontWeight:700}}>{a}</span>
+                  {b.saldo>0&&<span style={{float:"right",color:"#C45C26",fontWeight:700,fontSize:12}}>debe ${b.saldo.toFixed(2)}</span>}
+                </button>);})}
+              </div>}
+            </div>
+            {pagoF.cliente.trim().length>1&&(()=>{const b=balance(pagoF.cliente.trim().toUpperCase());return b.tc>0?(<div style={{background:"#FFF3EC",borderRadius:10,padding:"10px 14px",marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"#888"}}>Compró: <b style={{color:"#333"}}>${b.tc.toFixed(2)}</b></span><span style={{color:"#888"}}>Abonó: <b style={{color:"#2D6A4F"}}>${b.ta.toFixed(2)}</b></span></div><div style={{color:"#C45C26",fontWeight:800,fontSize:16,marginTop:4}}>Saldo: ${b.saldo.toFixed(2)}</div></div>):null;})()}
+            <div style={S.fg}><label style={S.lbl}>MONTO ($)</label><input type="number" style={{...S.inp,background:pagoF.monto?"#F0FFF6":"#FDFAF8",borderColor:pagoF.monto?"#A8D5B5":"#EDE0D7"}} placeholder="0.00" value={pagoF.monto} inputMode="decimal" onChange={e=>setPagoF(f=>({...f,monto:e.target.value}))}/></div>
+            <div style={S.fg}><label style={S.lbl}>NOTA (opcional)</label><input style={S.inp} placeholder="Ej: abono semana anterior" value={pagoF.nota} onChange={e=>setPagoF(f=>({...f,nota:e.target.value}))}/></div>
+            <button onClick={registrarPago} disabled={!pagoF.cliente.trim()||!pagoF.monto} style={{...S.btnGreen,opacity:(!pagoF.cliente.trim()||!pagoF.monto)?0.4:1}}>Registrar Pago</button>
+          </div>
+          {abonos.length>0&&<div style={S.card}><div style={S.cT}>Últimos pagos</div><div style={{maxHeight:200,overflowY:"auto"}}>{[...abonos].reverse().slice(0,20).map(a=><div key={a.id} style={S.li}><div><div style={S.liN}>{a.cliente}</div><div style={S.liS}>{a.fecha}{a.nota?" · "+a.nota:""}{a.conComp?" 📎":""}</div></div><div style={{...S.liA,color:"#2D6A4F"}}>+${a.monto.toFixed(2)}</div></div>)}</div></div>}
+        </div>}
+
+        {/* ─── INVENTARIO ─── */}
+        {tab==="inventario"&&<div style={S.sec}>
+          {/* KPIs */}
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
+            {[
+              ["Productos",inventario.length,"registrados"],
+              ["En stock",inventario.reduce((s,i)=>s+qtyR(i),0),"unidades"],
+              ["Valor","$"+inventario.reduce((s,i)=>s+i.precio*qtyR(i),0).toFixed(0),"total"],
+            ].map(([t,v,s])=>(
+              <div key={t} style={{background:"#fff",borderRadius:14,padding:"12px 10px",boxShadow:"0 2px 10px rgba(0,0,0,0.05)",textAlign:"center"}}>
+                <div style={{fontSize:9,color:"#AAA",letterSpacing:1,textTransform:"uppercase"}}>{t}</div>
+                <div style={{fontSize:20,fontWeight:900,color:"#1A1A1A",marginTop:2}}>{v}</div>
+                <div style={{fontSize:9,color:"#AAA",marginTop:1}}>{s}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Barra de acciones */}
+          <div style={{display:"flex",gap:8,marginBottom:12,alignItems:"center"}}>
+            <input style={{...S.inp,flex:1,marginBottom:0,fontSize:13}} placeholder="🔍  Buscar por nombre, categoría o talla..." value={searchInv} onChange={e=>setSearchInv(e.target.value)}/>
+          </div>
+          <div style={{display:"flex",gap:8,marginBottom:14}}>
+            <button onClick={()=>abrirInv()} style={{...S.btnD,flex:1,padding:"12px",fontSize:13}}>+ Nueva entrada</button>
+            <button onClick={generarPDF} disabled={inventario.length===0} style={{...S.btnD,flex:1,padding:"12px",fontSize:13,background:inventario.length===0?"#CCC":"#C45C26"}}>📄 Exportar PDF</button>
+          </div>
+
+          {invFiltrado.length===0?(
+            <div style={{textAlign:"center",padding:"36px 0",color:"#bbb"}}>
+              <div style={{fontSize:32,marginBottom:8}}>📦</div>
+              <div style={{fontSize:14,marginBottom:16}}>{searchInv?"Sin resultados para esa búsqueda":"Sin mercadería registrada"}</div>
+              {!searchInv&&<button onClick={()=>abrirInv()} style={{...S.btnD,width:"auto",padding:"12px 24px"}}>+ Registrar primera entrada</button>}
+            </div>
+          ):(
+            <div style={S.card}>
+              {invFiltrado.map((item,idx,arr)=>{
+                const rest=qtyR(item),vendido=item.qty-rest,pct=item.qty>0?Math.round((vendido/item.qty)*100):0;
+                return(
+                  <div key={item.id} style={{...S.li,borderBottom:idx<arr.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13}}>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
+                        <div style={{fontSize:14,fontWeight:800,color:"#1A1A1A"}}>{item.descripcion}</div>
+                        {item.talla&&<span style={{background:"#FFF3EC",color:"#C45C26",borderRadius:5,padding:"1px 7px",fontSize:11,fontWeight:700}}>{item.talla}</span>}
+                        <span style={{background:rest<=0?"#FFE4E4":rest<=3?"#FFF0D4":"#E6F4EC",color:rest<=0?"#D00":rest<=3?"#B7570A":"#2D6A4F",borderRadius:5,padding:"1px 7px",fontSize:10,fontWeight:600}}>{rest<=0?"Agotado":`${rest} disp.`}</span>
+                      </div>
+                      <div style={{fontSize:11,color:"#AAA",marginTop:2}}>{item.categoria}{item.importacion?" · "+item.importacion:""}</div>
+                      <div style={{marginTop:6,background:"#F5EDE4",borderRadius:6,height:4,overflow:"hidden"}}>
+                        <div style={{height:"100%",background:pct>=90?"#D00":pct>=60?"#C45C26":"#2D6A4F",width:pct+"%"}}/>
+                      </div>
+                      <div style={{fontSize:10,color:"#AAA",marginTop:2}}>{vendido} vendido / {item.qty} total</div>
+                    </div>
+                    <div style={{textAlign:"right",flexShrink:0,marginLeft:10}}>
+                      <div style={{fontWeight:800,color:"#C45C26",fontSize:15}}>${item.precio.toFixed(2)}</div>
+                      <div style={{fontSize:10,color:"#AAA",marginTop:1}}>Stock: <b style={{color:"#1A1A1A"}}>${(item.precio*rest).toFixed(2)}</b></div>
+                      <button onClick={()=>abrirInv(item)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#888",cursor:"pointer",marginTop:5}}>✏️</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>}
+
+        {/* ─── CLIENTES ─── */}
+        {tab==="clientes"&&<div style={S.sec}>
+          <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
+            <input style={{...S.inp,flex:1,marginBottom:0}} placeholder="🔍 Alias, nombre, TikTok..." value={searchCli} onChange={e=>setSearchCli(e.target.value)}/>
+            <button onClick={()=>abrirCliente()} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0}}>+ Nuevo</button>
+          </div>
+          {clientes.filter(c=>!searchCli||c.alias.includes(searchCli.toUpperCase())||c.nombre.toLowerCase().includes(searchCli.toLowerCase())||(c.tiktok||"").toLowerCase().includes(searchCli.toLowerCase())).length===0?(
+            <div style={{textAlign:"center",padding:"40px 0",color:"#bbb"}}><div style={{fontSize:32,marginBottom:8}}>👥</div><div style={{fontSize:14}}>Sin clientes registrados</div></div>
+          ):(
+            <div style={S.card}>
+              {clientes.filter(c=>!searchCli||c.alias.includes(searchCli.toUpperCase())||c.nombre.toLowerCase().includes(searchCli.toLowerCase())||(c.tiktok||"").toLowerCase().includes(searchCli.toLowerCase())).map((c,i,arr)=>{
+                const b=balance(c.alias);
+                return(<div key={c.id} style={{...S.li,borderBottom:i<arr.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13}}>
+                  <div style={{flex:1,cursor:"pointer"}} onClick={()=>setShowPerfilModal({alias:c.alias,perfil:c})}>
+                    <div style={{fontSize:15,fontWeight:800,color:"#1A1A1A"}}>{c.alias}</div>
+                    <div style={{fontSize:12,color:"#888",marginTop:1}}>{c.nombre}</div>
+                    <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}>
+                      {c.tiktok&&<span style={S.chip}>🎵 {c.tiktok}</span>}
+                      {c.telefono&&<span style={S.chip}>📞 {c.telefono}</span>}
+                      {b.saldo>0&&<span style={{...S.chip,background:"#FFF0E8",color:"#C45C26"}}>debe ${b.saldo.toFixed(2)}</span>}
+                    </div>
+                  </div>
+                  <button onClick={()=>abrirCliente(c)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#888",cursor:"pointer",flexShrink:0,marginLeft:8}}>✏️</button>
+                </div>);
+              })}
+            </div>
+          )}
+        </div>}
+
+        {/* ─── SALDOS ─── */}
+        {tab==="saldos"&&<div style={S.sec}>
+          <div style={S.summCard}>
+            <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
+            <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginTop:4}}>${clientesConSaldo.reduce((s,c)=>s+c.saldo,0).toFixed(2)}</div>
+            <div style={{opacity:0.5,fontSize:12,marginTop:4}}>{clientesConSaldo.length} clientes con saldo</div>
+          </div>
+          {clientesConSaldo.length===0?<div style={{textAlign:"center",padding:"30px 0",color:"#aaa",fontSize:14}}>🎉 Sin saldos pendientes</div>:(
+            <div style={S.card}>
+              {clientesConSaldo.map((c,i)=>(
+                <div key={c.alias} style={{...S.li,borderBottom:i<clientesConSaldo.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13,cursor:"pointer"}} onClick={()=>setShowPerfilModal(c)}>
+                  <div style={{flex:1}}><div style={{fontSize:14,fontWeight:800,color:"#1A1A1A"}}>{c.alias}</div>
+                    {c.p&&<div style={{fontSize:11,color:"#AAA",marginTop:1}}>{c.p.nombre}</div>}
+                    <div style={{display:"flex",gap:10,marginTop:4,fontSize:11,color:"#AAA"}}><span>Compró <b style={{color:"#555"}}>${c.tc.toFixed(2)}</b></span><span>Abonó <b style={{color:"#2D6A4F"}}>${c.ta.toFixed(2)}</b></span></div>
+                  </div>
+                  <div style={{textAlign:"right",flexShrink:0}}>
+                    <div style={{color:"#C45C26",fontWeight:800,fontSize:17}}>${c.saldo.toFixed(2)}</div>
+                    <div style={{fontSize:10,marginTop:3,color:c.ta>=10?"#2D6A4F":"#E07040"}}>{c.ta>=10?"✓ con abono":"sin abono"}</div>
+                    {c.p&&<div style={{fontSize:10,color:"#C45C26",marginTop:2}}>ver datos envío ›</div>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>}
+
+      </div>
+
+      {/* BOTTOM NAV */}
+      <div style={S.bnav}>
+        {[{id:"pedido",icon:"🛍",l:"Pedido"},{id:"pago",icon:"💵",l:"Pago"},{id:"inventario",icon:"📦",l:"Stock"},{id:"clientes",icon:"👥",l:"Clientes"},{id:"saldos",icon:"📋",l:"Saldos"}].map(t=>(
+          <button key={t.id} onClick={()=>setTab(t.id)} style={{...S.navI,color:tab===t.id?"#C45C26":"#CCC"}}>
+            <span style={{fontSize:18}}>{t.icon}</span>
+            <span style={{fontSize:9,fontWeight:tab===t.id?700:400,marginTop:1}}>{t.l}</span>
+            {tab===t.id&&<div style={S.navDot}/>}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const st={
+  root:{maxWidth:390,margin:"0 auto",minHeight:"100vh",background:"#FDF6F0",display:"flex",flexDirection:"column",fontFamily:"Georgia,serif",position:"relative"},
+  toast:{position:"fixed",top:16,left:"50%",transform:"translateX(-50%)",color:"#fff",borderRadius:20,padding:"10px 22px",fontSize:13,fontWeight:600,zIndex:1000,whiteSpace:"nowrap",boxShadow:"0 4px 20px rgba(0,0,0,0.2)"},
+  hdr:{background:"#1A1A1A",color:"#fff",padding:"12px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",flexShrink:0},
+  hdrSub:{fontSize:9,letterSpacing:3,color:"#C45C26",marginBottom:1},
+  hdrTitle:{fontSize:22,fontWeight:900,letterSpacing:-0.5},
+  liveBadge:{background:"#2A2A2A",border:"1px solid #3A3A3A",color:"#fff",borderRadius:10,padding:"6px 12px",cursor:"pointer",textAlign:"center",maxWidth:130},
+  content:{flex:1,overflowY:"auto",paddingBottom:74},
+  sec:{padding:"14px 14px 0"},
+  card:{background:"#fff",borderRadius:18,padding:"16px 14px",marginBottom:12,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"},
+  cT:{fontSize:12,fontWeight:700,letterSpacing:1,color:"#1A1A1A",marginBottom:12,textTransform:"uppercase"},
+  fg:{marginBottom:10,position:"relative"},
+  lbl:{fontSize:10,letterSpacing:1.5,color:"#AAA",fontFamily:"system-ui,sans-serif",display:"block",marginBottom:4,fontWeight:600},
+  inp:{width:"100%",border:"1.5px solid #EDE0D7",borderRadius:12,padding:"11px 13px",fontSize:15,background:"#FDFAF8",color:"#1A1A1A",outline:"none",boxSizing:"border-box",fontFamily:"system-ui,sans-serif"},
+  sug:{position:"absolute",top:"100%",left:0,right:0,background:"#fff",border:"1.5px solid #EDE0D7",borderRadius:12,zIndex:20,boxShadow:"0 8px 24px rgba(0,0,0,0.12)",overflow:"hidden"},
+  sugI:{width:"100%",textAlign:"left",padding:"11px 14px",background:"transparent",border:"none",borderBottom:"1px solid #F5EDE4",fontSize:13,color:"#333",cursor:"pointer",fontFamily:"system-ui,sans-serif",display:"block"},
+  totP:{background:"#FFF3EC",borderRadius:12,padding:"11px 14px",display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10,color:"#C45C26",fontFamily:"system-ui,sans-serif"},
+  btnD:{width:"100%",background:"#1A1A1A",color:"#fff",border:"none",borderRadius:14,padding:"14px",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"Georgia,serif"},
+  btnGreen:{width:"100%",background:"#2D6A4F",color:"#fff",border:"none",borderRadius:14,padding:"14px",fontSize:15,fontWeight:700,cursor:"pointer",fontFamily:"Georgia,serif"},
+  btnComp:{width:"100%",background:"#F5EDE4",color:"#C45C26",border:"2px dashed #C45C26",borderRadius:12,padding:12,fontSize:13,fontWeight:700,cursor:"pointer",fontFamily:"system-ui,sans-serif",textAlign:"center"},
+  li:{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 0",borderBottom:"1px solid #F5EDE4"},
+  liN:{fontSize:14,fontWeight:700,color:"#1A1A1A",fontFamily:"system-ui,sans-serif"},
+  liS:{fontSize:11,color:"#AAA",marginTop:2,fontFamily:"system-ui,sans-serif"},
+  liA:{fontSize:15,fontWeight:800,color:"#C45C26",fontFamily:"system-ui,sans-serif"},
+  chip:{background:"#F5EDE4",color:"#888",borderRadius:6,padding:"2px 7px",fontSize:10,fontFamily:"system-ui,sans-serif"},
+  summCard:{background:"#1A1A1A",color:"#fff",borderRadius:18,padding:18,marginBottom:12,fontFamily:"system-ui,sans-serif"},
+  ov:{position:"fixed",inset:0,background:"rgba(0,0,0,0.55)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:200},
+  sh:{background:"#fff",borderRadius:"20px 20px 0 0",padding:"22px 18px 34px",width:"100%",maxWidth:390},
+  shT:{fontSize:15,fontWeight:800,marginBottom:14,textAlign:"center",letterSpacing:0.5},
+  liveBtn:{background:"#F5EDE4",border:"none",borderRadius:12,padding:11,fontSize:13,fontWeight:700,cursor:"pointer",color:"#555",fontFamily:"system-ui,sans-serif"},
+  liveBtnOn:{background:"#1A1A1A",color:"#fff"},
+  cancelBtn:{display:"block",width:"100%",background:"transparent",border:"none",color:"#AAA",fontSize:14,cursor:"pointer",padding:10,fontFamily:"system-ui,sans-serif",textAlign:"center"},
+  labelCard:{border:"2px dashed #C45C26",borderRadius:16,padding:"18px 14px",textAlign:"center",background:"#FFF8F4",marginBottom:12},
+  bnav:{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:390,background:"#fff",borderTop:"1px solid #F0E6DE",display:"flex",zIndex:100},
+  navI:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"9px 0 7px",background:"transparent",border:"none",cursor:"pointer",fontFamily:"system-ui,sans-serif"},
+  navDot:{width:4,height:4,borderRadius:"50%",background:"#C45C26",marginTop:2},
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
