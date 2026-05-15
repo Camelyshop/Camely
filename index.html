@@ -294,6 +294,9 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [ecMonto,setEcMonto]=useState("");
   const [ecFechaMax,setEcFechaMax]=useState("");
   const [ecFileB64,setEcFileB64]=useState(null);
+  const [ecDriveUrl,setEcDriveUrl]=useState(null);
+  const [ecDriveId,setEcDriveId]=useState(null);
+  const [ecUploading,setEcUploading]=useState(false);
   const [ecFileType,setEcFileType]=useState("");
   const [ecFilePrev,setEcFilePrev]=useState(null);
   const ecFileRef=useRef();
@@ -606,17 +609,38 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     setShowStatusModal(false); setStatusTarjetaId("");
   }
   // ── Estados de cuenta ──
+  async function uploadPDFToDrive(base64, mimeType, filename){
+    if(!SHEETS_URL||SHEETS_URL.includes("PEGA")) return null;
+    try{
+      const res=await fetch(SHEETS_URL,{
+        method:"POST",
+        headers:{"Content-Type":"text/plain"},
+        body:JSON.stringify({action:"savePDF",data:{base64,mimeType,filename}})
+      });
+      const d=await res.json();
+      return d.ok?d:null;
+    }catch(e){return null;}
+  }
   async function handleEcFile(e){
     const file=e.target.files[0]; if(!file) return;
+    setEcDriveUrl(null); setEcDriveId(null);
     const reader=new FileReader();
-    reader.onload=()=>{setEcFileB64(reader.result.split(",")[1]);setEcFileType(file.type);setEcFilePrev(reader.result);};
+    reader.onload=async()=>{
+      const b64=reader.result.split(",")[1];
+      setEcFileB64(b64); setEcFileType(file.type); setEcFilePrev(reader.result);
+      setEcUploading(true);
+      const result=await uploadPDFToDrive(b64,file.type,file.name);
+      setEcUploading(false);
+      if(result){setEcDriveUrl(result.url);setEcDriveId(result.id);toast_("✓ PDF guardado en Google Drive");}
+      else toast_("PDF guardado localmente (sin conexión a Drive)");
+    };
     reader.readAsDataURL(file);
   }
   async function guardarEstadoCuenta(){
     if(!ecTarjetaId||!ecMonto) return;
-    const ec={id:Date.now(),tarjetaId:ecTarjetaId,mes:ecMes,ano:ecAno,montoTotal:parseFloat(ecMonto),fechaMaxPago:ecFechaMax,archivoB64:ecFileB64||null,mediaType:ecFileType,fecha:hoy()};
+    const ec={id:Date.now(),tarjetaId:ecTarjetaId,mes:ecMes,ano:ecAno,montoTotal:parseFloat(ecMonto),fechaMaxPago:ecFechaMax,driveUrl:ecDriveUrl||null,driveId:ecDriveId||null,archivoB64:ecDriveUrl?null:ecFileB64||null,mediaType:ecFileType,fecha:hoy()};
     const upd=[...estadosCuenta,ec]; setEstadosCuenta(upd); lSet(K.estadosCuenta,upd); sheetsSync("saveEstadosCuenta",upd);
-    setShowEstadoCuentaModal(false); setEcTarjetaId(""); setEcMonto(""); setEcFechaMax(""); setEcFileB64(null); setEcFilePrev(null);
+    setShowEstadoCuentaModal(false); setEcTarjetaId(""); setEcMonto(""); setEcFechaMax(""); setEcFileB64(null); setEcFilePrev(null); setEcDriveUrl(null); setEcDriveId(null);
     toast_("Estado de cuenta guardado ✓");
   }
   // ── Gastos ──
@@ -1400,7 +1424,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                                 </div>
                                 <div style={{textAlign:"right"}}>
                                   <div style={{fontWeight:800,color:"#B7570A"}}>${parseFloat(ec.montoTotal).toFixed(2)}</div>
-                                  {ec.archivoB64&&<a href={"data:"+ec.mediaType+";base64,"+ec.archivoB64} download={"estado-"+ec.mes+"-"+ec.ano+".pdf"} style={{fontSize:10,color:"#1BB6C8"}}>📄 Ver PDF</a>}
+                                  {ec.driveUrl?<a href={ec.driveUrl} target="_blank" style={{fontSize:10,color:"#1BB6C8",fontWeight:700}}>📄 Ver en Drive ↗</a>:ec.archivoB64?<a href={"data:"+ec.mediaType+";base64,"+ec.archivoB64} download={"estado-"+ec.mes+"-"+ec.ano+".pdf"} style={{fontSize:10,color:"#AAA"}}>📄 Descarga local</a>:null}
                                 </div>
                               </div>
                             ))}
@@ -1645,10 +1669,14 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           <div style={{marginBottom:14}}>
             <label style={S.lbl}>PDF DEL ESTADO DE CUENTA</label>
             <input ref={ecFileRef} type="file" accept="application/pdf,image/*" style={{display:"none"}} onChange={handleEcFile}/>
-            <button onClick={()=>ecFileRef.current.click()} style={S.btnComp}>
-              {ecFilePrev?"📎 Archivo cargado — toca para cambiar":"📄 Subir PDF o imagen"}
+            <button onClick={()=>ecFileRef.current.click()} style={S.btnComp} disabled={ecUploading}>
+              {ecUploading?"⏳ Subiendo a Google Drive...":ecDriveUrl?"✅ Guardado en Drive — toca para reemplazar":ecFilePrev?"📎 Archivo cargado localmente":"📄 Subir PDF o imagen"}
             </button>
-            {ecFilePrev&&<div style={{fontSize:11,color:"#2D6A4F",marginTop:4}}>✓ Archivo listo para guardar</div>}
+            {ecDriveUrl&&<div style={{display:"flex",alignItems:"center",gap:6,marginTop:4}}>
+              <span style={{fontSize:11,color:"#2D6A4F",fontWeight:700}}>✓ En Google Drive</span>
+              <a href={ecDriveUrl} target="_blank" style={{fontSize:11,color:"#1BB6C8"}}>Ver PDF ↗</a>
+            </div>}
+            {!ecDriveUrl&&ecFilePrev&&!ecUploading&&<div style={{fontSize:11,color:"#B7570A",marginTop:4}}>⚠ Solo guardado localmente</div>}
           </div>
           <button onClick={guardarEstadoCuenta} disabled={!ecTarjetaId||!ecMonto} style={{...S.btnD,opacity:(!ecTarjetaId||!ecMonto)?0.4:1,marginBottom:8}}>Guardar</button>
           <button onClick={()=>setShowEstadoCuentaModal(false)} style={S.cancelBtn}>Cancelar</button>
