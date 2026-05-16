@@ -1120,6 +1120,34 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         {tab==="pedido"&&<div className="app-section" style={S.sec}>
           <div style={S.card}>
             <div style={S.cT}>Nuevo Pedido</div>
+          {/* ─── Búsqueda por código ─── */}
+          <div style={{background:"#E8F9FB",borderRadius:14,padding:"12px",marginBottom:14}}>
+            <label style={{...S.lbl,color:"#1BB6C8"}}>🔍 BUSCAR POR CÓDIGO DE PRENDA</label>
+            <div style={{display:"flex",gap:8}}>
+              <input style={{...S.inp,flex:1,fontSize:16,fontWeight:700,letterSpacing:2,textTransform:"uppercase"}} placeholder="C-0001" value={codigoBusqueda}
+                onChange={e=>{
+                  const val=e.target.value.toUpperCase();
+                  setCodigoBusqueda(val);
+                  if(val.length>=4){const found=buscarPorCodigo(val);setCodigoEncontrado(found);}
+                  else setCodigoEncontrado(null);
+                }}
+                onKeyDown={e=>{if(e.key==="Enter"&&codigoEncontrado){
+                  setForm(f=>({...f,prenda:codigoEncontrado.descripcion+(codigoEncontrado.talla?" T:"+codigoEncontrado.talla:""),invId:codigoEncontrado.id}));
+                  toast_("✓ "+codigoEncontrado.codigo+" cargado");
+                }}}
+              />
+              <button onClick={()=>{if(codigoEncontrado){setForm(f=>({...f,prenda:codigoEncontrado.descripcion+(codigoEncontrado.talla?" T:"+codigoEncontrado.talla:""),invId:codigoEncontrado.id}));toast_("✓ "+codigoEncontrado.codigo+" cargado");}}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>Cargar</button>
+            </div>
+            {codigoBusqueda.length>=4&&(codigoEncontrado?(
+              <div style={{marginTop:6,background:"#E6F4EC",borderRadius:8,padding:"8px 10px",fontSize:12}}>
+                <div style={{fontWeight:700,color:"#2D6A4F"}}>✓ {codigoEncontrado.codigo} — {codigoEncontrado.descripcion}{codigoEncontrado.talla?" · T:"+codigoEncontrado.talla:""}</div>
+                <div style={{fontSize:10,color:"#888"}}>{codigoEncontrado.categoria}{codigoEncontrado.tipoRopa?" · "+codigoEncontrado.tipoRopa:""} · {codigoEncontrado.importacionNombre}</div>
+              </div>
+            ):(
+              <div style={{marginTop:6,background:"#FFF0F8",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#F0057F"}}>Código no encontrado o ya vendido</div>
+            ))}
+          </div>
+
             <div style={S.fg}>
               <label style={S.lbl}>CLIENTE — escribe para buscar en tu lista</label>
               <input style={S.inp} placeholder="Alias o apodo del cliente" value={form.cliente} autoCapitalize="characters"
@@ -1171,34 +1199,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
               {reading&&<div style={{textAlign:"center",padding:14,color:"#F0057F",fontSize:13,background:"#FFF3EC",borderRadius:12,marginTop:8}}>🤖 Leyendo monto del comprobante...</div>}
             </div>
             <div style={S.fg}>
-              {/* ─── Búsqueda por código ─── */}
-          <div style={{background:"#E8F9FB",borderRadius:14,padding:"12px",marginBottom:14}}>
-            <label style={{...S.lbl,color:"#1BB6C8"}}>🔍 BUSCAR POR CÓDIGO DE PRENDA</label>
-            <div style={{display:"flex",gap:8}}>
-              <input style={{...S.inp,flex:1,fontSize:16,fontWeight:700,letterSpacing:2,textTransform:"uppercase"}} placeholder="C-0001" value={codigoBusqueda}
-                onChange={e=>{
-                  const val=e.target.value.toUpperCase();
-                  setCodigoBusqueda(val);
-                  if(val.length>=4){const found=buscarPorCodigo(val);setCodigoEncontrado(found);}
-                  else setCodigoEncontrado(null);
-                }}
-                onKeyDown={e=>{if(e.key==="Enter"&&codigoEncontrado){
-                  setForm(f=>({...f,prenda:codigoEncontrado.descripcion+(codigoEncontrado.talla?" T:"+codigoEncontrado.talla:""),invId:codigoEncontrado.id}));
-                  toast_("✓ "+codigoEncontrado.codigo+" cargado");
-                }}}
-              />
-              <button onClick={()=>{if(codigoEncontrado){setForm(f=>({...f,prenda:codigoEncontrado.descripcion+(codigoEncontrado.talla?" T:"+codigoEncontrado.talla:""),invId:codigoEncontrado.id}));toast_("✓ "+codigoEncontrado.codigo+" cargado");}}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>Cargar</button>
-            </div>
-            {codigoBusqueda.length>=4&&(codigoEncontrado?(
-              <div style={{marginTop:6,background:"#E6F4EC",borderRadius:8,padding:"8px 10px",fontSize:12}}>
-                <div style={{fontWeight:700,color:"#2D6A4F"}}>✓ {codigoEncontrado.codigo} — {codigoEncontrado.descripcion}{codigoEncontrado.talla?" · T:"+codigoEncontrado.talla:""}</div>
-                <div style={{fontSize:10,color:"#888"}}>{codigoEncontrado.categoria}{codigoEncontrado.tipoRopa?" · "+codigoEncontrado.tipoRopa:""} · {codigoEncontrado.importacionNombre}</div>
-              </div>
-            ):(
-              <div style={{marginTop:6,background:"#FFF0F8",borderRadius:8,padding:"6px 10px",fontSize:11,color:"#F0057F"}}>Código no encontrado o ya vendido</div>
-            ))}
-          </div>
-          <label style={S.lbl}>CLIENTE</label>
+              <label style={S.lbl}>CLIENTE</label>
               <input style={S.inp} placeholder="Alias del cliente" value={pagoF.cliente} autoCapitalize="characters"
                 onChange={e=>{setPagoF(f=>({...f,cliente:e.target.value}));setShowPS(true);}} onFocus={()=>setShowPS(true)}/>
               {showPS&&sugP.length>0&&<div style={S.sug}>{sugP.map(a=>{const b=balance(a);return(
