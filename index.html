@@ -1662,9 +1662,10 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                 const srv=gm.filter(g=>g.tipo==="servientrega").reduce((s,g)=>s+g.monto,0);
                 const isd=gm.filter(g=>g.tipo==="isd").reduce((s,g)=>s+g.monto,0);
                 const int=gm.filter(g=>g.tipo==="interes").reduce((s,g)=>s+g.monto,0);
+                const sum=gm.filter(g=>g.tipo==="suministros").reduce((s,g)=>s+g.monto,0);
                 const otr=gm.filter(g=>g.tipo==="otro").reduce((s,g)=>s+g.monto,0);
-                const tGastos=srv+isd+int+otr;
-                return{mes,cobrado,ventas,costo,srv,isd,int,otr,tGastos,uBruta:cobrado-costo,uNeta:cobrado-costo-tGastos};
+                const tGastos=srv+isd+int+sum+otr;
+                return{mes,cobrado,ventas,costo,srv,isd,int,sum,otr,tGastos,uBruta:cobrado-costo,uNeta:cobrado-costo-tGastos};
               });
               const tot={
                 cobrado:dm.reduce((s,d)=>s+d.cobrado,0),ventas:dm.reduce((s,d)=>s+d.ventas,0),
@@ -1677,22 +1678,48 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
               const fc=v=>v===0?"—":v;
               const cell=(v,bold,color)=>(<td style={{padding:"7px 10px",textAlign:"right",fontWeight:bold?"700":"400",color:color||"#333",whiteSpace:"nowrap",fontSize:12}}>{fv(v)}</td>);
               const hdrCell=(label,cyan)=>(<th style={{padding:"7px 10px",textAlign:"right",fontSize:10,fontWeight:700,background:cyan?"#1BB6C8":"#1A1A1A",color:"#fff",whiteSpace:"nowrap",letterSpacing:0.5}}>{label}</th>);
+              // ── renderDetail: expandable breakdown per gastos type ──
+              const renderDetail=(tipo)=>{
+                const allG=gastos.filter(g=>{const f=parseFecha(g.fecha);return g.tipo===tipo&&(resAno==="todos"||f.ano===year);});
+                const groups={};
+                allG.forEach(g=>{
+                  const key=g.tarjetaId?(tarjetas.find(t=>t.id===g.tarjetaId)?.nombre||"Sin tarjeta"):(g.descripcion||tipo);
+                  if(!groups[key])groups[key]={nombre:key,byMes:{},total:0};
+                  groups[key].total+=g.monto;
+                  const mF=parseFecha(g.fecha);
+                  if(mF.mes){if(!groups[key].byMes[mF.mes])groups[key].byMes[mF.mes]=0;groups[key].byMes[mF.mes]+=g.monto;}
+                });
+                if(Object.keys(groups).length===0) return null;
+                return(<tr style={{background:"#F0FBFD"}}>
+                  <td colSpan={14} style={{padding:0}}>
+                    <div style={{padding:"6px 12px 10px 28px",overflowX:"auto"}}>
+                      {Object.values(groups).map(gr=>(
+                        <div key={gr.nombre} style={{display:"flex",gap:4,marginBottom:4,fontSize:11,alignItems:"center"}}>
+                          <span style={{fontWeight:700,color:"#1BB6C8",minWidth:150,flexShrink:0}}>↳ {gr.nombre}</span>
+                          {MESES.map(m=><span key={m} style={{width:50,textAlign:"right",fontSize:11,color:gr.byMes[m]?"#1BB6C8":"#DDD",flexShrink:0}}>{gr.byMes[m]?"$"+gr.byMes[m].toFixed(0):"—"}</span>)}
+                          <span style={{width:80,textAlign:"right",fontWeight:800,color:"#1BB6C8",flexShrink:0,background:"#E8F9FB",borderRadius:6,padding:"2px 6px"}}>${gr.total.toFixed(2)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </td>
+                </tr>);
+              };
               const rows=[
-                {label:"💵 Cobrado (Ingresos)",key:"cobrado",section:"ingresos",bold:true,color:"#1BB6C8"},
-                {label:"🛍 Ventas (pedidos)",key:"ventas",section:"ingresos",bold:false,color:"#555"},
+                {label:"💵 Cobrado (Ingresos)",key:"cobrado",bold:true,color:"#1BB6C8"},
+                {label:"🛍 Ventas (pedidos)",key:"ventas",bold:false,color:"#888"},
                 null,
-                {label:"🚢 Costo de Venta",key:"costo",section:"costo",bold:true,color:"#B7570A"},
+                {label:"🚢 (-) Costo de Venta",key:"costo",bold:true,color:"#B7570A"},
                 null,
-                {label:"= Utilidad Bruta",key:"uBruta",section:"util",bold:true,isUtil:true},
+                {label:"= Utilidad Bruta",key:"uBruta",bold:true,isUtil:true},
                 null,
-                {label:"🚚 Servientrega",key:"srv",section:"gastos",bold:false,color:"#555"},
-                {label:"🏦 ISD",key:"isd",section:"gastos",bold:false,color:"#555"},
-                {label:"💳 Intereses",key:"int",section:"gastos",bold:false,color:"#555"},
-                {label:"🖨 Suministros",key:"sum",tipo:"suministros",section:"gastos",clickable:true,bold:false,color:"#555"},
-                {label:"📋 Otros",key:"otr",section:"gastos",tipo:"otro",clickable:true,bold:false,color:"#555"},
-                {label:"Total Gastos",key:"tGastos",section:"gastos",bold:true,color:"#F0057F"},
+                {label:"🚚 Servientrega",key:"srv",tipo:"servientrega",clickable:true,bold:false,color:"#555"},
+                {label:"🏦 ISD",key:"isd",tipo:"isd",clickable:true,bold:false,color:"#555"},
+                {label:"💳 Intereses",key:"int",tipo:"interes",clickable:true,bold:false,color:"#555"},
+                {label:"🖨 Suministros",key:"sum",tipo:"suministros",clickable:true,bold:false,color:"#555"},
+                {label:"📋 Otros",key:"otr",tipo:"otro",clickable:true,bold:false,color:"#555"},
+                {label:"Total Gastos",key:"tGastos",bold:true,color:"#F0057F"},
                 null,
-                {label:"= UTILIDAD NETA",key:"uNeta",section:"util",bold:true,isUtil:true,big:true},
+                {label:"= UTILIDAD NETA",key:"uNeta",bold:true,isUtil:true,big:true},
               ];
               return(<>
                 {/* Year selector */}
