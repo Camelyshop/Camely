@@ -732,7 +732,13 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   // ── Gastos ──
   async function procesarXMLServientrega(files){
     const nuevosGastos=[];
+    const duplicados=[];
+    const errores=[];
     for(const file of Array.from(files)){
+      // Skip non-XML files (in case user picks wrong file)
+      if(!file.name.toLowerCase().endsWith(".xml")&&!file.type.includes("xml")){
+        errores.push(file.name+" (no es XML)"); continue;
+      }
       try{
         const text=await file.text();
         const cdataMatch=text.match(/<!\[CDATA\[([\s\S]*?)\]\]>/);
@@ -742,39 +748,62 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         const impEl=doc.querySelector("infoFactura > importeTotal")||doc.querySelector("importeTotal");
         const fechaEl=doc.querySelector("infoFactura > fechaEmision")||doc.querySelector("fechaEmision");
         const seqEl=doc.querySelector("infoTributaria > secuencial")||doc.querySelector("secuencial");
+        const rucEl=doc.querySelector("infoTributaria > ruc")||doc.querySelector("ruc");
+        const razonEl=doc.querySelector("infoTributaria > razonSocial")||doc.querySelector("razonSocial");
+        const claveEl=doc.querySelector("claveAcceso");
         if(impEl){
           const v=parseFloat(impEl.textContent.trim());
           if(!isNaN(v)&&v>0){
             const fechaRaw=(fechaEl?.textContent||"").trim();
             let fecha=fechaRaw;
-            if(fechaRaw.includes("/")){
-              const pts=fechaRaw.split("/");
-              fecha=pts[0]+"-"+(MESES[parseInt(pts[1])-1]||pts[1])+"-"+pts[2];
-            }
+            if(fechaRaw.includes("/")){const pts=fechaRaw.split("/");fecha=pts[0]+"-"+(MESES[parseInt(pts[1])-1]||pts[1])+"-"+pts[2];}
             if(!fecha) fecha=hoy();
             const seq=(seqEl?.textContent||"").trim().replace(/^0+/,"");
-            nuevosGastos.push({id:Date.now()+nuevosGastos.length,tipo:"servientrega",
-              descripcion:"Servientrega Fact.#"+seq,monto:v,fecha,tarjetaId:""});
-          }
-        }
-      }catch(e){console.warn("XML:",e);}
+            const ruc=(rucEl?.textContent||"").trim();
+            const razon=(razonEl?.textContent||"Servientrega").trim();
+            const clave=(claveEl?.textContent||"").trim();
+            const desc=razon+" Fact.#"+seq;
+            // Clave única: RUC + número de factura (único por emisor)
+            // O clave de acceso SRI si está disponible (más confiable)
+            const claveUnica=clave||(ruc+"_"+seq);
+            const yaExiste=gastos.some(g=>
+              (clave&&g.claveAcceso&&g.claveAcceso===clave)||
+              (ruc&&seq&&g.ruc&&g.ruc===ruc&&g.descripcion&&g.descripcion.includes("Fact.#"+seq))
+            );
+            if(yaExiste){
+              duplicados.push(razon+" Fact.#"+seq);
+            } else {
+              nuevosGastos.push({id:Date.now()+nuevosGastos.length,tipo:"servientrega",
+                descripcion:desc,monto:v,fecha,tarjetaId:"",claveAcceso:clave,ruc,razon});
+            }
+          } else errores.push(file.name);
+        } else errores.push(file.name);
+      }catch(e){errores.push(file.name);console.warn("XML:",e);}
+    }
+    // Mostrar resumen
+    if(duplicados.length>0&&nuevosGastos.length===0){
+      toast_("⚠️ "+duplicados.length+" factura(s) ya registrada(s): "+duplicados.join(", "));
+      return;
     }
     if(nuevosGastos.length===0){
       toast_("No se encontró importeTotal — verifica que sean facturas SRI válidas");
       return;
     }
+    // Avisar de duplicados si los hay junto con nuevas
+    if(duplicados.length>0){
+      toast_("⚠️ Omitidas "+duplicados.length+" duplicadas: "+duplicados.slice(0,3).join(", ")+(duplicados.length>3?"...":""));
+      await new Promise(r=>setTimeout(r,2000));
+    }
     if(nuevosGastos.length===1){
-      // 1 XML → llena el formulario para revisar antes de guardar
       const g=nuevosGastos[0];
       setGastoForm(f=>({...f,tipo:g.tipo,monto:g.monto.toFixed(2),descripcion:g.descripcion,fecha:g.fecha}));
       toast_("✓ 1 XML cargado — $"+g.monto.toFixed(2)+" · "+g.fecha+" · revisa y guarda");
     } else {
-      // Varios XMLs → guarda cada uno con su fecha correcta automáticamente
       const total=nuevosGastos.reduce((s,g)=>s+g.monto,0);
       const upd=[...gastos,...nuevosGastos];
       setGastos(upd); lSet(K.gastos,upd); sheetsSync("saveGastos",upd);
       setShowGastoModal(false);
-      toast_("✓ "+nuevosGastos.length+" facturas guardadas — Total: $"+total.toFixed(2)+" — cada una en su mes");
+      toast_("✓ "+nuevosGastos.length+" facturas nuevas guardadas — $"+total.toFixed(2));
     }
   }
   async function guardarGasto(){
@@ -838,6 +867,27 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   async function eliminarCargo(id){
     const upd=cargosTarjeta.filter(c=>c.id!==id); setCargosTarjeta(upd); lSet(K.cargos,upd); sheetsSync("saveCargos",upd);
     toast_("Movimiento eliminado");
+  }
+  async function deduplicarGastos(){
+    // Agrupa por número de factura (Fact.#XXXX) y conserva solo el primero
+    const vistos={};
+    const aDuplicados=[];
+    const aConservar=[];
+    gastos.forEach(g=>{
+      const match=g.descripcion?.match(/Fact\.#(\d+)/);
+      // Clave única: clave de acceso SRI > RUC+Fact# > tipo+Fact# (fallback)
+      const key=g.claveAcceso||(g.ruc&&match?g.ruc+"_"+match[1]:null)||(match?g.tipo+"_"+match[1]:null);
+      if(key){
+        if(vistos[key]){aDuplicados.push(g);}
+        else{vistos[key]=true;aConservar.push(g);}
+      } else {
+        aConservar.push(g);
+      }
+    });
+    if(aDuplicados.length===0){toast_("✓ No hay facturas duplicadas");return;}
+    if(!window.confirm("Se encontraron "+aDuplicados.length+" factura(s) duplicada(s).\n\nEjemplos: "+aDuplicados.slice(0,3).map(g=>g.descripcion).join(", ")+(aDuplicados.length>3?"...":"")+".\n\n¿Eliminar los duplicados y conservar solo la primera copia de cada factura?")) return;
+    setGastos(aConservar); lSet(K.gastos,aConservar); sheetsSync("saveGastos",aConservar);
+    toast_("✓ "+aDuplicados.length+" duplicado(s) eliminado(s) — quedan "+aConservar.length+" gastos");
   }
   async function eliminarGasto(id){
     if(!window.confirm("¿Eliminar este gasto?")) return;
@@ -1773,6 +1823,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                   <select style={{...S.inp,width:100,fontSize:12,padding:"6px 10px"}} value={resAno} onChange={e=>setResAno(e.target.value)}>
                     {ANOS_DISP.map(a=><option key={a} value={a}>{a==="todos"?"Todos":a}</option>)}
                   </select>
+                  {canAdmin&&<button onClick={deduplicarGastos} style={{background:"#FFF5E0",color:"#B7570A",border:"1px solid #B7570A",borderRadius:10,padding:"7px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🧹 Duplicados</button>}
                   <button onClick={()=>setShowGastoModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>+ Gasto</button>
                 </div>
                 {/* Monthly table */}
@@ -1905,9 +1956,9 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           </div>
           {gastoForm.tipo==="servientrega"&&<div style={{marginBottom:10}}>
             <label style={S.lbl}>CARGAR XMLs DEL SRI (uno o varios)</label>
-            <input ref={xmlSrvRef} type="file" accept=".xml" multiple style={{display:"none"}} onChange={e=>procesarXMLServientrega(e.target.files)}/>
+            <input ref={xmlSrvRef} type="file" accept="text/xml,application/xml,.xml,*/*" multiple style={{display:"none"}} onChange={e=>procesarXMLServientrega(e.target.files)}/>
             <button onClick={()=>xmlSrvRef.current.click()} style={{...S.btnComp,marginBottom:4}}>📂 Cargar XMLs Servientrega</button>
-            <div style={{fontSize:10,color:"#AAA"}}>Se sumará el importeTotal de cada XML y se auto-llenará el monto</div>
+            <div style={{fontSize:10,color:"#AAA"}}>Se sumará el importeTotal de cada XML · En iPhone: toca el archivo, luego "Seleccionar" y elige varios desde la app Archivos</div>
           </div>}
           {gastoForm.tipo==="interes"&&tarjetas.length>0&&<div style={{marginBottom:10}}>
             <label style={S.lbl}>TARJETA</label>
