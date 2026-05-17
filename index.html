@@ -792,11 +792,18 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   // Parses DD-Mon-YYYY, DD/MM/YYYY, YYYY-MM-DD
   function parseFecha(fecha){
     if(!fecha) return {mes:null,ano:null};
-    const m1=fecha.match(/^\d{1,2}-([A-Za-z]{3})-(\d{4})$/);
+    const s=String(fecha).trim();
+    // ISO datetime: 2026-04-28T05:00:00.000Z o 2026-04-28T05:00:00Z
+    const m0=s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
+    if(m0) return {mes:MESES[parseInt(m0[2])-1]||null,ano:m0[1]};
+    // DD-Mon-YYYY: 28-Abr-2026
+    const m1=s.match(/^\d{1,2}-([A-Za-z]{3})-(\d{4})$/);
     if(m1) return {mes:m1[1],ano:m1[2]};
-    const m2=fecha.match(/^\d{1,2}\/(\d{1,2})\/(\d{4})$/);
+    // DD/MM/YYYY: 28/04/2026
+    const m2=s.match(/^\d{1,2}\/(\d{1,2})\/(\d{4})$/);
     if(m2) return {mes:MESES[parseInt(m2[1])-1]||null,ano:m2[2]};
-    const m3=fecha.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    // YYYY-MM-DD: 2026-04-28
+    const m3=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if(m3) return {mes:MESES[parseInt(m3[2])-1]||null,ano:m3[1]};
     return {mes:null,ano:null};
   }
@@ -1686,7 +1693,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
             })()}
             {finSub==="resultados"&&(()=>{
               const year=resAno!=="todos"?resAno:String(new Date().getFullYear());
-              const ANOS_DISP=["todos",...[...new Set([...abonos,...gastos,...importaciones].map(x=>x.fecha?.split("-")[2]).filter(Boolean))].sort()];
+              const ANOS_DISP=["todos",...[...new Set([...abonos,...gastos,...importaciones].map(x=>parseFecha(x.fecha).ano).filter(Boolean))].sort()];
               // Build monthly data
               const dm=MESES.map(mes=>{
                 const ab=abonos.filter(a=>{const p=a.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
@@ -1717,24 +1724,25 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
               const hdrCell=(label,cyan)=>(<th style={{padding:"7px 10px",textAlign:"right",fontSize:10,fontWeight:700,background:cyan?"#1BB6C8":"#1A1A1A",color:"#fff",whiteSpace:"nowrap",letterSpacing:0.5}}>{label}</th>);
               // ── renderDetail: expandable breakdown per gastos type ──
               const renderDetail=(tipo)=>{
+                const tipoIcon={"servientrega":"🚚","isd":"🏦","interes":"💳","suministros":"🖨","otro":"📋"};
                 const allG=gastos.filter(g=>{const f=parseFecha(g.fecha);return g.tipo===tipo&&(resAno==="todos"||f.ano===year);});
-                const groups={};
-                allG.forEach(g=>{
-                  const key=g.tarjetaId?(tarjetas.find(t=>t.id===g.tarjetaId)?.nombre||"Sin tarjeta"):(g.descripcion||tipo);
-                  if(!groups[key])groups[key]={nombre:key,byMes:{},total:0};
-                  groups[key].total+=g.monto;
-                  const mF=parseFecha(g.fecha);
-                  if(mF.mes){if(!groups[key].byMes[mF.mes])groups[key].byMes[mF.mes]=0;groups[key].byMes[mF.mes]+=g.monto;}
-                });
-                if(Object.keys(groups).length===0) return null;
+                if(allG.length===0) return null;
+                // Group by month
+                const byMes={};
+                MESES.forEach(m=>{const items=allG.filter(g=>parseFecha(g.fecha).mes===m);if(items.length>0)byMes[m]=items;});
                 return(<tr style={{background:"#F0FBFD"}}>
                   <td colSpan={14} style={{padding:0}}>
-                    <div style={{padding:"6px 12px 10px 28px",overflowX:"auto"}}>
-                      {Object.values(groups).map(gr=>(
-                        <div key={gr.nombre} style={{display:"flex",gap:4,marginBottom:4,fontSize:11,alignItems:"center"}}>
-                          <span style={{fontWeight:700,color:"#1BB6C8",minWidth:150,flexShrink:0}}>↳ {gr.nombre}</span>
-                          {MESES.map(m=><span key={m} style={{width:50,textAlign:"right",fontSize:11,color:gr.byMes[m]?"#1BB6C8":"#DDD",flexShrink:0}}>{gr.byMes[m]?"$"+gr.byMes[m].toFixed(0):"—"}</span>)}
-                          <span style={{width:80,textAlign:"right",fontWeight:800,color:"#1BB6C8",flexShrink:0,background:"#E8F9FB",borderRadius:6,padding:"2px 6px"}}>${gr.total.toFixed(2)}</span>
+                    <div style={{padding:"8px 16px 12px 16px",overflowX:"auto"}}>
+                      {Object.entries(byMes).map(([mes,items])=>(
+                        <div key={mes} style={{marginBottom:8}}>
+                          <div style={{fontSize:10,fontWeight:700,color:"#1BB6C8",letterSpacing:1,textTransform:"uppercase",marginBottom:4,borderBottom:"1px solid #D0F2F6",paddingBottom:2}}>{mes} — ${items.reduce((s,g)=>s+g.monto,0).toFixed(2)}</div>
+                          {items.map(g=>(
+                            <div key={g.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:11,padding:"3px 0 3px 8px",color:"#555"}}>
+                              <span style={{flex:1}}>{tipoIcon[g.tipo]||"📋"} {g.descripcion||g.tipo}</span>
+                              <span style={{fontWeight:700,color:"#1BB6C8",marginRight:6}}>${g.monto.toFixed(2)}</span>
+                              {canAdmin&&<button onClick={()=>eliminarGasto(g.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:4,padding:"1px 5px",fontSize:10,cursor:"pointer"}}>✕</button>}
+                            </div>
+                          ))}
                         </div>
                       ))}
                     </div>
@@ -1796,23 +1804,12 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                     </tbody>
                   </table>
                 </div>
-                {/* Historial gastos */}
-                {gastos.filter(g=>{const p=g.fecha?.split("-");return p&&(resAno==="todos"||p[2]?.startsWith(year));}).length>0&&<div style={{background:"#fff",borderRadius:14,padding:"14px",marginTop:12,boxShadow:"0 2px 8px rgba(0,0,0,0.06)"}}>
-                  <div style={{fontSize:11,fontWeight:700,letterSpacing:1,color:"#1A1A1A",marginBottom:10,textTransform:"uppercase"}}>Detalle de gastos {year}</div>
-                  {[...gastos].filter(g=>{const p=g.fecha?.split("-");return p&&(resAno==="todos"||p[2]?.startsWith(year));}).reverse().map(g=>(
-                    <div key={g.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"6px 0",borderBottom:"1px solid #F5F5F5",fontSize:12}}>
-                      <div style={{flex:1}}><span style={{fontWeight:600}}>{{"servientrega":"🚚","isd":"🏦","interes":"💳","suministros":"🖨","otro":"📋"}[g.tipo]||"📋"} {g.descripcion||g.tipo}</span><br/><span style={{color:"#AAA",fontSize:10}}>{g.fecha}</span></div>
-                      <span style={{fontWeight:800,color:"#F0057F",marginRight:8}}>${g.monto.toFixed(2)}</span>
-                      {canAdmin&&<button onClick={()=>eliminarGasto(g.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:6,padding:"3px 7px",fontSize:11,cursor:"pointer"}}>✕</button>}
-                    </div>
-                  ))}
-                </div>}
-              </>);
-            })()}
+)()}
 
             </>);
           })()}
         </div>}
+        }
 
       </div>
 
