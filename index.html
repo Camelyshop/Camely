@@ -316,6 +316,9 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [gastoForm,setGastoForm]=useState({tipo:"servientrega",descripcion:"",monto:"",fecha:hoyISO(),tarjetaId:""});
   const [expandedResultRow,setExpandedResultRow]=useState(null);
   const [showDeudaModal,setShowDeudaModal]=useState(false);
+  const [showEnvioModal,setShowEnvioModal]=useState(false);
+  const [envioLive,setEnvioLive]=useState("");
+  const [envioIdx,setEnvioIdx]=useState(0);
   const [deudaForm,setDeudaForm]=useState({cliente:"",descripcion:"",monto:"",fecha:hoyISO(),live:""});
   const [expandedLlegada,setExpandedLlegada]=useState(null);  // importacion en modo llegada
   const [llegadaItems,setLlegadaItems]=useState([]);           // items editables de llegada
@@ -562,8 +565,16 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   async function registrarPedido(){
     if(!form.cliente.trim()||!form.pvp)return;
     const qty=parseInt(form.qty)||1,pvp=parseFloat(form.pvp);
-    const item={id:Date.now(),fecha:hoy(),live,cliente:form.cliente.trim().toUpperCase(),prenda:form.prenda.trim()||"-",pvp,qty,total:pvp*qty,invId:form.invId||null};
+    const clienteAlias=form.cliente.trim().toUpperCase();
+    const item={id:Date.now(),fecha:hoy(),live,cliente:clienteAlias,prenda:form.prenda.trim()||"-",pvp,qty,total:pvp*qty,invId:form.invId||null};
     const upd=[...pedidos,item];setPedidos(upd);lSet(K.pedidos,upd);sheetsSync("savePedidos",upd);
+    // Auto-crear cliente si no existe
+    const existe=clientes.find(c=>(c.alias||"").toUpperCase()===clienteAlias);
+    if(!existe){
+      const nuevo={id:Date.now()+1,alias:clienteAlias,nombre:"",telefono:"",whatsapp:"",tiktok:"",cedula:"",ciudad:"",direccion:""};
+      const updCli=[...clientes,nuevo];setClientes(updCli);lSet(K.clientes,updCli);sheetsSync("saveClientes",updCli);
+      toast_("👤 Cliente ""+clienteAlias+"" creado automáticamente");
+    }
     if(form.invId&&inventario.find(i=>i.id===form.invId)){
       const updInv=inventario.map(i=>i.id===form.invId?{...i,estado:"vendido",pedidoId:item.id,cliente:form.cliente}:i);
       setInventario(updInv); lSet(K.inventario,updInv); sheetsSync("saveInventario",updInv);
@@ -1479,7 +1490,10 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
               <div style={S.summCard}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
                   <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
-                  <button onClick={()=>setShowDeudaModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Deuda manual</button>
+                  <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>{setEnvioLive(saldoFiltroLive||"");setEnvioIdx(0);setShowEnvioModal(true);}} style={{background:"#25D366",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>📲 Envío masivo</button>
+                  <button onClick={()=>setShowDeudaModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Deuda</button>
+                </div>
                 </div>
                 <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginTop:4}}>${totalFiltrado.toFixed(2)}</div>
                 <div style={{opacity:0.5,fontSize:12,marginTop:4}}>{filtrados.length} clientes{saldoFiltroLive?` · ${saldoFiltroLive}`:""}</div>
@@ -1515,6 +1529,31 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                             <div style={{fontSize:10,marginTop:2,color:c.ta>=10?"#2D6A4F":"#E07040"}}>{c.ta>=10?"✓ abono":"sin abono"}</div>
                             <div style={{fontSize:11,color:"#1BB6C8",marginTop:2}}>{isExp?"▲ cerrar":"▼ ver compras"}</div>
                           </div>
+                          <button onClick={e=>{
+                            e.stopPropagation();
+                            const cps=pedidos.filter(p=>p.cliente===c.alias&&(!saldoFiltroLive||p.live===saldoFiltroLive));
+                            const abo=abonos.filter(a=>a.cliente===c.alias);
+                            const tc=cps.reduce((s,p)=>s+p.total,0);
+                            const ta=abo.reduce((s,a)=>s+a.monto,0);
+                            const saldo=tc-ta;
+                            let msg="🐰 *Camely Ropa Infantil*\n";
+                            msg+="━━━━━━━━━━━━━━━━━━\n";
+                            msg+="Hola *"+c.alias+"*! 👋\n\n";
+                            msg+="💰 *Resumen de tu cuenta:*\n";
+                            msg+="🛍 Total compras: $"+tc.toFixed(2)+"\n";
+                            msg+="✅ Total abonado: $"+ta.toFixed(2)+"\n";
+                            msg+="📌 *Saldo pendiente: $"+saldo.toFixed(2)+"*\n";
+                            if(cps.length>0){
+                              msg+="\n📋 *Detalle:*\n";
+                              cps.slice(0,8).forEach(p=>{msg+="  • "+p.prenda+(p.prenda==="-"?"Prenda":"")+": $"+p.total.toFixed(2)+"\n";});
+                              if(cps.length>8) msg+="  ... y "+(cps.length-8)+" más\n";
+                            }
+                            msg+="\n¡Gracias por tu compra! 💕";
+                            window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+                          }} style={{background:"#25D366",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#fff",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,marginTop:4,flexShrink:0}}>
+                            <span>📲</span><span>WhatsApp</span>
+                          </button>
+                        </div>
                         </div>
                         {isExp&&<div style={{borderTop:"1px solid #E8F9FB",padding:"10px 14px",background:"#F8FDFE"}}>
                           <div style={{fontSize:10,color:"#1BB6C8",letterSpacing:1,textTransform:"uppercase",marginBottom:8,fontWeight:700}}>Detalle de compras</div>
@@ -2014,6 +2053,88 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         </div>
       </div>}
 
+      {/* MODAL ENVÍO MASIVO WHATSAPP */}
+      {showEnvioModal&&(()=>{
+        const allLivesAll2=[...new Set(pedidos.map(p=>p.live).filter(Boolean))].sort().reverse();
+        const cliEnvio=clientes.filter(c=>{
+          const b=balance(c.alias);
+          if(b.saldo<=0) return false;
+          if(!envioLive) return true;
+          return pedidos.some(p=>p.cliente===c.alias&&p.live===envioLive);
+        });
+        const current=cliEnvio[envioIdx];
+        const done=envioIdx>=cliEnvio.length;
+        const buildMsg=(c)=>{
+          const cps=pedidos.filter(p=>p.cliente===c.alias&&(!envioLive||p.live===envioLive));
+          const abo=abonos.filter(a=>a.cliente===c.alias);
+          const tc=cps.reduce((s,p)=>s+p.total,0);
+          const ta=abo.reduce((s,a)=>s+a.monto,0);
+          const saldo=tc-ta;
+          let msg="🐰 *Camely Ropa Infantil*\n━━━━━━━━━━━━━━━━━━\n";
+          msg+="Hola *"+c.alias+"*! 👋\n\n";
+          msg+="💰 *Resumen de tu cuenta:*\n";
+          msg+="🛍 Total compras: $"+tc.toFixed(2)+"\n";
+          msg+="✅ Total abonado: $"+ta.toFixed(2)+"\n";
+          msg+="📌 *Saldo pendiente: $"+saldo.toFixed(2)+"*\n";
+          if(cps.length>0){
+            msg+="\n📋 *Detalle:*\n";
+            cps.slice(0,8).forEach(p=>{msg+="  • "+(p.prenda&&p.prenda!=="-"?p.prenda:"Prenda")+": $"+p.total.toFixed(2)+"\n";});
+            if(cps.length>8) msg+="  ... y "+(cps.length-8)+" más\n";
+          }
+          msg+="\n¡Gracias por tu compra! 💕";
+          return msg;
+        };
+        const enviarActual=()=>{
+          if(!current) return;
+          const perfil=clientes.find(c=>c.alias===current.alias)||current;
+          const tel=(perfil.telefono||perfil.whatsapp||"").replace(/\D/g,"");
+          const msg=buildMsg(current);
+          const url=tel?"https://wa.me/593"+tel.replace(/^0/,"")+"?text="+encodeURIComponent(msg):"https://wa.me/?text="+encodeURIComponent(msg);
+          window.open(url,"_blank");
+          setTimeout(()=>setEnvioIdx(i=>i+1),800);
+        };
+        return(
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.5)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+            <div style={{background:"#fff",borderRadius:20,padding:20,width:"100%",maxWidth:360}}>
+              <div style={{fontWeight:900,fontSize:17,marginBottom:14,textAlign:"center"}}>📲 Envío masivo WhatsApp</div>
+              {/* Live selector */}
+              <div style={{marginBottom:14}}>
+                <label style={S.lbl}>FILTRAR POR LIVE</label>
+                <select style={S.inp} value={envioLive} onChange={e=>{setEnvioLive(e.target.value);setEnvioIdx(0);}}>
+                  <option value="">Todos los lives (con saldo)</option>
+                  {allLivesAll2.map(l=><option key={l} value={l}>{l}</option>)}
+                </select>
+              </div>
+              {/* Progress */}
+              <div style={{background:"#F0FBFD",borderRadius:12,padding:12,marginBottom:14,textAlign:"center"}}>
+                <div style={{fontSize:13,color:"#888",marginBottom:4}}>{done?"✅ Completado":"Cliente "+(envioIdx+1)+" de "+cliEnvio.length}</div>
+                {!done&&current&&(<>
+                  <div style={{fontSize:18,fontWeight:900,color:"#1A1A1A",marginBottom:2}}>{current.alias}</div>
+                  <div style={{fontSize:13,color:"#F0057F",fontWeight:700}}>${balance(current.alias).saldo.toFixed(2)} pendiente</div>
+                  {(()=>{const p=clientes.find(c=>c.alias===current.alias);const tel=(p?.telefono||p?.whatsapp||"");return tel?<div style={{fontSize:11,color:"#888",marginTop:2}}>📞 {tel}</div>:<div style={{fontSize:11,color:"#E07040",marginTop:2}}>⚠ Sin número guardado</div>;})()}
+                </>)}
+                {done&&<div style={{fontSize:13,color:"#2D6A4F",fontWeight:700}}>Todos los mensajes enviados 🎉</div>}
+                {/* Progress bar */}
+                <div style={{background:"#D0F2F6",borderRadius:6,height:6,marginTop:8}}>
+                  <div style={{background:"#25D366",borderRadius:6,height:6,width:(cliEnvio.length?Math.round(envioIdx/cliEnvio.length*100):0)+"%",transition:"width 0.3s"}}/>
+                </div>
+              </div>
+              {/* Buttons */}
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {!done&&<button onClick={enviarActual} style={{...S.btnD,background:"#25D366",fontSize:15,padding:14}}>
+                  📲 Enviar a {current?.alias} → WhatsApp
+                </button>}
+                {!done&&envioIdx>0&&<button onClick={()=>setEnvioIdx(i=>i+1)} style={{background:"#F5F5F5",border:"none",borderRadius:12,padding:10,fontSize:13,color:"#888",cursor:"pointer"}}>
+                  Saltar este cliente →
+                </button>}
+                <button onClick={()=>{setShowEnvioModal(false);setEnvioIdx(0);}} style={{background:"#F5F5F5",border:"none",borderRadius:12,padding:10,fontSize:13,color:"#888",cursor:"pointer"}}>
+                  {done?"Cerrar":"Cancelar"}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
       {/* MODAL DEUDA MANUAL */}
       {showDeudaModal&&<div style={S.ov} onClick={e=>{if(e.target===e.currentTarget)setShowDeudaModal(false);}}>
         <div style={S.sh}>
