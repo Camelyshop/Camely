@@ -599,7 +599,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     setShowClienteModal(true);
   }
   async function guardarCliente(){
-    if(!cliF.alias.trim()||!cliF.nombre.trim())return;
+    if(!cliF.alias.trim())return;
     const e={...cliF,alias:cliF.alias.toUpperCase(),direccion:cliF.direccion||"",ciudad:cliF.ciudad||""};
     const upd=editingCliente?clientes.map(c=>c.id===editingCliente?{...c,...e}:c):[...clientes,{...e,id:Date.now()}];
     setClientes(upd);lSet(K.clientes,upd);sheetsSync("saveClientes",upd);setShowClienteModal(false);toast_("Cliente guardado ✓");
