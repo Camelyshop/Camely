@@ -1394,39 +1394,33 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         </div>}
 
         {/* ─── CLIENTES ─── */}
-        {tab==="clientes"&&(()=>{
-          const qCli=(searchCli||"").toLowerCase().trim();
-          const cliFilt=clientes.filter(c=>c&&c.alias&&(!qCli||(c.alias||"").toLowerCase().includes(qCli)||(c.nombre||"").toLowerCase().includes(qCli)||(c.tiktok||"").toLowerCase().includes(qCli)||(c.telefono||"").includes(qCli)));
-          const cliVis=qCli?cliFilt:cliFilt.slice(0,cliVerMas);
-          return(<div className="app-section" style={S.sec}>
-            <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
-              <input style={{...S.inp,flex:1,marginBottom:0}} placeholder="🔍 Alias, nombre, TikTok..." value={searchCli} onChange={e=>{setSearchCli(e.target.value);setCliVerMas(20);}}/>
-              <button onClick={()=>abrirCliente()} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0}}>+ Nuevo</button>
-            </div>
-            {cliFilt.length===0?(
-              <div style={{textAlign:"center",padding:"40px 0",color:"#bbb"}}><div style={{fontSize:32,marginBottom:8}}>👥</div><div style={{fontSize:14}}>{qCli?"Sin resultados":"Sin clientes registrados"}</div></div>
-            ):(
-              <div className={isDesk?"desktop-grid":""} style={isDesk?{gap:16}:{}}>
-                {cliVis.map((c,i,arr)=>{
-                  const bs=balance(c.alias);
-                  return(<div key={c.id} style={{...S.li,borderBottom:i<arr.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13}}>
-                    <div style={{flex:1,cursor:"pointer"}} onClick={()=>setShowPerfilModal({alias:c.alias,perfil:c})}>
-                      <div style={{fontSize:15,fontWeight:800,color:"#1A1A1A"}}>{c.alias}</div>
-                      <div style={{fontSize:12,color:"#888",marginTop:1}}>{c.nombre}</div>
-                      <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}>
-                        {c.tiktok&&<span style={S.chip}>🎵 {c.tiktok}</span>}
-                        {c.telefono&&<span style={S.chip}>📞 {c.telefono}</span>}
-                        {bs.saldo>0&&<span style={{...S.chip,background:"#FFF0F8",color:"#F0057F"}}>debe ${bs.saldo.toFixed(2)}</span>}
-                      </div>
+        {tab==="clientes"&&<div className="app-section" style={S.sec}>
+          <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
+            <input style={{...S.inp,flex:1,marginBottom:0}} placeholder="🔍 Alias, nombre, TikTok..." value={searchCli} onChange={e=>setSearchCli(e.target.value)}/>
+            <button onClick={()=>abrirCliente()} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0}}>+ Nuevo</button>
+          </div>
+          {clientes.filter(c=>!searchCli||(c.alias||"").toUpperCase().includes(searchCli.toUpperCase())||(c.nombre||"").toLowerCase().includes(searchCli.toLowerCase())||(c.tiktok||"").toLowerCase().includes(searchCli.toLowerCase())).length===0?(
+            <div style={{textAlign:"center",padding:"40px 0",color:"#bbb"}}><div style={{fontSize:32,marginBottom:8}}>👥</div><div style={{fontSize:14}}>Sin clientes registrados</div></div>
+          ):(
+            <div className={isDesk?"desktop-grid":""} style={isDesk?{gap:16}:{}}>
+              {clientes.filter(c=>!searchCli||(c.alias||"").toUpperCase().includes(searchCli.toUpperCase())||(c.nombre||"").toLowerCase().includes(searchCli.toLowerCase())||(c.tiktok||"").toLowerCase().includes(searchCli.toLowerCase())).map((c,i,arr)=>{
+                const b=balance(c.alias);
+                return(<div key={c.id} style={{...S.li,borderBottom:i<arr.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13}}>
+                  <div style={{flex:1,cursor:"pointer"}} onClick={()=>setShowPerfilModal({alias:c.alias,perfil:c})}>
+                    <div style={{fontSize:15,fontWeight:800,color:"#1A1A1A"}}>{c.alias}</div>
+                    <div style={{fontSize:12,color:"#888",marginTop:1}}>{c.nombre}</div>
+                    <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}>
+                      {c.tiktok&&<span style={S.chip}>🎵 {c.tiktok}</span>}
+                      {c.telefono&&<span style={S.chip}>📞 {c.telefono}</span>}
+                      {b.saldo>0&&<span style={{...S.chip,background:"#FFF0F8",color:"#F0057F"}}>debe ${b.saldo.toFixed(2)}</span>}
                     </div>
-                    <button onClick={()=>abrirCliente(c)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#888",cursor:"pointer",flexShrink:0,marginLeft:8}}>✏️</button>
-                  </div>);
-                })}
-                {!qCli&&cliFilt.length>cliVerMas&&<button onClick={()=>setCliVerMas(v=>v+20)} style={{width:"100%",background:"#F5FDFE",color:"#1BB6C8",border:"1px solid #1BB6C8",borderRadius:10,padding:"10px",fontSize:12,fontWeight:700,cursor:"pointer",marginTop:8}}>Ver más ({cliFilt.length-cliVerMas} restantes)</button>}
-              </div>
-            )}
-          </div>);
-        })()}
+                  </div>
+                  <button onClick={()=>abrirCliente(c)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#888",cursor:"pointer",flexShrink:0,marginLeft:8}}>✏️</button>
+                </div>);
+              })}
+            </div>
+          )}
+        </div>}
         {/* ─── SALDOS ─── */}
         {tab==="saldos"&&<div className="app-section" style={S.sec}>
           {(()=>{
