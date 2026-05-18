@@ -2071,8 +2071,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
       <div id="app-bnav" style={S.bnav}>
         {[{id:"pedido",icon:"🛍",l:"Pedido"},{id:"pago",icon:"💵",l:"Pago"},{id:"inventario",icon:"📦",l:"Stock"},{id:"clientes",icon:"👥",l:"Clientes"},{id:"saldos",icon:"📋",l:"Saldos"},...(canFinanciero?[{id:"financiero",icon:"📊",l:"Finanzas"}]:[])].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{...S.navI,color:tab===t.id?"#F0057F":"#CCC"}}>
-            <span style={{fontSize:18}}>{t.icon}</span>
-            <span style={{fontSize:isDesk?13:9,fontWeight:tab===t.id?700:400,marginTop:isDesk?0:1}}>{t.l}</span>
+            <span style={{fontSize:24}}>{t.icon}</span>
+            <span style={{fontSize:isDesk?13:11,fontWeight:tab===t.id?700:500,marginTop:isDesk?0:2}}>{t.l}</span>
             {tab===t.id&&<div className="nav-dot" style={S.navDot}/>}
           </button>
         ))}
@@ -2114,8 +2114,8 @@ const st={
   liveBtnOn:{background:"#1BB6C8",color:"#fff"},
   cancelBtn:{display:"block",width:"100%",background:"transparent",border:"none",color:"#AAA",fontSize:14,cursor:"pointer",padding:10,fontFamily:"system-ui,sans-serif",textAlign:"center"},
   labelCard:{border:"2px dashed #1BB6C8",borderRadius:16,padding:"18px 14px",textAlign:"center",background:"#E8F9FB",marginBottom:12},
-  bnav:{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:390,background:"#fff",borderTop:"1px solid #D0F2F6",display:"flex",zIndex:100},
-  navI:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"9px 0 7px",background:"transparent",border:"none",cursor:"pointer",fontFamily:"system-ui,sans-serif"},
+  bnav:{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",width:"100%",maxWidth:390,background:"#fff",borderTop:"2px solid #E8F9FB",display:"flex",zIndex:100,paddingBottom:"env(safe-area-inset-bottom,0px)"},,
+  navI:{flex:1,display:"flex",flexDirection:"column",alignItems:"center",padding:"12px 0 10px",background:"transparent",border:"none",cursor:"pointer",fontFamily:"system-ui,sans-serif"},
   navDot:{width:4,height:4,borderRadius:"50%",background:"#F0057F",marginTop:2},
 };
 
