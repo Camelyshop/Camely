@@ -388,9 +388,10 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     const c   = fromLocal("clientes", K.clientes);
     setPedidos(p); setAbonos(a); setInventario(inv); setLive(l);
     // Dispositivo nuevo: si no hay datos locales, cargar desde Sheets primero
-    const esDispositivoNuevo=!p.length&&!a.length&&!c.length;
-    if(esDispositivoNuevo&&SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
-      toast_("📡 Sincronizando datos...");
+    // Cargar desde Sheets si faltan datos clave (gastos, pedidos o clientes vacíos)
+    const localEmpty=!p.length||!gast.length;
+    if(localEmpty&&SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
+      toast_("📡 Sincronizando...");
       try{
         const remote=await sheetsLoad();
         if(remote){
@@ -402,16 +403,13 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           setPedidos(rp);setAbonos(ra);setInventario(ri);setTarjetas(rt);
           setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re);
           if(remote.live)setLive(remote.live);
-          // Save to localStorage for next time
           lSet(K.pedidos,rp);lSet(K.abonos,ra);lSet(K.inventario,ri);
           lSet(K.tarjetas,rt);lSet(K.cargos,rcg);lSet(K.imports,rim);
           lSet(K.gastos,rg);lSet(K.estadosCuenta,re);
-          // clientes handled below with DR merge
-          const cFromSheets=rc;
-          if(cFromSheets.length>0){setClientes(cFromSheets);lSet(K.clientes,cFromSheets);}
-          toast_("✓ Datos sincronizados desde la nube");
+          if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
+          toast_("✓ Datos sincronizados");
         }
-      }catch(e){console.warn("Sheets sync failed:",e);}
+      }catch(e){console.warn("Sheets:",e);}
     }
     const DR={
       "SANY SANCHEZ":{nombre:"SANNY GALUD SANCHEZ FERNANDEZ",telefono:"0991250115",whatsapp:"0991250115",direccion:"MUCHO LOTE 2 URB VICTORIA DEL RIO MZ 2963 VILLA 21",ciudad:"GUAYAQUIL"},
@@ -882,12 +880,14 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   function parseFecha(fecha){
     if(!fecha) return {mes:null,ano:null};
     const s=String(fecha).trim();
-    // ISO datetime: 2026-04-28T05:00:00.000Z o 2026-04-28T05:00:00Z
+    // Normaliza abreviatura: "abr"→"Abr", "ABR"→"Abr"
+    const normMes=raw=>raw?raw.charAt(0).toUpperCase()+raw.slice(1).toLowerCase():null;
+    // ISO datetime: 2026-04-28T05:00:00.000Z
     const m0=s.match(/^(\d{4})-(\d{2})-(\d{2})T/);
     if(m0) return {mes:MESES[parseInt(m0[2])-1]||null,ano:m0[1]};
-    // DD-Mon-YYYY: 28-Abr-2026
+    // DD-Mon-YYYY: 28-Abr-2026 o 28-abr-2026 o 28-ABR-2026
     const m1=s.match(/^\d{1,2}-([A-Za-z]{3})-(\d{4})$/);
-    if(m1) return {mes:m1[1],ano:m1[2]};
+    if(m1) return {mes:normMes(m1[1]),ano:m1[2]};
     // DD/MM/YYYY: 28/04/2026
     const m2=s.match(/^\d{1,2}\/(\d{1,2})\/(\d{4})$/);
     if(m2) return {mes:MESES[parseInt(m2[1])-1]||null,ano:m2[2]};
