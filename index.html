@@ -251,6 +251,7 @@ const K = { pedidos:"c-pedidos", abonos:"c-abonos", live:"c-live", clientes:"c-c
 
 const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 function fmtLive(n,m,y){return "Live "+n+" - "+m+"/"+y;}
+function hoyISO(){const n=new Date();return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");}
 function hoy() {
   const n=new Date(),d=n.getDate().toString().padStart(2,"0");
   return `${d}-${["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"][n.getMonth()]}-${n.getFullYear()}`;
