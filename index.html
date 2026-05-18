@@ -391,26 +391,26 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     const c   = fromLocal("clientes", K.clientes);
     setPedidos(p); setAbonos(a); setInventario(inv); setLive(l);
     // Dispositivo nuevo: si no hay datos locales, cargar desde Sheets primero
-    // Sincronizar con Sheets en BACKGROUND (no bloquea la UI)
+    // Sync from Sheets in background if local data is empty
     const localEmpty=!p.length||!gast.length;
-    if(SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
-      if(localEmpty) toast_("📡 Sincronizando...");
+    if(localEmpty&&SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
+      toast_("📡 Sincronizando...");
       sheetsLoad().then(remote=>{
         if(!remote) return;
-        const rG=(rk,lk)=>(remote[rk]&&remote[rk].length>0)?remote[rk]:(lGet(lk)||[]);
+        const rG=(rk,lk)=>{const loc=lGet(lk);return(loc&&loc.length>0)?loc:(remote[rk]||[]);};
         const rp=rG("pedidos",K.pedidos),ra=rG("abonos",K.abonos),rc=rG("clientes",K.clientes);
         const ri=rG("inventario",K.inventario),rt=rG("tarjetas",K.tarjetas);
         const rcg=rG("cargos",K.cargos),rim=rG("imports",K.imports);
-        const rg=rG("gastos",K.gastos),re=rG("estadosCuenta",K.estadosCuenta);
+        const rg=rG("gastos",K.gastos),re2=rG("estadosCuenta",K.estadosCuenta);
         setPedidos(rp);setAbonos(ra);setInventario(ri);setTarjetas(rt);
-        setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re);
+        setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re2);
+        if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
         if(remote.live)setLive(remote.live);
         lSet(K.pedidos,rp);lSet(K.abonos,ra);lSet(K.inventario,ri);
         lSet(K.tarjetas,rt);lSet(K.cargos,rcg);lSet(K.imports,rim);
-        lSet(K.gastos,rg);lSet(K.estadosCuenta,re);
-        if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
-        if(localEmpty) toast_("✓ Datos sincronizados");
-      }).catch(e=>console.warn("Sheets:",e));
+        lSet(K.gastos,rg);lSet(K.estadosCuenta,re2);
+        toast_("✓ Datos sincronizados");
+      }).catch(()=>{});
     }
     const DR={
       "SANY SANCHEZ":{nombre:"SANNY GALUD SANCHEZ FERNANDEZ",telefono:"0991250115",whatsapp:"0991250115",direccion:"MUCHO LOTE 2 URB VICTORIA DEL RIO MZ 2963 VILLA 21",ciudad:"GUAYAQUIL"},
@@ -461,8 +461,9 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     }
     setLoading(false);
   }
+
   async function resyncFromSheets(){
-    if(!SHEETS_URL||SHEETS_URL.includes("PEGA")){toast_("⚠ Google Sheets no configurado","err");return;}
+    if(!SHEETS_URL||SHEETS_URL.includes("PEGA")){toast_("⚠ Sheets no configurado","err");return;}
     toast_("📡 Forzando sincronización...");
     try{
       const remote=await sheetsLoad();
@@ -470,18 +471,17 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
       const rG=(rk)=>remote[rk]||[];
       const rp=rG("pedidos"),ra=rG("abonos"),rc=rG("clientes"),ri=rG("inventario");
       const rt=rG("tarjetas"),rcg=rG("cargos"),rim=rG("imports");
-      const rg=rG("gastos"),re=rG("estadosCuenta");
+      const rg=rG("gastos"),re2=rG("estadosCuenta");
       setPedidos(rp);setAbonos(ra);setInventario(ri);setTarjetas(rt);
-      setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re);
+      setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re2);
       if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
       if(remote.live)setLive(remote.live);
       lSet(K.pedidos,rp);lSet(K.abonos,ra);lSet(K.inventario,ri);
       lSet(K.tarjetas,rt);lSet(K.cargos,rcg);lSet(K.imports,rim);
-      lSet(K.gastos,rg);lSet(K.estadosCuenta,re);
-      toast_("✓ Sincronizado: "+rp.length+" pedidos, "+rg.length+" gastos, "+rc.length+" clientes");
+      lSet(K.gastos,rg);lSet(K.estadosCuenta,re2);
+      toast_("✓ Sincronizado: "+rp.length+" pedidos, "+rg.length+" gastos");
     }catch(e){toast_("⚠ Error: "+e.message,"err");}
   }
-
   function toast_(msg,type="ok"){setToast({msg,type});setTimeout(()=>setToast(null),2600);}
 
   const allAliases=[...new Set([...pedidos.map(p=>p.cliente),...abonos.map(a=>a.cliente),...clientes.map(c=>c.alias?.toUpperCase())])].filter(a=>a&&a.trim().length>0).sort();
@@ -592,7 +592,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     if(!existe){
       const nuevo={id:Date.now()+1,alias:clienteAlias,nombre:"",telefono:"",whatsapp:"",tiktok:"",cedula:"",ciudad:"",direccion:""};
       const updCli=[...clientes,nuevo];setClientes(updCli);lSet(K.clientes,updCli);sheetsSync("saveClientes",updCli);
-      toast_("👤 Cliente ""+clienteAlias+"" creado automáticamente");
+      toast_("👤 "+clienteAlias+" guardado en Clientes");
     }
     if(form.invId&&inventario.find(i=>i.id===form.invId)){
       const updInv=inventario.map(i=>i.id===form.invId?{...i,estado:"vendido",pedidoId:item.id,cliente:form.cliente}:i);
@@ -1572,7 +1572,6 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                           }} style={{background:"#25D366",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#fff",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,marginTop:4,flexShrink:0}}>
                             <span>📲</span><span>WhatsApp</span>
                           </button>
-                        </div>
                         </div>
                         {isExp&&<div style={{borderTop:"1px solid #E8F9FB",padding:"10px 14px",background:"#F8FDFE"}}>
                           <div style={{fontSize:10,color:"#1BB6C8",letterSpacing:1,textTransform:"uppercase",marginBottom:8,fontWeight:700}}>Detalle de compras</div>
