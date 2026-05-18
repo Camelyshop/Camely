@@ -371,16 +371,20 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   },[pedidos,abonos,clientes,inventario,tarjetas,cargosTarjeta,importaciones,gastos,estadosCuenta]);
   async function load(){
     // Try Google Sheets first, fallback to localStorage
+    // IMPORTANT: only use Sheets data if it has records (empty [] is falsy for this check)
     let remote = await sheetsLoad();
-    const p   = remote?.pedidos    || lGet(K.pedidos)    || [];
-    const tarj= remote?.tarjetas    || lGet(K.tarjetas)  || [];
-    const carg= remote?.cargos      || lGet(K.cargos)    || [];
-    const imps= remote?.imports     || lGet(K.imports)   || [];
-    const gast= remote?.gastos      || lGet(K.gastos)    || [];
-    const ecs = remote?.estadosCuenta|| lGet(K.estadosCuenta) || [];
+    // localStorage = fuente de verdad en este dispositivo
+    // Sheets solo se usa si localStorage está vacío (nuevo dispositivo o caché limpiado)
+    const rGet=(rKey,lKey)=>{const local=lGet(lKey);if(local&&local.length>0)return local;const rd=remote?.[rKey];return(rd&&rd.length>0)?rd:[];};
+    const p   = rGet("pedidos",   K.pedidos);
+    const tarj= rGet("tarjetas",  K.tarjetas);
+    const carg= rGet("cargos",    K.cargos);
+    const imps= rGet("imports",   K.imports);
+    const gast= rGet("gastos",    K.gastos);
+    const ecs = rGet("estadosCuenta", K.estadosCuenta);
     setTarjetas(tarj); setCargosTarjeta(carg); setImportaciones(imps); setGastos(gast); setEstadosCuenta(ecs);
-    const a   = remote?.abonos     || lGet(K.abonos)     || [];
-    const inv = remote?.inventario || lGet(K.inventario) || [];
+    const a   = rGet("abonos",    K.abonos);
+    const inv = rGet("inventario",K.inventario);
     const l   = remote?.live       || lGetS(K.live)      || liveDefault();
     const c   = remote?.clientes   || lGet(K.clientes);
     setPedidos(p); setAbonos(a); setInventario(inv); setLive(l);
@@ -1081,7 +1085,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           {[{k:"alias",l:"ALIAS / APODO",ph:"GABY GALAPAGOS",cap:"characters"},{k:"nombre",l:"NOMBRE COMPLETO",ph:"Gabriela Verdesoto",cap:"characters"},{k:"cedula",l:"CÉDULA",ph:"0912345678",cap:"none"},{k:"telefono",l:"TELÉFONO",ph:"0991234567",cap:"none"},{k:"whatsapp",l:"WHATSAPP",ph:"0991234567",cap:"none"},{k:"tiktok",l:"TIKTOK",ph:"@gabyv",cap:"none"},{k:"ciudad",l:"CIUDAD",ph:"Guayaquil, Durán, Samborondón...",cap:"characters"},{k:"direccion",l:"DIRECCIÓN DE ENVÍO",ph:"Urb. Las Orquídeas MZ 3 V 14",cap:"characters"}].map(({k,l,ph,cap})=>(
             <div key={k} style={{marginBottom:10}}><label style={S.lbl}>{l}</label><input style={S.inp} placeholder={ph} autoCapitalize={cap} value={cliF[k]} onChange={e=>setCliF(f=>({...f,[k]:e.target.value}))}/></div>
           ))}
-          <button onClick={guardarCliente} disabled={!cliF.alias.trim()||!cliF.nombre.trim()} style={{...S.btnD,opacity:(!cliF.alias.trim()||!cliF.nombre.trim())?0.4:1,marginBottom:8}}>Guardar</button>
+          <button onClick={guardarCliente} disabled={!cliF.alias.trim()} style={{...S.btnD,opacity:(!cliF.alias.trim())?0.4:1,marginBottom:8}}>Guardar</button>
           <button onClick={()=>setShowClienteModal(false)} style={S.cancelBtn}>Cancelar</button>
         </div>
       </div>}
