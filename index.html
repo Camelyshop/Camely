@@ -310,10 +310,10 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const ecFileRef=useRef();
   // Gasto modal
   const [showGastoModal,setShowGastoModal]=useState(false);
-  const [gastoForm,setGastoForm]=useState({tipo:"servientrega",descripcion:"",monto:"",fecha:hoy(),tarjetaId:""});
+  const [gastoForm,setGastoForm]=useState({tipo:"servientrega",descripcion:"",monto:"",fecha:hoyISO(),tarjetaId:""});
   const [expandedResultRow,setExpandedResultRow]=useState(null);
   const [showDeudaModal,setShowDeudaModal]=useState(false);
-  const [deudaForm,setDeudaForm]=useState({cliente:"",descripcion:"",monto:"",fecha:""});
+  const [deudaForm,setDeudaForm]=useState({cliente:"",descripcion:"",monto:"",fecha:hoyISO(),live:""});
   const [expandedLlegada,setExpandedLlegada]=useState(null);  // importacion en modo llegada
   const [llegadaItems,setLlegadaItems]=useState([]);           // items editables de llegada
   const [codigoBusqueda,setCodigoBusqueda]=useState("");        // busqueda codigo en pedido
@@ -452,6 +452,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
 
   const sugC=form.cliente.length>0?allAliases.filter(a=>a&&a.includes(form.cliente.toUpperCase())).slice(0,5):[];
   const sugP=pagoF.cliente.length>0?allAliases.filter(a=>a&&a.includes(pagoF.cliente.toUpperCase())).slice(0,5):[];
+  const allLivesAll=[...new Set(pedidos.map(p=>p.live).filter(Boolean))].sort().reverse();
   const clientesConSaldo=allAliases.filter(a=>a&&a.trim()).map(a=>({alias:a,p:perfil(a),...balance(a)})).filter(c=>c.saldo>0.009).sort((a,b)=>b.saldo-a.saldo);
 
   const q=searchInv.trim().toLowerCase();
@@ -621,7 +622,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     const item={
       id:Date.now(),
       fecha:deudaForm.fecha||hoy(),
-      live:"Manual",
+      live:deudaForm.live.trim()||"Manual",
       cliente:deudaForm.cliente.toUpperCase().trim(),
       prenda:deudaForm.descripcion||"Venta anterior",
       pvp:parseFloat(deudaForm.monto),
@@ -632,7 +633,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     const upd=[...pedidos,item];
     setPedidos(upd); lSet(K.pedidos,upd); sheetsSync("savePedidos",upd);
     setShowDeudaModal(false);
-    setDeudaForm({cliente:"",descripcion:"",monto:"",fecha:""});
+    setDeudaForm({cliente:"",descripcion:"",monto:"",fecha:"",live:""});
     toast_("✓ Deuda registrada para "+item.cliente);
   }
   async function eliminarPedido(pedidoId){
@@ -787,8 +788,11 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           if(!isNaN(v)&&v>0){
             const fechaRaw=(fechaEl?.textContent||"").trim();
             let fecha=fechaRaw;
-            if(fechaRaw.includes("/")){const pts=fechaRaw.split("/");fecha=pts[0]+"-"+(MESES[parseInt(pts[1])-1]||pts[1])+"-"+pts[2];}
-            if(!fecha) fecha=hoy();
+            if(fechaRaw.includes("/")){
+              // DD/MM/YYYY → YYYY-MM-DD
+              const pts=fechaRaw.split("/");
+              fecha=pts[2]+"-"+pts[1].padStart(2,"0")+"-"+pts[0].padStart(2,"0");
+            } else if(!fecha||!fecha.includes("-")) fecha=hoyISO();
             const seq=(seqEl?.textContent||"").trim().replace(/^0+/,"");
             const ruc=(rucEl?.textContent||"").trim();
             const razon=(razonEl?.textContent||"Servientrega").trim();
@@ -1857,7 +1861,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                     {ANOS_DISP.map(a=><option key={a} value={a}>{a==="todos"?"Todos":a}</option>)}
                   </select>
                   {canAdmin&&<button onClick={deduplicarGastos} style={{background:"#FFF5E0",color:"#B7570A",border:"1px solid #B7570A",borderRadius:10,padding:"7px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🧹 Duplicados</button>}
-                  <button onClick={()=>setShowGastoModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>+ Gasto</button>
+                  <button onClick={()=>{setGastoForm(f=>({...f,fecha:hoyISO()}));setShowGastoModal(true);}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>+ Gasto</button>
                 </div>
                 {/* Monthly table */}
                 <div style={{overflowX:"auto",borderRadius:14,boxShadow:"0 2px 12px rgba(0,0,0,0.08)"}}>
@@ -1988,8 +1992,16 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
             ))}
           </div>
           <div style={{marginBottom:10}}>
-            <label style={S.lbl}>DESCRIPCIÓN</label>
-            <input style={S.inp} placeholder="Ej: Ropa niña pedido WhatsApp, Venta live anterior..." value={deudaForm.descripcion}
+            <label style={S.lbl}>LIVE / ORIGEN <span style={{fontWeight:400,color:"#AAA"}}>(opcional)</span></label>
+            <input style={S.inp} placeholder="Ej: Live 3 - Mar/26, WhatsApp, Pedido directo..." value={deudaForm.live}
+              onChange={e=>setDeudaForm(f=>({...f,live:e.target.value}))}/>
+            {allLivesAll.length>0&&<div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:4}}>
+              {allLivesAll.slice(0,6).map(l=><button key={l} onClick={()=>setDeudaForm(f=>({...f,live:l}))} style={{background:deudaForm.live===l?"#1BB6C8":"#F0FBFD",color:deudaForm.live===l?"#fff":"#1BB6C8",border:"1px solid #1BB6C8",borderRadius:8,padding:"3px 10px",fontSize:11,cursor:"pointer"}}>{l}</button>)}
+            </div>}
+          </div>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>DESCRIPCIÓN <span style={{fontWeight:400,color:"#AAA"}}>(opcional)</span></label>
+            <input style={S.inp} placeholder="Ej: Blusa niña T-S, Zapatos T-34..." value={deudaForm.descripcion}
               onChange={e=>setDeudaForm(f=>({...f,descripcion:e.target.value}))}/>
           </div>
           <div style={{display:"flex",gap:10,marginBottom:14}}>
@@ -1999,8 +2011,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                 onChange={e=>setDeudaForm(f=>({...f,monto:e.target.value}))}/>
             </div>
             <div style={{flex:1}}>
-              <label style={S.lbl}>FECHA</label>
-              <input style={S.inp} placeholder={hoy()} value={deudaForm.fecha}
+              <label style={S.lbl}>FECHA <span style={{fontWeight:400,color:"#AAA"}}>(opcional)</span></label>
+              <input type="date" style={S.inp} value={deudaForm.fecha||hoyISO()}
                 onChange={e=>setDeudaForm(f=>({...f,fecha:e.target.value}))}/>
             </div>
           </div>
@@ -2048,7 +2060,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
             <div style={{flex:1}}><label style={S.lbl}>MONTO ($)</label>
               <input type="number" style={S.inp} placeholder="0.00" value={gastoForm.monto} onChange={e=>setGastoForm(f=>({...f,monto:e.target.value}))}/></div>
             <div style={{flex:1}}><label style={S.lbl}>FECHA</label>
-              <input style={S.inp} placeholder={hoy()} value={gastoForm.fecha} onChange={e=>setGastoForm(f=>({...f,fecha:e.target.value}))}/></div>
+              <input style={S.inp} type="date" value={gastoForm.fecha||hoyISO()} onChange={e=>setGastoForm(f=>({...f,fecha:e.target.value}))}/></div>
           </div>
           <button onClick={guardarGasto} disabled={!gastoForm.monto} style={{...S.btnD,opacity:!gastoForm.monto?0.4:1,marginBottom:8}}>Registrar Gasto</button>
           <button onClick={()=>setShowGastoModal(false)} style={S.cancelBtn}>Cancelar</button>
