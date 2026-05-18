@@ -312,6 +312,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [showGastoModal,setShowGastoModal]=useState(false);
   const [gastoForm,setGastoForm]=useState({tipo:"servientrega",descripcion:"",monto:"",fecha:hoy(),tarjetaId:""});
   const [expandedResultRow,setExpandedResultRow]=useState(null);
+  const [showDeudaModal,setShowDeudaModal]=useState(false);
+  const [deudaForm,setDeudaForm]=useState({cliente:"",descripcion:"",monto:"",fecha:""});
   const [expandedLlegada,setExpandedLlegada]=useState(null);  // importacion en modo llegada
   const [llegadaItems,setLlegadaItems]=useState([]);           // items editables de llegada
   const [codigoBusqueda,setCodigoBusqueda]=useState("");        // busqueda codigo en pedido
@@ -427,8 +429,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   }
   function toast_(msg,type="ok"){setToast({msg,type});setTimeout(()=>setToast(null),2600);}
 
-  const allAliases=[...new Set([...pedidos.map(p=>p.cliente),...abonos.map(a=>a.cliente),...clientes.map(c=>c.alias.toUpperCase())])].sort();
-  function perfil(alias){return clientes.find(c=>c.alias.toUpperCase()===alias?.toUpperCase());}
+  const allAliases=[...new Set([...pedidos.map(p=>p.cliente),...abonos.map(a=>a.cliente),...clientes.map(c=>c.alias?.toUpperCase())])].filter(a=>a&&a.trim().length>0).sort();
+  function perfil(alias){if(!alias) return null; return clientes.find(c=>c.alias?.toUpperCase()===alias.toUpperCase());}
   function balance(alias){
     const tc=pedidos.filter(p=>p.cliente===alias).reduce((s,p)=>s+p.total,0);
     const ta=abonos.filter(a=>a.cliente===alias).reduce((s,a)=>s+a.monto,0);
@@ -438,9 +440,9 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     return item.qty-pedidos.filter(p=>p.invId===item.id).reduce((s,p)=>s+(p.qty||1),0);
   }
 
-  const sugC=form.cliente.length>0?allAliases.filter(a=>a.includes(form.cliente.toUpperCase())).slice(0,5):[];
-  const sugP=pagoF.cliente.length>0?allAliases.filter(a=>a.includes(pagoF.cliente.toUpperCase())).slice(0,5):[];
-  const clientesConSaldo=allAliases.map(a=>({alias:a,p:perfil(a),...balance(a)})).filter(c=>c.saldo>0.009).sort((a,b)=>b.saldo-a.saldo);
+  const sugC=form.cliente.length>0?allAliases.filter(a=>a&&a.includes(form.cliente.toUpperCase())).slice(0,5):[];
+  const sugP=pagoF.cliente.length>0?allAliases.filter(a=>a&&a.includes(pagoF.cliente.toUpperCase())).slice(0,5):[];
+  const clientesConSaldo=allAliases.filter(a=>a&&a.trim()).map(a=>({alias:a,p:perfil(a),...balance(a)})).filter(c=>c.saldo>0.009).sort((a,b)=>b.saldo-a.saldo);
 
   const q=searchInv.trim().toLowerCase();
   const invFiltrado=inventario.filter(i=>!q||
@@ -604,6 +606,25 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     setShowInvModal(true);
   }
   // ── Eliminar pedido ──
+  async function guardarDeudaManual(){
+    if(!deudaForm.cliente.trim()||!deudaForm.monto||parseFloat(deudaForm.monto)<=0) return;
+    const item={
+      id:Date.now(),
+      fecha:deudaForm.fecha||hoy(),
+      live:"Manual",
+      cliente:deudaForm.cliente.toUpperCase().trim(),
+      prenda:deudaForm.descripcion||"Venta anterior",
+      pvp:parseFloat(deudaForm.monto),
+      qty:1,
+      total:parseFloat(deudaForm.monto),
+      invId:null
+    };
+    const upd=[...pedidos,item];
+    setPedidos(upd); lSet(K.pedidos,upd); sheetsSync("savePedidos",upd);
+    setShowDeudaModal(false);
+    setDeudaForm({cliente:"",descripcion:"",monto:"",fecha:""});
+    toast_("✓ Deuda registrada para "+item.cliente);
+  }
   async function eliminarPedido(pedidoId){
     if(!window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")) return;
     const upd=pedidos.filter(p=>p.id!==pedidoId);
@@ -1407,7 +1428,10 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
             const totalFiltrado=filtrados.reduce((s,c)=>s+c.saldo,0);
             return(<>
               <div style={S.summCard}>
-                <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
+                  <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
+                  <button onClick={()=>setShowDeudaModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Deuda manual</button>
+                </div>
                 <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginTop:4}}>${totalFiltrado.toFixed(2)}</div>
                 <div style={{opacity:0.5,fontSize:12,marginTop:4}}>{filtrados.length} clientes{saldoFiltroLive?` · ${saldoFiltroLive}`:""}</div>
               </div>
@@ -1941,6 +1965,41 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         </div>
       </div>}
 
+      {/* MODAL DEUDA MANUAL */}
+      {showDeudaModal&&<div style={S.ov} onClick={e=>{if(e.target===e.currentTarget)setShowDeudaModal(false);}}>
+        <div style={S.sh}>
+          <div style={S.shT}>Registrar Deuda / Venta Anterior</div>
+          <div style={{fontSize:11,color:"#AAA",marginBottom:14}}>Para ventas pasadas que no están registradas en ningún live</div>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>CLIENTE</label>
+            <input style={S.inp} placeholder="Alias del cliente (ej: MARIA)" value={deudaForm.cliente}
+              onChange={e=>setDeudaForm(f=>({...f,cliente:e.target.value}))} autoCapitalize="characters"/>
+            {deudaForm.cliente.length>0&&allAliases.filter(a=>a&&a.includes(deudaForm.cliente.toUpperCase())).slice(0,4).map(a=>(
+              <button key={a} onClick={()=>setDeudaForm(f=>({...f,cliente:a}))} style={S.sugI}>{a}</button>
+            ))}
+          </div>
+          <div style={{marginBottom:10}}>
+            <label style={S.lbl}>DESCRIPCIÓN</label>
+            <input style={S.inp} placeholder="Ej: Ropa niña pedido WhatsApp, Venta live anterior..." value={deudaForm.descripcion}
+              onChange={e=>setDeudaForm(f=>({...f,descripcion:e.target.value}))}/>
+          </div>
+          <div style={{display:"flex",gap:10,marginBottom:14}}>
+            <div style={{flex:1}}>
+              <label style={S.lbl}>MONTO ($)</label>
+              <input type="number" style={S.inp} placeholder="0.00" value={deudaForm.monto}
+                onChange={e=>setDeudaForm(f=>({...f,monto:e.target.value}))}/>
+            </div>
+            <div style={{flex:1}}>
+              <label style={S.lbl}>FECHA</label>
+              <input style={S.inp} placeholder={hoy()} value={deudaForm.fecha}
+                onChange={e=>setDeudaForm(f=>({...f,fecha:e.target.value}))}/>
+            </div>
+          </div>
+          <button onClick={guardarDeudaManual} style={{...S.btnP,width:"100%",padding:"12px",fontSize:14}}>
+            ✓ Registrar Deuda ${deudaForm.monto?parseFloat(deudaForm.monto||0).toFixed(2):"0.00"}
+          </button>
+        </div>
+      </div>}
       {/* MODAL GASTO */}
       {showGastoModal&&<div style={S.ov} onClick={()=>setShowGastoModal(false)}>
         <div style={S.sh} onClick={e=>e.stopPropagation()}>
