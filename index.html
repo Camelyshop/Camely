@@ -1558,7 +1558,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
             );
             return(<>{finSubNav}
               {finSub==="resumen"&&(()=>{
-                const ANOS=["todos",...[...new Set(pedidos.map(p=>p.fecha?.split("-")[2]).filter(Boolean))].sort()];
+                const ANOS=["todos",...[...new Set(pedidos.map(p=>parseFecha(p.fecha).ano).filter(Boolean))].sort()];
                 const ped=filtroPeriodo(pedidos);
                 const abo=filtroPeriodo(abonos);
                 const tv=ped.reduce((s,p)=>s+p.total,0);
@@ -1822,7 +1822,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                 const ab=abonos.filter(a=>{const f=parseFecha(a.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
                 const ped=pedidos.filter(a=>{const f=parseFecha(a.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
                 const imps=importaciones.filter(i=>{if(i.estado!=="recibida")return false;const f=parseFecha(i.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
-                const gm=gastos.filter(g=>{const p=g.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
+                const gm=gastos.filter(g=>{const f=parseFecha(g.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
                 const cobrado=ab.reduce((s,a)=>s+a.monto,0);
                 const ventas=ped.reduce((s,p)=>s+p.total,0);
                 const costo=imps.reduce((s,i)=>s+i.costoTotal,0);
