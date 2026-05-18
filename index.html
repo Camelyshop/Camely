@@ -391,28 +391,26 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     const c   = fromLocal("clientes", K.clientes);
     setPedidos(p); setAbonos(a); setInventario(inv); setLive(l);
     // Dispositivo nuevo: si no hay datos locales, cargar desde Sheets primero
-    // Cargar desde Sheets si faltan datos clave (gastos, pedidos o clientes vacíos)
+    // Sincronizar con Sheets en BACKGROUND (no bloquea la UI)
     const localEmpty=!p.length||!gast.length;
-    if(localEmpty&&SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
-      toast_("📡 Sincronizando...");
-      try{
-        const remote=await sheetsLoad();
-        if(remote){
-          const rG=(rk,lk)=>(remote[rk]&&remote[rk].length>0)?remote[rk]:(lGet(lk)||[]);
-          const rp=rG("pedidos",K.pedidos),ra=rG("abonos",K.abonos),rc=rG("clientes",K.clientes);
-          const ri=rG("inventario",K.inventario),rt=rG("tarjetas",K.tarjetas);
-          const rcg=rG("cargos",K.cargos),rim=rG("imports",K.imports);
-          const rg=rG("gastos",K.gastos),re=rG("estadosCuenta",K.estadosCuenta);
-          setPedidos(rp);setAbonos(ra);setInventario(ri);setTarjetas(rt);
-          setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re);
-          if(remote.live)setLive(remote.live);
-          lSet(K.pedidos,rp);lSet(K.abonos,ra);lSet(K.inventario,ri);
-          lSet(K.tarjetas,rt);lSet(K.cargos,rcg);lSet(K.imports,rim);
-          lSet(K.gastos,rg);lSet(K.estadosCuenta,re);
-          if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
-          toast_("✓ Datos sincronizados");
-        }
-      }catch(e){console.warn("Sheets:",e);}
+    if(SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
+      if(localEmpty) toast_("📡 Sincronizando...");
+      sheetsLoad().then(remote=>{
+        if(!remote) return;
+        const rG=(rk,lk)=>(remote[rk]&&remote[rk].length>0)?remote[rk]:(lGet(lk)||[]);
+        const rp=rG("pedidos",K.pedidos),ra=rG("abonos",K.abonos),rc=rG("clientes",K.clientes);
+        const ri=rG("inventario",K.inventario),rt=rG("tarjetas",K.tarjetas);
+        const rcg=rG("cargos",K.cargos),rim=rG("imports",K.imports);
+        const rg=rG("gastos",K.gastos),re=rG("estadosCuenta",K.estadosCuenta);
+        setPedidos(rp);setAbonos(ra);setInventario(ri);setTarjetas(rt);
+        setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re);
+        if(remote.live)setLive(remote.live);
+        lSet(K.pedidos,rp);lSet(K.abonos,ra);lSet(K.inventario,ri);
+        lSet(K.tarjetas,rt);lSet(K.cargos,rcg);lSet(K.imports,rim);
+        lSet(K.gastos,rg);lSet(K.estadosCuenta,re);
+        if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
+        if(localEmpty) toast_("✓ Datos sincronizados");
+      }).catch(e=>console.warn("Sheets:",e));
     }
     const DR={
       "SANY SANCHEZ":{nombre:"SANNY GALUD SANCHEZ FERNANDEZ",telefono:"0991250115",whatsapp:"0991250115",direccion:"MUCHO LOTE 2 URB VICTORIA DEL RIO MZ 2963 VILLA 21",ciudad:"GUAYAQUIL"},
@@ -463,6 +461,27 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     }
     setLoading(false);
   }
+  async function resyncFromSheets(){
+    if(!SHEETS_URL||SHEETS_URL.includes("PEGA")){toast_("⚠ Google Sheets no configurado","err");return;}
+    toast_("📡 Forzando sincronización...");
+    try{
+      const remote=await sheetsLoad();
+      if(!remote){toast_("⚠ No se pudo conectar","err");return;}
+      const rG=(rk)=>remote[rk]||[];
+      const rp=rG("pedidos"),ra=rG("abonos"),rc=rG("clientes"),ri=rG("inventario");
+      const rt=rG("tarjetas"),rcg=rG("cargos"),rim=rG("imports");
+      const rg=rG("gastos"),re=rG("estadosCuenta");
+      setPedidos(rp);setAbonos(ra);setInventario(ri);setTarjetas(rt);
+      setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re);
+      if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
+      if(remote.live)setLive(remote.live);
+      lSet(K.pedidos,rp);lSet(K.abonos,ra);lSet(K.inventario,ri);
+      lSet(K.tarjetas,rt);lSet(K.cargos,rcg);lSet(K.imports,rim);
+      lSet(K.gastos,rg);lSet(K.estadosCuenta,re);
+      toast_("✓ Sincronizado: "+rp.length+" pedidos, "+rg.length+" gastos, "+rc.length+" clientes");
+    }catch(e){toast_("⚠ Error: "+e.message,"err");}
+  }
+
   function toast_(msg,type="ok"){setToast({msg,type});setTimeout(()=>setToast(null),2600);}
 
   const allAliases=[...new Set([...pedidos.map(p=>p.cliente),...abonos.map(a=>a.cliente),...clientes.map(c=>c.alias?.toUpperCase())])].filter(a=>a&&a.trim().length>0).sort();
@@ -1935,6 +1954,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                   <select style={{...S.inp,width:100,fontSize:12,padding:"6px 10px"}} value={resAno} onChange={e=>setResAno(e.target.value)}>
                     {ANOS_DISP.map(a=><option key={a} value={a}>{a==="todos"?"Todos":a}</option>)}
                   </select>
+                  <button onClick={resyncFromSheets} style={{background:"#E8F9FB",color:"#1BB6C8",border:"1px solid #1BB6C8",borderRadius:10,padding:"7px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Sincronizar</button>
                   {canAdmin&&<button onClick={deduplicarGastos} style={{background:"#FFF5E0",color:"#B7570A",border:"1px solid #B7570A",borderRadius:10,padding:"7px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🧹 Duplicados</button>}
                   <button onClick={()=>{setGastoForm(f=>({...f,fecha:hoyISO()}));setShowGastoModal(true);}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>+ Gasto</button>
                 </div>
