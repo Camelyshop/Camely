@@ -1819,9 +1819,9 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
               const ANOS_DISP=["todos",...[...new Set([...abonos,...gastos,...importaciones].map(x=>parseFecha(x.fecha).ano).filter(Boolean))].sort()];
               // Build monthly data
               const dm=MESES.map(mes=>{
-                const ab=abonos.filter(a=>{const p=a.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
-                const ped=pedidos.filter(a=>{const p=a.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
-                const imps=importaciones.filter(i=>{if(i.estado!=="recibida")return false;const p=i.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
+                const ab=abonos.filter(a=>{const f=parseFecha(a.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
+                const ped=pedidos.filter(a=>{const f=parseFecha(a.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
+                const imps=importaciones.filter(i=>{if(i.estado!=="recibida")return false;const f=parseFecha(i.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
                 const gm=gastos.filter(g=>{const p=g.fecha?.split("-");return p&&p[1]===mes&&(resAno==="todos"||p[2]?.startsWith(year));});
                 const cobrado=ab.reduce((s,a)=>s+a.monto,0);
                 const ventas=ped.reduce((s,p)=>s+p.total,0);
