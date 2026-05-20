@@ -1680,13 +1680,13 @@ const w=window.open("","_blank");
                             const tc=cps.reduce((s,p)=>s+p.total,0);
                             const ta=abo.reduce((s,a)=>s+a.monto,0);
                             const saldo=tc-ta;
-                            let msg="🐰 *Camely Ropa Infantil*\n";
+                            let msg="✨ *Camely Ropa Infantil* ✨\n";
                             msg+="━━━━━━━━━━━━━━━━━━\n";
-                            msg+="Hola *"+c.alias+"*! 👋\n\n";
-                            msg+="💰 *Resumen de tu cuenta:*\n";
-                            msg+="🛍 Total compras: $"+tc.toFixed(2)+"\n";
-                            msg+="✅ Total abonado: $"+ta.toFixed(2)+"\n";
-                            msg+="📌 *Saldo pendiente: $"+saldo.toFixed(2)+"*\n";
+                            msg+="👋 Hola *"+c.alias+"*!\n\n";
+                            msg+="💳 *Resumen de tu cuenta:*\n";
+                            msg+="🛍️ Compras:\t $"+tc.toFixed(2)+"\n";
+                            msg+="✅ Abonado:\t $"+ta.toFixed(2)+"\n";
+                            msg+="🔴 *Pendiente: $"+saldo.toFixed(2)+"*\n";
                             if(cps.length>0){
                               msg+="\n📋 *Detalle:*\n";
                               cps.slice(0,8).forEach(p=>{msg+="  • "+p.prenda+(p.prenda==="-"?"Prenda":"")+": $"+p.total.toFixed(2)+"\n";});
@@ -1694,17 +1694,14 @@ const w=window.open("","_blank");
                             }
                             msg+="\n─────────────────\n";
                             msg+="🏦 *Cuentas bancarias:*\n";
-                            msg+="  Banco Pichincha Ahorros\n";
-                            msg+="  *2203554582*\n";
-                            msg+="  Banco Guayaquil Ahorros\n";
-                            msg+="  *0029388062*\n";
-                            msg+="  Cédula: *0926345752* Martha Rosado\n";
+                            msg+="  🟡 Pichincha Ahorros *2203554582*\n";
+                            msg+="  🔵 Guayaquil Ahorros *0029388062*\n";
+                            msg+="  🪪 Cédula: *0926345752* Martha Rosado\n";
                             msg+="\n─────────────────\n";
-                            msg+="🚚 *Costo de envío:*\n";
-                            msg+="  Guayaquil: *$3.60*\n";
-                            msg+="  A provincia: *$6.50*\n";
+                            msg+="🚚 *Envío:*\n";
+                            msg+="  Guayaquil *$3.60* · Provincia *$6.50*\n";
                             if(diaEnvio){const d=new Date(diaEnvio+"T12:00:00");const dias=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];const meses=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];msg+="📅 *Día de envío: "+dias[d.getDay()]+" "+d.getDate()+" de "+meses[d.getMonth()]+"*\n";}
-                            msg+="\n¡Gracias por tu compra! 💕";
+                            msg+="\n💕 ¡Gracias por tu compra en Camely!";
                             window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");marcarWASent(c.alias);
                           }} style={{background:"#25D366",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#fff",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,marginTop:4,flexShrink:0}}>
                             <span>📲</span><span>WhatsApp</span>
@@ -2226,30 +2223,27 @@ const w=window.open("","_blank");
           const tc=cps.reduce((s,p)=>s+p.total,0);
           const ta=abo.reduce((s,a)=>s+a.monto,0);
           const saldo=tc-ta;
-          let msg="🐰 *Camely Ropa Infantil*\n━━━━━━━━━━━━━━━━━━\n";
-          msg+="Hola *"+c.alias+"*! 👋\n\n";
-          msg+="💰 *Resumen de tu cuenta:*\n";
-          msg+="🛍 Total compras: $"+tc.toFixed(2)+"\n";
-          msg+="✅ Total abonado: $"+ta.toFixed(2)+"\n";
-          msg+="📌 *Saldo pendiente: $"+saldo.toFixed(2)+"*\n";
+          let msg="✨ *Camely Ropa Infantil* ✨\n━━━━━━━━━━━━━━━━━━\n";
+          msg+="👋 Hola *"+c.alias+"*!\n\n";
+          msg+="💳 *Resumen de tu cuenta:*\n";
+          msg+="🛍️ Compras:\t $"+tc.toFixed(2)+"\n";
+          msg+="✅ Abonado:\t $"+ta.toFixed(2)+"\n";
+          msg+="🔴 *Pendiente: $"+saldo.toFixed(2)+"*\n";
           if(cps.length>0){
-            msg+="\n📋 *Detalle:*\n";
+            msg+="\n👗 *Detalle:*\n";
             cps.slice(0,8).forEach(p=>{msg+="  • "+(p.prenda&&p.prenda!=="-"?p.prenda:"Prenda")+": $"+p.total.toFixed(2)+"\n";});
             if(cps.length>8) msg+="  ... y "+(cps.length-8)+" más\n";
           }
           msg+="\n─────────────────\n";
           msg+="🏦 *Cuentas bancarias:*\n";
-          msg+="  Banco Pichincha Ahorros\n";
-          msg+="  *2203554582*\n";
-          msg+="  Banco Guayaquil Ahorros\n";
-          msg+="  *0029388062*\n";
-          msg+="  Cédula: *0926345752* Martha Rosado\n";
+          msg+="  🟡 Pichincha Ahorros *2203554582*\n";
+          msg+="  🔵 Guayaquil Ahorros *0029388062*\n";
+          msg+="  🪪 Cédula: *0926345752* Martha Rosado\n";
           msg+="\n─────────────────\n";
-          msg+="🚚 *Costo de envío:*\n";
-          msg+="  Guayaquil: *$3.60*\n";
-          msg+="  A provincia: *$6.50*\n";
+          msg+="🚚 *Envío:*\n";
+          msg+="  Guayaquil *$3.60* · Provincia *$6.50*\n";
           if(diaEnvio){const d=new Date(diaEnvio+"T12:00:00");const dias=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];const meses=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];msg+="📅 *Día de envío: "+dias[d.getDay()]+" "+d.getDate()+" de "+meses[d.getMonth()]+"*\n";}
-          msg+="\n¡Gracias por tu compra! 💕";
+          msg+="\n💕 ¡Gracias por tu compra en Camely!";
           return msg;
         };
         const enviarActual=()=>{
