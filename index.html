@@ -589,6 +589,13 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     const totUnid=rows.reduce((s,r)=>s+r.rest,0);
     const totVend=rows.reduce((s,r)=>s+r.vendido,0);
     const totValor=rows.reduce((s,r)=>s+r.valor,0);
+    const grouped=Object.values(rows.reduce((acc,r)=>{
+      const key=(r.descripcion||"Prenda")+"__"+(r.categoria||"")+"__"+(r.talla||"")+"__"+r.precio.toFixed(2);
+      if(!acc[key])acc[key]={descripcion:r.descripcion,categoria:r.categoria,talla:r.talla,
+        precio:r.precio,importacion:r.importacion,qty:0,vendido:0,rest:0,valor:0};
+      acc[key].qty+=r.qty;acc[key].vendido+=r.vendido;acc[key].rest+=r.rest;acc[key].valor+=r.valor;
+      return acc;
+    },{}));
     const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Inventario Valorado - CAMELY</title>
     <style>
       *{box-sizing:border-box;margin:0;padding:0}
@@ -602,19 +609,16 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
       th.r,td.r{text-align:right}
       td{padding:8px 10px;border-bottom:1px solid #eee;vertical-align:top}
       tr:nth-child(even) td{background:#fafafa}
-      .cat{font-size:10px;color:#AAA;margin-top:2px}
-      .talla{display:inline-block;background:#F5EDE4;color:#C45C26;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700;margin-top:3px}
-      .agotado{color:#D00;font-size:10px}
-      .bajo{color:#B7570A}
-      .ok{color:#2D6A4F}
-      .total-row td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26;padding-top:11px;padding-bottom:11px}
+      .talla{display:inline-block;background:#F5EDE4;color:#C45C26;border-radius:4px;padding:1px 6px;font-size:10px;font-weight:700}
+      .agotado{color:#D00;font-size:10px}.bajo{color:#B7570A}.ok{color:#2D6A4F}
+      .total-row td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26;padding:11px 10px}
       .grand{color:#C45C26;font-size:15px}
       .footer{margin-top:20px;font-size:10px;color:#AAA;text-align:center}
       @media print{body{padding:14px}button{display:none!important}}
     </style></head><body>
     <div class="header">
-      <div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Inventario Valorado</div></div>
-      <div class="meta">Generado: ${hoy()}<br>${rows.length} productos &nbsp;·&nbsp; ${totUnid} unidades disponibles<br>${totVend} unidades vendidas</div>
+      <div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Inventario Valorado — Resumen agrupado</div></div>
+      <div class="meta">Generado: ${hoy()}<br>${grouped.length} productos distintos &nbsp;·&nbsp; ${totUnid} unidades disponibles<br>${totVend} unidades vendidas</div>
     </div>
     <table>
       <thead><tr>
@@ -623,8 +627,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         <th class="r">Vendido</th><th class="r">Disponible</th><th class="r">Valor Stock</th>
       </tr></thead>
       <tbody>
-        ${rows.map(r=>`<tr>
-          <td><div style="font-weight:600">${r.descripcion}</div>${r.importacion?`<div class="cat">${r.importacion}</div>`:""}</td>
+        ${grouped.sort((a,b)=>a.categoria.localeCompare(b.categoria)||a.descripcion.localeCompare(b.descripcion)).map(r=>`<tr>
+          <td style="font-weight:600">${r.descripcion}</td>
           <td>${r.categoria}</td>
           <td>${r.talla?`<span class="talla">${r.talla}</span>`:"-"}</td>
           <td class="r">$${r.precio.toFixed(2)}</td>
@@ -638,13 +642,14 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           <td class="r">${rows.reduce((s,r)=>s+r.qty,0)}</td>
           <td class="r">${totVend}</td>
           <td class="r">${totUnid}</td>
-          <td class="r grand">$${totValor.toFixed(2)}</td>
+          <td class="r grand"><strong>$${totValor.toFixed(2)}</strong></td>
         </tr>
       </tbody>
     </table>
     <div class="footer">CAMELY — Sistema de Gestión · ${hoy()}</div>
     </body></html>`;
-    const w=window.open("","_blank");
+    
+const w=window.open("","_blank");
     w.document.write(html);
     w.document.close();
     setTimeout(()=>w.print(),600);
@@ -788,7 +793,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           nuevos.push({id:codigo,codigo,importacionId:imp.id,importacionNombre:imp.nombre,
             fecha:hoy(),categoria:item.categoria||"ropa",tipoRopa:item.tipoRopa||null,
             talla:item.talla||"",descripcion:item.descripcion||(item.categoria==="ropa"?(item.tipoRopa?" "+item.tipoRopa:"")+" ropa":item.categoria)||"Prenda",
-            precio:0,estado:"disponible",pedidoId:null,cliente:null,qty:1});
+            precio:parseFloat(item?.pvp||0)||parseFloat(imp.costoUnit||0),estado:"disponible",pedidoId:null,cliente:null,qty:1});
         }
       });
     } else {
@@ -797,7 +802,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         const codigo="C-"+String(counter).padStart(4,"0");
         nuevos.push({id:codigo,codigo,importacionId:imp.id,importacionNombre:imp.nombre,
           fecha:hoy(),categoria:"ropa",tipoRopa:null,talla:"",descripcion:"Prenda",
-          precio:0,estado:"disponible",pedidoId:null,cliente:null,qty:1});
+          precio:parseFloat(item?.pvp||0)||parseFloat(imp.costoUnit||0),estado:"disponible",pedidoId:null,cliente:null,qty:1});
       }
     }
     return nuevos;
@@ -1102,7 +1107,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   }
   async function guardarInv(){
     if(!invF.descripcion.trim()||!invF.qty)return;
-    const e={...invF,qty:parseInt(invF.qty),precio:parseFloat(invF.precio)||0};
+    const costoFinal=canAdmin?parseFloat(invF.precio)||0:(editingInv?inventario.find(i=>i.id===editingInv)?.precio||0:0);
+    const e={...invF,qty:parseInt(invF.qty),precio:costoFinal};
     const upd=editingInv?inventario.map(i=>i.id===editingInv?{...i,...e}:i):[...inventario,{...e,id:Date.now(),fecha:hoy()}];
     setInventario(upd);lSet(K.inventario,upd);sheetsSync("saveInventario",upd);setShowInvModal(false);toast_("Guardado ✓");
   }
@@ -1380,7 +1386,13 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           <div style={{marginBottom:10}}><label style={S.lbl}>TALLA (ej: S, M, L, 36, 38, Única)</label><input style={S.inp} placeholder="M" value={invF.talla} onChange={e=>setInvF(f=>({...f,talla:e.target.value}))}/></div>
           <div style={{display:"flex",gap:10,marginBottom:10}}>
             <div style={{flex:1}}><label style={S.lbl}>CANTIDAD</label><input type="number" style={S.inp} placeholder="0" inputMode="numeric" value={invF.qty} onChange={e=>setInvF(f=>({...f,qty:e.target.value}))}/></div>
-            <div style={{flex:1}}><label style={S.lbl}>PRECIO VENTA ($)</label><input type="number" style={S.inp} placeholder="0.00" inputMode="decimal" value={invF.precio} onChange={e=>setInvF(f=>({...f,precio:e.target.value}))}/></div>
+            <div style={{flex:1}}>
+                <label style={S.lbl}>COSTO UNITARIO ($) {!canAdmin&&<span style={{color:"#F0057F",fontSize:9}}>solo admin</span>}</label>
+                {canAdmin
+                  ?<input type="number" style={S.inp} placeholder="0.00" inputMode="decimal" value={invF.precio} onChange={e=>setInvF(f=>({...f,precio:e.target.value}))}/>
+                  :<div style={{...S.inp,background:"#F5F5F5",color:"#AAA",cursor:"not-allowed",display:"flex",alignItems:"center"}}>${parseFloat(invF.precio||0).toFixed(2)} (solo admin)</div>
+                }
+              </div>
           </div>
           <div style={{marginBottom:14}}><label style={S.lbl}>IMPORTACIÓN / LOTE</label><input style={S.inp} placeholder="Ej: Imp. Mayo 2026" value={invF.importacion} onChange={e=>setInvF(f=>({...f,importacion:e.target.value}))}/></div>
           <button onClick={guardarInv} disabled={!invF.descripcion.trim()||!invF.qty} style={{...S.btnD,opacity:(!invF.descripcion.trim()||!invF.qty)?0.4:1,marginBottom:8}}>Guardar</button>
@@ -1545,8 +1557,13 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                     </div>
                     <div style={{textAlign:"right",flexShrink:0,marginLeft:10}}>
                       <div style={{fontWeight:800,color:"#F0057F",fontSize:15}}>${item.precio.toFixed(2)}</div>
+                      <div style={{fontSize:10,color:"#1BB6C8",fontWeight:600}}>Costo: ${(item.precio||0).toFixed(2)}</div>
                       <div style={{fontSize:10,color:"#AAA",marginTop:1}}>Stock: <b style={{color:"#1A1A1A"}}>${(item.precio*rest).toFixed(2)}</b></div>
-                      <button onClick={()=>abrirInv(item)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#888",cursor:"pointer",marginTop:5}}>✏️</button>
+                      <div style={{display:"flex",gap:4,marginTop:5}}>
+                        <button onClick={()=>abrirInv(item)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#888",cursor:"pointer"}}>✏️</button>
+                        {item.estado!=="ajuste"&&item.estado!=="vendido"&&<button onClick={()=>{if(window.confirm("¿Dar de baja "+item.codigo+" como ajuste?")){const upd=inventario.map(i=>i.id===item.id?{...i,estado:"ajuste",ajusteFecha:hoy(),ajusteMotivo:"Manual"}:i);setInventario(upd);lSet(K.inventario,upd);sheetsSync("saveInventario",upd);toast_("🗑 Dado de baja como ajuste");}}} style={{background:"#FEF3C7",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#B45309",cursor:"pointer",fontWeight:700}}>Ajuste</button>}
+                        {item.estado==="ajuste"&&<span style={{fontSize:10,color:"#B45309",fontWeight:700,padding:"5px 6px"}}>⚠ Baja</span>}
+                      </div>
                     </div>
                   </div>
                 );
