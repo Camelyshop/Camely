@@ -1757,7 +1757,11 @@ const w=window.open("","_blank");
                 const tp=tv-tc;
                 const pct=tv>0?Math.round((tc/tv)*100):0;
                 const byLive={};
-                ped.forEach(p=>{if(!byLive[p.live])byLive[p.live]={live:p.live,v:0,n:0};byLive[p.live].v+=p.total;byLive[p.live].n++;});
+                ped.forEach(p=>{if(!byLive[p.live])byLive[p.live]={live:p.live,v:0,n:0,abonado:0};byLive[p.live].v+=p.total;byLive[p.live].n++;});
+                abonos.filter(a=>filtroPeriodo([a]).length>0).forEach(a=>{
+                  const liveDeAbono=ped.find(p=>p.cliente===a.cliente)?.live;
+                  if(liveDeAbono&&byLive[liveDeAbono])byLive[liveDeAbono].abonado+=a.monto;
+                });
                 const livesD=Object.values(byLive).sort((a,b)=>b.v-a.v);
                 const maxV=livesD[0]?.v||1;
                 const byC={};
@@ -1786,12 +1790,22 @@ const w=window.open("","_blank");
                     ))}
                   </div>
                   {livesD.length>0&&<div style={{background:"#fff",borderRadius:18,padding:"16px 14px",marginBottom:12,boxShadow:"0 2px 12px rgba(0,0,0,0.06)"}}>
-                    <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:"#1A1A1A",marginBottom:14,textTransform:"uppercase"}}>Ventas por Live</div>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
+                      <div style={{fontSize:12,fontWeight:700,letterSpacing:1,color:"#1A1A1A",textTransform:"uppercase"}}>Ventas por Live</div>
+                      <div style={{display:"flex",gap:10,fontSize:10}}>
+                        <span style={{color:"#1BB6C8",fontWeight:700}}>💰 Vendido</span>
+                        <span style={{color:"#F0057F",fontWeight:700}}>📌 Pendiente</span>
+                      </div>
+                    </div>
                     {livesD.slice(0,10).map(d=>(
                       <div key={d.live} style={{marginBottom:10}}>
                         <div style={{display:"flex",justifyContent:"space-between",marginBottom:4,fontSize:13}}>
                           <span style={{fontWeight:600,color:"#333"}}>{d.live}</span>
-                          <span style={{color:"#1BB6C8",fontWeight:700}}>${d.v.toFixed(2)} <span style={{color:"#AAA",fontWeight:400}}>({d.n} prendas)</span></span>
+                          <span style={{display:"flex",gap:10,alignItems:"center"}}>
+                              <span style={{color:"#1BB6C8",fontWeight:700}}>${d.v.toFixed(2)} <span style={{color:"#AAA",fontWeight:400,fontSize:11}}>({d.n})</span></span>
+                              {(d.v-d.abonado)>0&&<span style={{color:"#F0057F",fontWeight:700,fontSize:12}}>📌 ${(d.v-d.abonado).toFixed(2)}</span>}
+                              {(d.v-d.abonado)<=0&&d.v>0&&<span style={{color:"#10B981",fontWeight:700,fontSize:11}}>✓ Cobrado</span>}
+                            </span>
                         </div>
                         <div style={{background:"#F0FBFD",borderRadius:6,height:8,overflow:"hidden"}}>
                           <div style={{height:"100%",background:"linear-gradient(90deg,#1BB6C8,#0E9CAD)",width:Math.round((d.v/maxV)*100)+"%",borderRadius:6}}/>
