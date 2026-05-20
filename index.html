@@ -284,6 +284,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [liveInput,setLiveInput]=useState("");
   const [showInvPicker,setShowInvPicker]=useState(false);
   const [showClienteModal,setShowClienteModal]=useState(false);
+  const [cliImgLoading,setCliImgLoading]=useState(false);
+  const [cliImgPreview,setCliImgPreview]=useState(null);
   const [editingCliente,setEditingCliente]=useState(null);
   const [showPerfilModal,setShowPerfilModal]=useState(null);
   const [showInvModal,setShowInvModal]=useState(false);
@@ -317,6 +319,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [expandedResultRow,setExpandedResultRow]=useState(null);
   const [showDeudaModal,setShowDeudaModal]=useState(false);
   const [showEnvioModal,setShowEnvioModal]=useState(false);
+  const [diaEnvio,setDiaEnvio]=useState("");
+  const [waSent,setWaSent]=useState(()=>{try{return new Set(JSON.parse(localStorage.getItem("camely_wa_sent")||"[]"));}catch{return new Set();}});
   const [envioLive,setEnvioLive]=useState("");
   const [envioIdx,setEnvioIdx]=useState(0);
   const [deudaForm,setDeudaForm]=useState({cliente:"",descripcion:"",monto:"",fecha:hoyISO(),live:""});
@@ -392,16 +396,16 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     setPedidos(p); setAbonos(a); setInventario(inv); setLive(l);
     // Dispositivo nuevo: si no hay datos locales, cargar desde Sheets primero
     // Sync from Sheets in background if local data is empty
-    const localEmpty=!p.length||!gast.length;
-    if(localEmpty&&SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
-      toast_("📡 Sincronizando...");
+    // Sync siempre en background — usa datos con más registros (multi-dispositivo)
+    if(SHEETS_URL&&!SHEETS_URL.includes("PEGA")){
       sheetsLoad().then(remote=>{
         if(!remote) return;
-        const rG=(rk,lk)=>{const loc=lGet(lk);return(loc&&loc.length>0)?loc:(remote[rk]||[]);};
-        const rp=rG("pedidos",K.pedidos),ra=rG("abonos",K.abonos),rc=rG("clientes",K.clientes);
-        const ri=rG("inventario",K.inventario),rt=rG("tarjetas",K.tarjetas);
-        const rcg=rG("cargos",K.cargos),rim=rG("imports",K.imports);
-        const rg=rG("gastos",K.gastos),re2=rG("estadosCuenta",K.estadosCuenta);
+        const mejor=(rk,local)=>{const rd=remote[rk]||[];return rd.length>local.length?rd:local;};
+        const rp=mejor("pedidos",p),ra=mejor("abonos",a),rc=mejor("clientes",c);
+        const ri=mejor("inventario",inv),rt=mejor("tarjetas",tarj);
+        const rcg=mejor("cargos",carg),rim=mejor("imports",imps);
+        const rg=mejor("gastos",gast),re2=mejor("estadosCuenta",ecs);
+        const hubo=rp.length!==p.length||ra.length!==a.length||rg.length!==gast.length||rc.length!==c.length;
         setPedidos(rp);setAbonos(ra);setInventario(ri);setTarjetas(rt);
         setCargosTarjeta(rcg);setImportaciones(rim);setGastos(rg);setEstadosCuenta(re2);
         if(rc.length>0){setClientes(rc);lSet(K.clientes,rc);}
@@ -409,8 +413,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
         lSet(K.pedidos,rp);lSet(K.abonos,ra);lSet(K.inventario,ri);
         lSet(K.tarjetas,rt);lSet(K.cargos,rcg);lSet(K.imports,rim);
         lSet(K.gastos,rg);lSet(K.estadosCuenta,re2);
-        toast_("✓ Datos sincronizados");
-      }).catch(()=>{});
+        if(hubo) toast_("✓ Datos actualizados desde la nube");
+      }).catch(e=>console.warn("Sync:",e));
     }
     const DR={
       "SANY SANCHEZ":{nombre:"SANNY GALUD SANCHEZ FERNANDEZ",telefono:"0991250115",whatsapp:"0991250115",direccion:"MUCHO LOTE 2 URB VICTORIA DEL RIO MZ 2963 VILLA 21",ciudad:"GUAYAQUIL"},
@@ -481,6 +485,72 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
       lSet(K.gastos,rg);lSet(K.estadosCuenta,re2);
       toast_("✓ Sincronizado: "+rp.length+" pedidos, "+rg.length+" gastos");
     }catch(e){toast_("⚠ Error: "+e.message,"err");}
+  }
+  async function extraerDatosImagen(file){
+    setCliImgLoading(true);
+    try{
+      const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});
+      const apiKey=localStorage.getItem("camely_ak")||"";
+      if(!apiKey){toast_("⚠ Ingresa API Key en el Extractor de Guías","err");setCliImgLoading(false);return;}
+      const resp=await fetch("https://api.anthropic.com/v1/messages",{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,
+          messages:[{role:"user",content:[
+            {type:"image",source:{type:"base64",media_type:file.type||"image/jpeg",data:b64}},
+            {type:"text",text:"Guía de envío Servientrega Ecuador. Extrae datos del DESTINATARIO. Responde SOLO este JSON sin texto adicional:\n{\"nombre\":\"\",\"celular\":\"\",\"ciudad\":\"\",\"direccion\":\"\"}\nSi no encuentras un dato deja el campo vacío."}
+          ]}]})
+      });
+      const d=await resp.json();
+      const txt=d.content?.[0]?.text||"{}";
+      const start=txt.indexOf("{"),end=txt.lastIndexOf("}")+1;const m=start>=0&&end>start?[txt.slice(start,end)]:null;
+      if(m){
+        const p=JSON.parse(m[0]);
+        setCliF(f=>({...f,
+          nombre:p.nombre&&!f.nombre?p.nombre.toUpperCase().trim():f.nombre,
+          telefono:p.celular&&!f.telefono?(p.celular||"").replace(/\D/g,""):f.telefono,
+          whatsapp:p.celular&&!f.whatsapp?(p.celular||"").replace(/\D/g,""):f.whatsapp,
+          ciudad:p.ciudad&&!f.ciudad?p.ciudad:f.ciudad,
+          direccion:p.direccion&&!f.direccion?p.direccion:f.direccion
+        }));
+        toast_("✓ Datos extraídos de la imagen");
+      }
+    }catch(e){toast_("⚠ Error: "+e.message,"err");}
+    setCliImgLoading(false);
+  }
+  function marcarWASent(alias){
+    setWaSent(prev=>{const n=new Set(prev);n.add(alias);localStorage.setItem("camely_wa_sent",JSON.stringify([...n]));return n;});
+  }
+  function importarClientesJSON(jsonText){
+    try{
+      const arr=JSON.parse(jsonText);
+      if(!Array.isArray(arr)||arr.length===0){toast_("⚠ JSON vacío o inválido","err");return;}
+      let nuevos=0,actualizados=0;
+      const updCli=[...clientes];
+      arr.forEach(c=>{
+        if(!c.alias&&!c.nombre&&!c.telefono) return;
+        const alias=((c.alias||c.nombre||'').toUpperCase().trim());
+        if(!alias) return;
+        const idx=updCli.findIndex(x=>(x.alias||'').toUpperCase()===alias||
+          (c.telefono&&x.telefono&&x.telefono===c.telefono));
+        if(idx>=0){
+          // Update existing — only fill empty fields
+          if(!updCli[idx].telefono&&c.telefono) updCli[idx]={...updCli[idx],telefono:c.telefono};
+          if(!updCli[idx].whatsapp&&c.whatsapp) updCli[idx]={...updCli[idx],whatsapp:c.whatsapp};
+          if(!updCli[idx].ciudad&&c.ciudad) updCli[idx]={...updCli[idx],ciudad:c.ciudad};
+          if(!updCli[idx].direccion&&c.direccion) updCli[idx]={...updCli[idx],direccion:c.direccion};
+          if(!updCli[idx].nombre&&c.nombre) updCli[idx]={...updCli[idx],nombre:c.nombre};
+          actualizados++;
+        } else {
+          updCli.push({id:Date.now()+nuevos,alias,nombre:c.nombre||'',
+            telefono:c.telefono||'',whatsapp:c.whatsapp||c.telefono||'',
+            ciudad:c.ciudad||'',direccion:c.direccion||'',tiktok:'',cedula:''});
+          nuevos++;
+        }
+      });
+      setClientes(updCli);lSet(K.clientes,updCli);sheetsSync("saveClientes",updCli);
+      toast_(`✓ ${nuevos} nuevos · ${actualizados} actualizados de ${arr.length} registros`);
+    }catch(e){toast_("⚠ Error al leer JSON: "+e.message,"err");}
   }
   function toast_(msg,type="ok"){setToast({msg,type});setTimeout(()=>setToast(null),2600);}
 
@@ -651,7 +721,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   }
 
   // ── CLIENTES ──
-  function abrirCliente(c=null){
+  function abrirCliente(c=null){setCliImgPreview(null);setCliImgLoading(false);
     setEditingCliente(c?.id||null);
     setCliF(c?{alias:c.alias,nombre:c.nombre,cedula:c.cedula||"",telefono:c.telefono||"",tiktok:c.tiktok||"",whatsapp:c.whatsapp||"",direccion:c.direccion||"",ciudad:c.ciudad||""}:{alias:"",nombre:"",cedula:"",telefono:"",tiktok:"",whatsapp:"",direccion:"",ciudad:""});
     setShowClienteModal(true);
@@ -1139,11 +1209,19 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
             <div style={{fontSize:10,letterSpacing:2,color:"#F0057F",textTransform:"uppercase"}}>Datos para envío</div>
             <div style={{fontSize:21,fontWeight:900,fontFamily:"Georgia,serif",marginTop:4}}>{showPerfilModal.alias}</div>
           </div>
-          {showPerfilModal.perfil?<div style={{background:"#FDF6F0",borderRadius:14,padding:16,marginTop:10}}>
-            {[["Nombre completo",showPerfilModal.perfil.nombre],["Cédula",showPerfilModal.perfil.cedula],["Teléfono",showPerfilModal.perfil.telefono],["WhatsApp",showPerfilModal.perfil.whatsapp],["TikTok",showPerfilModal.perfil.tiktok],["Ciudad",showPerfilModal.perfil.ciudad],["Dirección",showPerfilModal.perfil.direccion]].map(([k,v])=>v?(
-              <div key={k} style={{marginBottom:10}}><div style={{fontSize:10,color:"#AAA",letterSpacing:1,textTransform:"uppercase",marginBottom:1}}>{k}</div><div style={{fontSize:15,fontWeight:700,color:"#1A1A1A"}}>{v}</div></div>
-            ):null)}
-          </div>:<div style={{textAlign:"center",color:"#aaa",padding:"16px 0",fontSize:13}}>Sin perfil.<br/><br/><button onClick={()=>{setShowPerfilModal(null);abrirCliente();setCliF(f=>({...f,alias:showPerfilModal.alias}));}} style={{...S.btnD,width:"auto",padding:"10px 20px",fontSize:13}}>+ Agregar perfil</button></div>}
+          {showPerfilModal.perfil&&(showPerfilModal.perfil.telefono||showPerfilModal.perfil.nombre||showPerfilModal.perfil.direccion)?(<div>
+            <div style={{background:"#FDF6F0",borderRadius:14,padding:16,marginTop:10}}>
+              {[["Nombre completo",showPerfilModal.perfil.nombre],["Cédula",showPerfilModal.perfil.cedula],["Teléfono",showPerfilModal.perfil.telefono],["WhatsApp",showPerfilModal.perfil.whatsapp],["TikTok",showPerfilModal.perfil.tiktok],["Ciudad",showPerfilModal.perfil.ciudad],["Dirección",showPerfilModal.perfil.direccion]].map(([k,v])=>v?(
+                <div key={k} style={{marginBottom:10}}><div style={{fontSize:10,color:"#AAA",letterSpacing:1,textTransform:"uppercase",marginBottom:1}}>{k}</div><div style={{fontSize:15,fontWeight:700,color:"#1A1A1A"}}>{v}</div></div>
+              ):null)}
+            </div>
+            <button onClick={()=>{const al=(showPerfilModal.alias||"").toUpperCase();const cli=clientes.find(c=>(c.alias||"").toUpperCase()===al);setShowPerfilModal(null);if(cli){if(!cli.id){const updC=clientes.map(c=>(c.alias||"").toUpperCase()===al?{...c,id:Date.now()}:c);setClientes(updC);lSet(K.clientes,updC);abrirCliente({...cli,id:Date.now()});}else abrirCliente(cli);}else{abrirCliente();setCliF(f=>({...f,alias:showPerfilModal.alias}));}}} style={{...S.btnD,width:"100%",marginTop:10,fontSize:13}}>✏️ Editar datos</button>
+          </div>):(
+            <div style={{textAlign:"center",color:"#aaa",padding:"16px 0",fontSize:13}}>
+              Sin datos de envío aún.<br/><br/>
+              <button onClick={()=>{const al=(showPerfilModal.alias||"").toUpperCase();const cli=clientes.find(c=>(c.alias||"").toUpperCase()===al);setShowPerfilModal(null);if(cli){if(!cli.id){const updC=clientes.map(c=>(c.alias||"").toUpperCase()===al?{...c,id:Date.now()}:c);setClientes(updC);lSet(K.clientes,updC);abrirCliente({...cli,id:Date.now()});}else abrirCliente(cli);}else{abrirCliente();setTimeout(()=>setCliF(f=>({...f,alias:al})),50);}}} style={{...S.btnD,width:"auto",padding:"10px 20px",fontSize:13}}>+ Agregar datos de envío</button>
+            </div>
+          )}
           <button onClick={()=>setShowPerfilModal(null)} style={{...S.cancelBtn,marginTop:10}}>Cerrar</button>
         </div>
       </div>}
@@ -1152,6 +1230,14 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
       {showClienteModal&&<div style={S.ov} onClick={()=>setShowClienteModal(false)}>
         <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
           <div style={S.shT}>{editingCliente?"Editar":"Nuevo"} Cliente</div>
+          <label style={{display:"flex",alignItems:"center",justifyContent:"center",gap:8,padding:"10px",border:"2px dashed #D0F2F6",borderRadius:12,cursor:"pointer",marginBottom:12,background:"#F5FDFE",color:"#1BB6C8",fontWeight:700,fontSize:13}}>
+            {cliImgLoading?"⏳ Leyendo imagen...":"📷 Cargar guía Servientrega (extrae datos)"}
+            <input type="file" accept="image/*" style={{display:"none"}} disabled={cliImgLoading} onChange={e=>{const f=e.target.files[0];if(f){setCliImgPreview(URL.createObjectURL(f));extraerDatosImagen(f);}e.target.value="";}}/>
+          </label>
+          {cliImgPreview&&<div style={{marginBottom:10,textAlign:"center"}}>
+            <img src={cliImgPreview} style={{maxWidth:"100%",maxHeight:140,borderRadius:10,objectFit:"contain"}}/>
+            <button onClick={()=>setCliImgPreview(null)} style={{display:"block",margin:"4px auto 0",background:"none",border:"none",color:"#aaa",fontSize:11,cursor:"pointer"}}>✕ quitar imagen</button>
+          </div>}
           {[{k:"alias",l:"ALIAS / APODO",ph:"GABY GALAPAGOS",cap:"characters"},{k:"nombre",l:"NOMBRE COMPLETO",ph:"Gabriela Verdesoto",cap:"characters"},{k:"cedula",l:"CÉDULA",ph:"0912345678",cap:"none"},{k:"telefono",l:"TELÉFONO",ph:"0991234567",cap:"none"},{k:"whatsapp",l:"WHATSAPP",ph:"0991234567",cap:"none"},{k:"tiktok",l:"TIKTOK",ph:"@gabyv",cap:"none"},{k:"ciudad",l:"CIUDAD",ph:"Guayaquil, Durán, Samborondón...",cap:"characters"},{k:"direccion",l:"DIRECCIÓN DE ENVÍO",ph:"Urb. Las Orquídeas MZ 3 V 14",cap:"characters"}].map(({k,l,ph,cap})=>(
             <div key={k} style={{marginBottom:10}}><label style={S.lbl}>{l}</label><input style={S.inp} placeholder={ph} autoCapitalize={cap} value={cliF[k]} onChange={e=>setCliF(f=>({...f,[k]:e.target.value}))}/></div>
           ))}
@@ -1472,6 +1558,16 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
             <input style={{...S.inp,flex:1,marginBottom:0}} placeholder="🔍 Alias, nombre, TikTok..." value={searchCli} onChange={e=>setSearchCli(e.target.value)}/>
             <button onClick={()=>abrirCliente()} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0}}>+ Nuevo</button>
+            <label title="Importar clientes desde JSON (Servientrega)" style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0,cursor:"pointer",background:"#10B981",border:"none",borderRadius:12,color:"#fff",fontWeight:700,display:"flex",alignItems:"center",gap:4}}>
+              📥
+              <input type="file" accept=".json" style={{display:"none"}} onChange={e=>{
+                const f=e.target.files[0];if(!f)return;
+                const r=new FileReader();
+                r.onload=ev=>importarClientesJSON(ev.target.result);
+                r.readAsText(f);
+                e.target.value='';
+              }}/>
+            </label>
           </div>
           {clientes.filter(c=>!searchCli||(c.alias||"").toUpperCase().includes(searchCli.toUpperCase())||(c.nombre||"").toLowerCase().includes(searchCli.toLowerCase())||(c.tiktok||"").toLowerCase().includes(searchCli.toLowerCase())).length===0?(
             <div style={{textAlign:"center",padding:"40px 0",color:"#bbb"}}><div style={{fontSize:32,marginBottom:8}}>👥</div><div style={{fontSize:14}}>Sin clientes registrados</div></div>
@@ -1489,7 +1585,10 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                       {b.saldo>0&&<span style={{...S.chip,background:"#FFF0F8",color:"#F0057F"}}>debe ${b.saldo.toFixed(2)}</span>}
                     </div>
                   </div>
-                  <button onClick={()=>abrirCliente(c)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#888",cursor:"pointer",flexShrink:0,marginLeft:8}}>✏️</button>
+                  <div style={{display:"flex",gap:4,flexShrink:0,marginLeft:8}}>
+                    <button onClick={()=>abrirCliente(c)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#888",cursor:"pointer"}}>✏️</button>
+                    <button onClick={()=>{if(window.confirm("¿Eliminar cliente "+c.alias+"? Esta acción no se puede deshacer.")){const upd=clientes.filter(x=>x.id!==c.id);setClientes(upd);lSet(K.clientes,upd);sheetsSync("saveClientes",upd);toast_("🗑 Cliente eliminado");}}} style={{background:"#FEE2E2",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,color:"#EF4444",cursor:"pointer"}}>🗑</button>
+                  </div>
                 </div>);
               })}
             </div>
@@ -1510,8 +1609,15 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
                   <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
                   <div style={{display:"flex",gap:6}}>
+                  <button onClick={()=>{if(waSent.size>0&&window.confirm("¿Borrar los ✓✓ de todos los clientes?")){setWaSent(new Set());localStorage.removeItem("camely_wa_sent");}}} style={{background:"rgba(0,0,0,0.15)",color:"#fff",border:"none",borderRadius:10,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",display:waSent.size>0?"flex":"none",alignItems:"center"}}>✓✓ {waSent.size}</button>
                   <button onClick={()=>{setEnvioLive(saldoFiltroLive||"");setEnvioIdx(0);setShowEnvioModal(true);}} style={{background:"#25D366",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>📲 Envío masivo</button>
                   <button onClick={()=>setShowDeudaModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Deuda</button>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8,marginTop:10}}>
+                  <span style={{fontSize:11,color:"rgba(255,255,255,0.8)",fontWeight:600,whiteSpace:"nowrap"}}>🚚 Día de envío:</span>
+                  <input type="date" value={diaEnvio} onChange={e=>setDiaEnvio(e.target.value)}
+                    style={{flex:1,padding:"6px 10px",borderRadius:8,border:"none",fontSize:12,background:"rgba(255,255,255,0.2)",color:"#fff",outline:"none",colorScheme:"dark"}}/>
+                  {diaEnvio&&<button onClick={()=>setDiaEnvio("")} style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:8,padding:"6px 8px",fontSize:11,color:"#fff",cursor:"pointer"}}>✕</button>}
                 </div>
                 </div>
                 <div style={{fontSize:36,fontWeight:900,letterSpacing:-1,marginTop:4}}>${totalFiltrado.toFixed(2)}</div>
@@ -1546,7 +1652,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                           <div style={{textAlign:"right",flexShrink:0}}>
                             <div style={{color:"#F0057F",fontWeight:800,fontSize:16}}>${c.saldo.toFixed(2)}</div>
                             <div style={{fontSize:10,marginTop:2,color:c.ta>=10?"#2D6A4F":"#E07040"}}>{c.ta>=10?"✓ abono":"sin abono"}</div>
-                            <div style={{fontSize:11,color:"#1BB6C8",marginTop:2}}>{isExp?"▲ cerrar":"▼ ver compras"}</div>
+                            <div style={{fontSize:11,color:"#1BB6C8",marginTop:2}}>{isExp?"▲ cerrar":"▼ ver compras"}{waSent.has(c.alias)&&<span style={{fontSize:11,color:"#25D366",fontWeight:700,marginLeft:4}}>✓✓</span>}</div>
                           </div>
                           <button onClick={e=>{
                             e.stopPropagation();
@@ -1567,8 +1673,20 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                               cps.slice(0,8).forEach(p=>{msg+="  • "+p.prenda+(p.prenda==="-"?"Prenda":"")+": $"+p.total.toFixed(2)+"\n";});
                               if(cps.length>8) msg+="  ... y "+(cps.length-8)+" más\n";
                             }
+                            msg+="\n─────────────────\n";
+                            msg+="🏦 *Cuentas bancarias:*\n";
+                            msg+="  Banco Pichincha Ahorros\n";
+                            msg+="  *2203554582*\n";
+                            msg+="  Banco Guayaquil Ahorros\n";
+                            msg+="  *0029388062*\n";
+                            msg+="  Cédula: *0926345752* Martha Rosado\n";
+                            msg+="\n─────────────────\n";
+                            msg+="🚚 *Costo de envío:*\n";
+                            msg+="  Guayaquil: *$3.60*\n";
+                            msg+="  A provincia: *$6.50*\n";
+                            if(diaEnvio){const d=new Date(diaEnvio+"T12:00:00");const dias=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];const meses=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];msg+="📅 *Día de envío: "+dias[d.getDay()]+" "+d.getDate()+" de "+meses[d.getMonth()]+"*\n";}
                             msg+="\n¡Gracias por tu compra! 💕";
-                            window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");
+                            window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");marcarWASent(c.alias);
                           }} style={{background:"#25D366",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#fff",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,marginTop:4,flexShrink:0}}>
                             <span>📲</span><span>WhatsApp</span>
                           </button>
@@ -1585,7 +1703,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
                             ))
                           }
                           <div style={{display:"flex",gap:8,marginTop:10}}>
-                            <button onClick={()=>setShowPerfilModal(c)} style={{...S.btnD,flex:1,padding:"8px",fontSize:12}}>📋 Datos envío</button>
+                            <button onClick={()=>{const cli=clientes.find(x=>x.alias===c.alias);setShowPerfilModal({alias:c.alias,perfil:cli||null});}} style={{...S.btnD,flex:1,padding:"8px",fontSize:12}}>📋 Datos envío</button>
                             <button onClick={()=>eliminarPedidosCliente(c.alias)} style={{flex:1,background:"#FFE4E4",color:"#D00",border:"none",borderRadius:10,padding:"8px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗑 Borrar todos</button>
                           </div>
                         </div>}
@@ -2100,6 +2218,18 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
             cps.slice(0,8).forEach(p=>{msg+="  • "+(p.prenda&&p.prenda!=="-"?p.prenda:"Prenda")+": $"+p.total.toFixed(2)+"\n";});
             if(cps.length>8) msg+="  ... y "+(cps.length-8)+" más\n";
           }
+          msg+="\n─────────────────\n";
+          msg+="🏦 *Cuentas bancarias:*\n";
+          msg+="  Banco Pichincha Ahorros\n";
+          msg+="  *2203554582*\n";
+          msg+="  Banco Guayaquil Ahorros\n";
+          msg+="  *0029388062*\n";
+          msg+="  Cédula: *0926345752* Martha Rosado\n";
+          msg+="\n─────────────────\n";
+          msg+="🚚 *Costo de envío:*\n";
+          msg+="  Guayaquil: *$3.60*\n";
+          msg+="  A provincia: *$6.50*\n";
+          if(diaEnvio){const d=new Date(diaEnvio+"T12:00:00");const dias=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];const meses=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];msg+="📅 *Día de envío: "+dias[d.getDay()]+" "+d.getDate()+" de "+meses[d.getMonth()]+"*\n";}
           msg+="\n¡Gracias por tu compra! 💕";
           return msg;
         };
@@ -2109,7 +2239,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
           const tel=(perfil.telefono||perfil.whatsapp||"").replace(/\D/g,"");
           const msg=buildMsg(current);
           const url=tel?"https://wa.me/593"+tel.replace(/^0/,"")+"?text="+encodeURIComponent(msg):"https://wa.me/?text="+encodeURIComponent(msg);
-          window.open(url,"_blank");
+          window.open(url,"_blank");if(current)marcarWASent(current.alias);
           setTimeout(()=>setEnvioIdx(i=>i+1),800);
         };
         return(
