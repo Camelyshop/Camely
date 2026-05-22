@@ -337,6 +337,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [statusImpId,setStatusImpId]=useState(null);
   const [statusTarjetaId,setStatusTarjetaId]=useState("");
   const [statusFleteM,setStatusFleteM]=useState("");
+  const [selImpPDF,setSelImpPDF]=useState("");
   const [statusFleteTarjeta,setStatusFleteTarjeta]=useState("");
   // Import items
   const [importItems,setImportItems]=useState([]);
@@ -691,13 +692,13 @@ const w=window.open("","_blank");
     const newPending=[...pendingLabels,labelData];
     setPendingLabels(newPending);
     localStorage.setItem("camely_pending_labels",JSON.stringify(newPending));
-    if(newPending.length>=6){
+    if(newPending.length>=5){
       toast_("🖨 6 etiquetas listas — abriendo para imprimir...");
       setTimeout(()=>{imprimirTiraPedido(newPending);},300);
       setPendingLabels([]);
       localStorage.removeItem("camely_pending_labels");
     } else {
-      toast_("🏷 Etiqueta acumulada ("+newPending.length+"/6)");
+      toast_("🏷 Etiqueta acumulada ("+newPending.length+"/5)");
     }
     setForm(f=>({...f,prenda:"",pvp:"",qty:"1",invId:null}));setShowCS(false);
   }
@@ -770,21 +771,40 @@ const w=window.open("","_blank");
   }
   async function eliminarPedido(pedidoId){
     if(!window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")) return;
+    const pedido=pedidos.find(p=>p.id===pedidoId);
     const upd=pedidos.filter(p=>p.id!==pedidoId);
     setPedidos(upd); lSet(K.pedidos,upd); sheetsSync("savePedidos",upd);
-    toast_("Pedido eliminado");
+    // Reset inventory item to disponible if it was marked as vendido by this pedido
+    if(pedido?.invId){
+      const updInv=inventario.map(i=>i.id===pedido.invId&&i.pedidoId===pedidoId
+        ?{...i,estado:"disponible",pedidoId:null,cliente:null}:i);
+      setInventario(updInv); lSet(K.inventario,updInv); sheetsSync("saveInventario",updInv);
+    }
+    toast_("✓ Pedido eliminado — código disponible nuevamente");
   }
   async function eliminarPedidosCliente(alias){
     if(!window.confirm("¿Eliminar TODOS los pedidos de "+alias+"? Esta acción no se puede deshacer.")) return;
+    const pedidosCliente=pedidos.filter(p=>p.cliente===alias);
+    const invIds=new Set(pedidosCliente.map(p=>p.invId).filter(Boolean));
     const upd=pedidos.filter(p=>p.cliente!==alias);
     setPedidos(upd); lSet(K.pedidos,upd); sheetsSync("savePedidos",upd);
+    // Reset all inventory items sold to this client
+    if(invIds.size>0){
+      const updInv=inventario.map(i=>invIds.has(i.id)&&i.estado==="vendido"
+        ?{...i,estado:"disponible",pedidoId:null,cliente:null}:i);
+      setInventario(updInv); lSet(K.inventario,updInv); sheetsSync("saveInventario",updInv);
+    }
     toast_("Pedidos de "+alias+" eliminados");
   }
   // ── Generar códigos de inventario ──
   function generarCodigosInventario(imp, itemsLlegada){
-    const existing=inventario.filter(i=>i.codigo?.startsWith("C-"));
+    // Check BOTH i.codigo and i.id (Sheets stores as "id" column)
+    const getCod=(i)=>i.codigo||i.id||"";
+    const existing=inventario.filter(i=>getCod(i).toString().toUpperCase().startsWith("C-"));
     let maxNum=0;
-    existing.forEach(i=>{const n=parseInt(i.codigo?.replace("C-",""))||0;if(n>maxNum)maxNum=n;});
+    existing.forEach(i=>{const n=parseInt(getCod(i).toString().replace(/^C-0*/i,""))||0;if(n>maxNum)maxNum=n;});
+    // Also build a set of all existing codes to prevent duplicates
+    const existingCodes=new Set(inventario.map(i=>getCod(i).toString().toUpperCase()).filter(Boolean));
     const nuevos=[];
     let counter=maxNum;
     const items=itemsLlegada&&itemsLlegada.length>0?itemsLlegada:(imp.items&&imp.items.length>0?imp.items:[]);
@@ -793,7 +813,10 @@ const w=window.open("","_blank");
         const cant=parseInt(item.cantidad)||1;
         for(let i=0;i<cant;i++){
           counter++;
-          const codigo="C-"+String(counter).padStart(4,"0");
+          let codigo="C-"+String(counter).padStart(4,"0");
+          // Skip if already exists
+          while(existingCodes.has(codigo.toUpperCase())){counter++;codigo="C-"+String(counter).padStart(4,"0");}
+          existingCodes.add(codigo.toUpperCase());
           nuevos.push({id:codigo,codigo,importacionId:imp.id,importacionNombre:imp.nombre,
             fecha:hoy(),categoria:item.categoria||"ropa",tipoRopa:item.tipoRopa||null,
             talla:item.talla||"",descripcion:item.descripcion||(item.categoria==="ropa"?(item.tipoRopa?" "+item.tipoRopa:"")+" ropa":item.categoria)||"Prenda",
@@ -812,8 +835,18 @@ const w=window.open("","_blank");
     return nuevos;
   }
   function buscarPorCodigo(codigo){
-    const c=codigo.toUpperCase().trim();
-    return inventario.find(i=>i.codigo&&i.codigo.toUpperCase()===c&&i.estado==="disponible")||null;
+    const raw=codigo.toUpperCase().trim();
+    const num=raw.replace(/^C-?0*/,""); // strip prefix and leading zeros
+    const variants=["C-"+num,"C-"+num.padStart(2,"0"),"C-"+num.padStart(3,"0"),"C-"+num.padStart(4,"0"),raw];
+    // Match by .codigo OR .id (Sheets stores as "id" column)
+    const match=(i)=>{
+      const cod=String(i.codigo||i.id||"").toUpperCase();
+      return variants.includes(cod);
+    };
+    const avail=inventario.find(i=>match(i)&&(!i.estado||i.estado==="disponible"));
+    if(avail) return avail;
+    const any=inventario.find(i=>match(i));
+    return any||null;
   }
   // Cambia tamaño de página antes de imprimir
   function setPrintSize(w,h){
@@ -867,7 +900,75 @@ const w=window.open("","_blank");
     if(w){w.document.write(html);w.document.close();}
   }
 
+  function generarPDFPorImportacion(impObj, items){
+    const rows=Object.values(items.reduce((acc,it)=>{
+      const r=qtyR(it);
+      const k=(it.descripcion||"Prenda")+"__"+(it.talla||"")+"__"+it.precio;
+      if(!acc[k])acc[k]={desc:it.descripcion||"Prenda",talla:it.talla||"",cat:it.categoria||"",tipo:it.tipoRopa||"",precio:it.precio||0,qty:0,vendido:0,rest:0};
+      acc[k].qty+=(it.qty||1);acc[k].vendido+=(it.qty||1)-r;acc[k].rest+=r;
+      return acc;
+    },{}));
+    const totQty=rows.reduce((s,r)=>s+r.qty,0);
+    const totVend=rows.reduce((s,r)=>s+r.vendido,0);
+    const totRest=rows.reduce((s,r)=>s+r.rest,0);
+    const totVal=rows.reduce((s,r)=>s+r.rest*r.precio,0);
+    const cu=parseFloat(impObj?.costoUnit||0);
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
+      *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:20px;font-size:12px}
+      .h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1BB6C8;padding-bottom:10px;margin-bottom:16px}
+      .brand{font-size:22px;font-weight:900;color:#1BB6C8}.meta{text-align:right;font-size:11px;color:#888;line-height:1.6}
+      table{width:100%;border-collapse:collapse}th{background:#1BB6C8;color:#fff;padding:8px;font-size:11px;text-align:left}
+      th.r,td.r{text-align:right}td{padding:7px 8px;border-bottom:1px solid #eee}
+      tr:nth-child(even)td{background:#fafafa}.tot td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26}
+      .kpi{display:flex;gap:10px;margin-bottom:16px}
+      .kpi-card{flex:1;background:#E8F9FB;border-radius:10px;padding:10px;text-align:center}
+      .kpi-val{font-size:18px;font-weight:900;color:#1BB6C8}.kpi-lbl{font-size:10px;color:#888;margin-top:2px}
+      button{background:#1BB6C8;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-weight:700;margin-bottom:12px}
+      @media print{button{display:none}}
+    </style></head><body>
+    <div class="h">
+      <div><div class="brand">CAMELY</div><div style="font-size:11px;color:#888;margin-top:2px">Inventario por Importación</div></div>
+      <div class="meta"><b>${impObj.nombre}</b><br>Estado: ${impObj.estado}<br>Costo unit: $${cu.toFixed(2)}<br>${new Date().toLocaleDateString("es-EC")}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-card"><div class="kpi-val">${totQty}</div><div class="kpi-lbl">Ingresadas</div></div>
+      <div class="kpi-card"><div class="kpi-val">${totVend}</div><div class="kpi-lbl">Vendidas</div></div>
+      <div class="kpi-card"><div class="kpi-val">${totRest}</div><div class="kpi-lbl">Disponibles</div></div>
+      <div class="kpi-card"><div class="kpi-val">$${totVal.toFixed(2)}</div><div class="kpi-lbl">Valor stock</div></div>
+      <div class="kpi-card"><div class="kpi-val">$${((impObj.costoTotal||0)+(impObj.fleteEstimado||0)).toFixed(2)}</div><div class="kpi-lbl">Costo total</div></div>
+    </div>
+    <button onclick="window.print()">🖨 Imprimir</button>
+    <table><thead><tr>
+      <th>Descripción</th><th>Tipo</th><th>Talla</th>
+      <th class="r">Costo</th><th class="r">Ingresado</th><th class="r">Vendido</th><th class="r">Disponible</th><th class="r">Valor</th>
+    </tr></thead><tbody>
+    ${rows.sort((a,b)=>a.desc.localeCompare(b.desc)).map(r=>`<tr>
+      <td><b>${r.desc}</b></td><td>${r.tipo||r.cat}</td><td>${r.talla||"-"}</td>
+      <td class="r">$${r.precio.toFixed(2)}</td><td class="r">${r.qty}</td>
+      <td class="r">${r.vendido}</td>
+      <td class="r" style="color:${r.rest<=0?"#D00":r.rest<=3?"#B45309":"#2D6A4F"};font-weight:700">${r.rest<=0?"Agotado":r.rest}</td>
+      <td class="r"><b>$${(r.rest*r.precio).toFixed(2)}</b></td>
+    </tr>`).join("")}
+    <tr class="tot"><td colspan="4"><b>TOTAL</b></td>
+      <td class="r">${totQty}</td><td class="r">${totVend}</td>
+      <td class="r">${totRest}</td><td class="r"><b>$${totVal.toFixed(2)}</b></td>
+    </tr></tbody></table></body></html>`;
+    const w=window.open("","_blank","width=900,height=700");
+    if(w){w.document.write(html);w.document.close();}
+  }
   function imprimirEtiquetasImportacion(items){
+    // Fix talla: Sheets converts "5-6" or "5/6" to dates, reverse it
+    function fixTalla(t){
+      if(!t) return "";
+      const s=String(t);
+      // If it looks like YYYY-MM-DD date (Sheets auto-converted)
+      const dm=s.match(/^\d{4}-(\d{1,2})-(\d{1,2})$/);
+      if(dm) return dm[2]+"-"+dm[1]; // back to D-M style
+      // If it's a date like "5/6/1899" or similar Excel origin date
+      const dm2=s.match(/^(\d{1,2})\/(\d{1,2})(?:\/\d+)?$/);
+      if(dm2) return dm2[1]+"/"+dm2[2];
+      return s;
+    }
     // 50 per A4: 5 cols x 10 rows, no gap, dashed border
     const styleTag=`<style>
       @page{size:210mm 297mm;margin:4mm}
@@ -894,9 +995,9 @@ const w=window.open("","_blank");
       return (pi>0?'<div style="page-break-before:always"></div>':'')
         +'<div class="grid">'+cells.map(it=>it
           ?`<div class="lbl"><div class="brand">* CAMELY *</div>
-            <div class="code">${it.codigo}</div>
-            <div class="desc">${(it.descripcion||"").substring(0,20)}${it.talla?" T:"+it.talla:""}</div>
-            <div class="sub">${it.tipoRopa?it.tipoRopa+" · ":""}${it.categoria||""}</div></div>`
+            <div class="code">${it.codigo||it.Codigo||it.code||it.id||"?"}</div>
+            <div class="desc">${(it.descripcion||it.Descripcion||"").substring(0,20)}${fixTalla(it.talla||it.Talla)?" " +"T:"+ fixTalla(it.talla||it.Talla):""}</div>
+            <div class="sub">${(it.tipoRopa||it.TipoRopa||"") ? (it.tipoRopa||it.TipoRopa)+" · " : ""}${it.categoria||it.Categoria||""}</div></div>`
           :'<div class="lbl"></div>'
         ).join("")+'</div>';
     }).join("");
@@ -908,11 +1009,50 @@ const w=window.open("","_blank");
     if(w){w.document.write(html);w.document.close();}
   }
   function imprimirTiraPedido(labels){
-    imprimirEtiquetas(labels.map(l=>({
-      id:l.invId||"",codigo:l.invId||l.id,
-      descripcion:l.prenda,talla:"",tipoRopa:"",categoria:"",
-      cliente:l.cliente,total:l.total
-    })));
+    // 5-label strip — client-focused design
+    const styleTag=`<style>
+      @page{size:210mm 297mm;margin:4mm}
+      *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif}
+      .grid{display:grid;grid-template-columns:repeat(5,1fr);width:100%}
+      .lbl{height:55mm;border:0.5pt dashed #AAA;padding:2mm;box-sizing:border-box;
+        display:flex;flex-direction:column;overflow:hidden}
+      .lbl-head{display:flex;justify-content:space-between;align-items:center;
+        border-bottom:0.5pt solid #1BB6C8;padding-bottom:1mm;margin-bottom:1.5mm}
+      .lbl-brand{font-size:5pt;font-weight:900;color:#1BB6C8}
+      .lbl-live{font-size:4.5pt;color:#AAA}
+      .lbl-cliente{font-size:14pt;font-weight:900;color:#1BB6C8;line-height:1.1;margin-bottom:1mm}
+      .lbl-prenda{font-size:6pt;color:#555;margin-bottom:1.5mm;line-height:1.3}
+      .lbl-precio{font-size:18pt;font-weight:900;color:#1A1A1A;line-height:1}
+      .lbl-codigo{font-size:5pt;color:#CCC;margin-top:auto;text-align:right}
+      .topbar{background:#1BB6C8;color:#fff;font-family:Arial;font-size:11px;padding:6px 10px;
+        display:flex;justify-content:space-between;align-items:center}
+      .topbar button{background:#fff;color:#1BB6C8;border:none;padding:4px 14px;
+        border-radius:4px;font-weight:700;cursor:pointer;font-size:11px}
+      @media print{.topbar{display:none}}
+    </style>`;
+    const cells=[...labels];
+    while(cells.length<5) cells.push(null);
+    const rowHtml=`<div class="grid">`+cells.map(l=>l
+      ?`<div class="lbl">
+          <div class="lbl-head">
+            <span class="lbl-brand">★ CAMELY</span>
+            <span class="lbl-live">${l.live||""} · ${l.fecha||""}</span>
+          </div>
+          <div class="lbl-cliente">${(l.cliente||"").substring(0,14)}</div>
+          <div class="lbl-prenda">${l.prenda&&l.prenda!=="-"?(l.qty>1?l.qty+"x ":"")+l.prenda.substring(0,30):""}</div>
+          <div class="lbl-precio">$${(l.total||0).toFixed(2)}</div>
+          <div class="lbl-codigo">${l.invId||""}</div>
+        </div>`
+      :`<div class="lbl"></div>`
+    ).join("")+`</div>`;
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">${styleTag}</head><body>
+      <div class="topbar">
+        <span><b>${labels.length}</b> etiquetas · recortar por línea punteada</span>
+        <button onclick="window.print()">🖨 Imprimir</button>
+      </div>
+      ${rowHtml}</body></html>`;
+    const w=window.open("","_blank","width=860,height=500");
+    if(w){w.document.write(html);w.document.close();}
   }
   
   // ── Estado de importación ──
@@ -1266,26 +1406,7 @@ const w=window.open("","_blank");
         </div>
       </div>}
 
-      {/* MODAL ETIQUETA */}
-      {labelItem&&<div style={S.ov} onClick={()=>setLabelItem(null)}>
-        <div style={S.sh} onClick={e=>e.stopPropagation()}>
-          <div style={{textAlign:"center",fontSize:10,letterSpacing:2,color:"#1BB6C8",marginBottom:10,textTransform:"uppercase",fontWeight:700}}>✓ Pedido registrado</div>
-          <div style={{...S.labelCard,padding:"14px 12px"}}>
-            <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"#AAA",marginBottom:6}}>
-              <span>{labelItem.live}</span><span>{labelItem.fecha}</span>
-            </div>
-            <div style={{fontSize:22,fontWeight:900,color:"#1BB6C8",letterSpacing:-0.5}}>{labelItem.cliente}</div>
-            {labelItem.tiktok&&<div style={{fontSize:11,color:"#F0057F",marginTop:2,fontWeight:700}}>{labelItem.tiktok}</div>}
-            {labelItem.prenda!=="-"&&<div style={{fontSize:11,color:"#888",marginTop:4}}>{labelItem.qty>1?`${labelItem.qty}x `:""}{labelItem.prenda}</div>}
-            <div style={{fontSize:24,fontWeight:900,color:"#1A1A1A",marginTop:6}}>${labelItem.total.toFixed(2)}</div>
-          </div>
-          <div style={{fontSize:11,color:"#1BB6C8",textAlign:"center",marginBottom:12}}>🖨 Impresión enviada automáticamente</div>
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>{const pa=document.getElementById("camely-print-area");if(pa&&pa.innerHTML)window.print();}} style={{...S.btnD,flex:1,fontSize:13}}>Reimprimir</button>
-            <button onClick={()=>setLabelItem(null)} style={{...S.btnD,flex:1,fontSize:13,background:"#EEE",color:"#555"}}>Cerrar</button>
-          </div>
-        </div>
-      </div>}
+      {/* MODAL ETIQUETA — acumulada silenciosamente, sin popup */}
 
       {/* MODAL PICKER INVENTARIO */}
       {showInvPicker&&<div style={S.ov} onClick={()=>setShowInvPicker(false)}>
@@ -1526,7 +1647,7 @@ const w=window.open("","_blank");
         {tab==="pedido"&&<div className="app-section" style={S.sec}>
           <div style={S.card}>
             {pendingLabels.length>0&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#FFF3E0",borderRadius:12,padding:"8px 14px",marginBottom:10,marginTop:6}}>
-              <span style={{fontSize:12,fontWeight:700,color:"#B45309"}}>{"🏷 "+pendingLabels.length+" etiqueta"+(pendingLabels.length>1?"s":"")+" pendiente"+(pendingLabels.length>1?"s":"")+" ("+pendingLabels.length+"/6)"}</span>
+              <span style={{fontSize:12,fontWeight:700,color:"#B45309"}}>{"🏷 "+pendingLabels.length+" etiqueta"+(pendingLabels.length>1?"s":"")+" pendiente"+(pendingLabels.length>1?"s":"")+" ("+pendingLabels.length+"/5)"}</span>
               <div style={{display:"flex",gap:6}}>
                 <button onClick={()=>{imprimirTiraPedido(pendingLabels);setPendingLabels([]);localStorage.removeItem("camely_pending_labels");}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>{"🖨 Imprimir"}</button>
                 <button onClick={()=>{if(window.confirm("Descartar etiquetas pendientes?")){setPendingLabels([]);localStorage.removeItem("camely_pending_labels");}}} style={{background:"#FEE2E2",color:"#EF4444",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,cursor:"pointer"}}>{"✕"}</button>
@@ -1537,23 +1658,40 @@ const w=window.open("","_blank");
           <div style={{background:"#E8F9FB",borderRadius:14,padding:"12px",marginBottom:14}}>
             <label style={{...S.lbl,color:"#1BB6C8"}}>🔍 BUSCAR POR CÓDIGO DE PRENDA</label>
             <div style={{display:"flex",gap:8}}>
-              <input style={{...S.inp,flex:1,fontSize:16,fontWeight:700,letterSpacing:2,textTransform:"uppercase"}} placeholder="C-0001" value={codigoBusqueda}
+              <input style={{...S.inp,flex:1,fontSize:16,fontWeight:700,letterSpacing:2,textTransform:"uppercase"}} placeholder="1 o C-0001" value={codigoBusqueda}
                 onChange={e=>{
                   const val=e.target.value.toUpperCase();
                   setCodigoBusqueda(val);
-                  if(val.length>=4){const found=buscarPorCodigo(val);setCodigoEncontrado(found);}
+                  const isNum=/^\d+$/.test(val.replace(/^C-?/,""));
+                  if(val.length>=1&&(isNum||val.length>=4)){const found=buscarPorCodigo(val);setCodigoEncontrado(found);}
                   else setCodigoEncontrado(null);
                 }}
-                onKeyDown={e=>{if(e.key==="Enter"&&codigoEncontrado){
-                  setForm(f=>({...f,prenda:codigoEncontrado.descripcion+(codigoEncontrado.talla?" T:"+codigoEncontrado.talla:""),invId:codigoEncontrado.id}));
-                  toast_("✓ "+codigoEncontrado.codigo+" cargado");
+                onKeyDown={e=>{if(e.key==="Enter"){
+                  if(codigoEncontrado){
+                    const nombre=codigoEncontrado.descripcion+(codigoEncontrado.talla?"  T:  "+codigoEncontrado.talla:"");
+                    setForm(f=>({...f,prenda:nombre,invId:codigoEncontrado.id}));
+                    setCodigoBusqueda("");setCodigoEncontrado(null);
+                    toast_("✓ "+codigoEncontrado.codigo+" → "+nombre);
+                    setTimeout(()=>document.getElementById("pvp-input")?.focus(),50);
+                  } else if(codigoBusqueda.trim()){
+                    toast_("⚠ Código no encontrado o no disponible","err");
+                  }
                 }}}
               />
-              <button onClick={()=>{if(codigoEncontrado){setForm(f=>({...f,prenda:codigoEncontrado.descripcion+(codigoEncontrado.talla?" T:"+codigoEncontrado.talla:""),invId:codigoEncontrado.id}));toast_("✓ "+codigoEncontrado.codigo+" cargado");}}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>Cargar</button>
+              <button onClick={()=>{if(codigoEncontrado){
+                    const nombre=codigoEncontrado.descripcion+(codigoEncontrado.talla?"  T:  "+codigoEncontrado.talla:"");
+                    setForm(f=>({...f,prenda:nombre,invId:codigoEncontrado.id}));
+                    setCodigoBusqueda("");setCodigoEncontrado(null);
+                    toast_("✓ "+codigoEncontrado.codigo+" → "+nombre);
+                    setTimeout(()=>document.getElementById("pvp-input")?.focus(),50);
+                  }}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"8px 14px",fontSize:12,fontWeight:700,cursor:"pointer"}}>Cargar</button>
             </div>
-            {codigoBusqueda.length>=4&&(codigoEncontrado?(
+            {codigoBusqueda.length>=1&&(codigoEncontrado?(
               <div style={{marginTop:6,background:"#E6F4EC",borderRadius:8,padding:"8px 10px",fontSize:12}}>
-                <div style={{fontWeight:700,color:"#2D6A4F"}}>✓ {codigoEncontrado.codigo} — {codigoEncontrado.descripcion}{codigoEncontrado.talla?" · T:"+codigoEncontrado.talla:""}</div>
+                <div style={{fontWeight:700,color:codigoEncontrado.estado==="disponible"||!codigoEncontrado.estado?"#2D6A4F":"#D00"}}>
+                {codigoEncontrado.estado==="disponible"||!codigoEncontrado.estado?"✓":"⚠"} {codigoEncontrado.codigo} — {codigoEncontrado.descripcion}{codigoEncontrado.talla?"  ·  T:  "+codigoEncontrado.talla:""}
+                {codigoEncontrado.estado&&codigoEncontrado.estado!=="disponible"&&<span style={{fontSize:10,marginLeft:4}}>({codigoEncontrado.estado})</span>}
+              </div>
                 <div style={{fontSize:10,color:"#888"}}>{codigoEncontrado.categoria}{codigoEncontrado.tipoRopa?" · "+codigoEncontrado.tipoRopa:""} · {codigoEncontrado.importacionNombre}</div>
               </div>
             ):(
@@ -1577,9 +1715,7 @@ const w=window.open("","_blank");
               <label style={S.lbl}>PRENDA</label>
               <div style={{display:"flex",gap:8}}>
                 <input style={{...S.inp,flex:1}} placeholder="Descripción de la prenda" value={form.prenda} onChange={e=>setForm(f=>({...f,prenda:e.target.value,invId:null}))}/>
-                <button onClick={()=>{setSearchInv("");setShowInvPicker(true);}} style={{background:form.invId?"#2D6A4F":"#F5EDE4",border:"none",borderRadius:12,padding:"0 12px",color:form.invId?"#fff":"#F0057F",fontWeight:700,fontSize:12,cursor:"pointer",flexShrink:0}}>
-                  {form.invId?"✓ Inv":"📦 Inv"}
-                </button>
+                
               </div>
               {form.invId&&<div style={{fontSize:11,color:"#2D6A4F",marginTop:3}}>✓ Se descontará del inventario al registrar</div>}
             </div>
@@ -1657,56 +1793,62 @@ const w=window.open("","_blank");
           </div>
           {/* PDF por importacion */}
           <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
-            <select style={{...S.inp,flex:1,fontSize:12}} onChange={e=>{
-              if(!e.target.value) return;
-              const impId=e.target.value;
-              const impObj=importaciones.find(i=>i.id===impId);
-              const items=inventario.filter(i=>i.importacionId===impId);
-              if(items.length===0){toast_("Sin ítems de inventario para esta importación","err");e.target.value="";return;}
-              // Generate import PDF
-              const rows=Object.values(items.reduce((acc,it)=>{
-                const r=qtyR(it);
-                const k=(it.descripcion||"Prenda")+"__"+(it.talla||"")+"__"+it.precio;
-                if(!acc[k])acc[k]={desc:it.descripcion,talla:it.talla,cat:it.categoria,tipo:it.tipoRopa,precio:it.precio,qty:0,vendido:0,rest:0};
-                acc[k].qty+=it.qty||1;acc[k].vendido+=(it.qty||1)-r;acc[k].rest+=r;
-                return acc;
-              },{}));
-              const totQty=rows.reduce((s,r)=>s+r.qty,0);
-              const totVal=rows.reduce((s,r)=>s+r.rest*(r.precio||0),0);
-              const cu=parseFloat(impObj?.costoUnit||0);
-              const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><style>
-                *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:20px;font-size:12px}
-                .h{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #1BB6C8;padding-bottom:10px;margin-bottom:16px}
-                .brand{font-size:22px;font-weight:900;color:#1BB6C8}.meta{text-align:right;font-size:11px;color:#888;line-height:1.6}
-                table{width:100%;border-collapse:collapse}th{background:#1BB6C8;color:#fff;padding:8px;font-size:11px;text-align:left}
-                th.r,td.r{text-align:right}td{padding:7px 8px;border-bottom:1px solid #eee}
-                tr:nth-child(even)td{background:#fafafa}.tot td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26}
-                .kpi{display:flex;gap:12px;margin-bottom:16px}
-                .kpi-card{flex:1;background:#E8F9FB;border-radius:10px;padding:10px;text-align:center}
-                .kpi-val{font-size:18px;font-weight:900;color:#1BB6C8}.kpi-lbl{font-size:10px;color:#888;margin-top:2px}
-                @media print{button{display:none}}
-              </style></head><body>
-              <div class="h"><div><div class="brand">CAMELY</div><div style="font-size:11px;color:#888;margin-top:2px">Inventario por Importación</div></div>
-              <div class="meta"><b>${impObj?.nombre||impId}</b><br>Costo unit: $${cu.toFixed(2)}<br>Generado: ${new Date().toLocaleDateString("es-EC")}</div></div>
-              <div class="kpi">
-                <div class="kpi-card"><div class="kpi-val">${totQty}</div><div class="kpi-lbl">Ingresadas</div></div>
-                <div class="kpi-card"><div class="kpi-val">${rows.reduce((s,r)=>s+r.vendido,0)}</div><div class="kpi-lbl">Vendidas</div></div>
-                <div class="kpi-card"><div class="kpi-val">${rows.reduce((s,r)=>s+r.rest,0)}</div><div class="kpi-lbl">Disponibles</div></div>
-                <div class="kpi-card"><div class="kpi-val">$${totVal.toFixed(2)}</div><div class="kpi-lbl">Valor stock</div></div>
-                <div class="kpi-card"><div class="kpi-val">$${((impObj?.costoTotal||0)+(impObj?.fleteEstimado||0)).toFixed(2)}</div><div class="kpi-lbl">Costo total</div></div>
-              </div>
-              <button onclick="window.print()" style="margin-bottom:12px;background:#1BB6C8;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-weight:700">🖨 Imprimir</button>
-              <table><thead><tr><th>Descripción</th><th>Tipo</th><th>Talla</th><th class="r">Costo</th><th class="r">Ingresado</th><th class="r">Vendido</th><th class="r">Disponible</th><th class="r">Valor</th></tr></thead>
-              <tbody>${rows.map(r=>`<tr><td>${r.desc}</td><td>${r.tipo||r.cat}</td><td>${r.talla||"-"}</td><td class="r">$${(r.precio||0).toFixed(2)}</td><td class="r">${r.qty}</td><td class="r">${r.vendido}</td><td class="r">${r.rest}</td><td class="r">$${(r.rest*(r.precio||0)).toFixed(2)}</td></tr>`).join("")}
-              <tr class="tot"><td colspan="4">TOTAL</td><td class="r">${totQty}</td><td class="r">${rows.reduce((s,r)=>s+r.vendido,0)}</td><td class="r">${rows.reduce((s,r)=>s+r.rest,0)}</td><td class="r">$${totVal.toFixed(2)}</td></tr>
-              </tbody></table></body></html>`;
-              const w=window.open("","_blank","width=900,height=600");
-              if(w){w.document.write(html);w.document.close();}
-              e.target.value="";
-            }}>
-              <option value="">📊 Ver PDF por importación...</option>
-              {importaciones.filter(i=>i.estado==="recibida").map(i=><option key={i.id} value={i.id}>{i.nombre} ({i.numPrendasReales||i.numPrendas} prendas · ${parseFloat(i.costoUnit||0).toFixed(2)}/u)</option>)}
-            </select>
+            <div style={{display:"flex",gap:6}}>
+              <select style={{...S.inp,flex:1,fontSize:12}} value={selImpPDF} onChange={e=>setSelImpPDF(e.target.value)}>
+                <option value="">📊 PDF por importación...</option>
+                {importaciones.map(i=><option key={i.id} value={String(i.id)}>{i.nombre} [{i.estado}] · {i.numPrendasReales||i.numPrendas||0} prendas · ${parseFloat(i.costoUnit||0).toFixed(2)}/u</option>)}
+              </select>
+              <button onClick={async()=>{
+                if(!selImpPDF){toast_("Selecciona una importación","err");return;}
+                const impObj=importaciones.find(i=>String(i.id)===selImpPDF);
+                if(!impObj){toast_("Importación no encontrada","err");return;}
+                toast_("⏳ Cargando desde Sheets...");
+                try{
+                  const res=await fetch(SHEETS_URL+"?action=getAll&t="+Date.now());
+                  const data=await res.json();
+                  const allInv=data?.inventario||[];
+                  if(allInv.length===0){toast_("Sheets devolvió inventario vacío","err");return;}
+                  // Show first item fields for diagnosis
+                  const sample=allInv[0];
+                  const sampleKeys=Object.keys(sample).join(", ");
+                  const sampleImpId=sample.importacionId||sample.importacion||sample.importId||"(no field)";
+                  toast_("📋 "+allInv.length+" ítems en Sheets. Primer ítem importacionId: '"+sampleImpId+"' | Campos: "+sampleKeys.substring(0,80));
+                  // Try ALL possible field names
+                  const items=allInv.filter(i=>{
+                    const v=i.importacionId||i.importacion||i.importId||i.importacionNombre||"";
+                    return v===impObj.nombre||v===selImpPDF||String(v)===String(impObj.id);
+                  });
+                  if(items.length===0){
+                    toast_("Buscando por: '"+impObj.nombre+"' en campo importacionId. Valores únicos: "+[...new Set(allInv.slice(0,10).map(i=>String(i.importacionId||i.importacion||"null")))].join(" | "),"err");
+                    return;
+                  }
+                  generarPDFPorImportacion(impObj,items);
+                }catch(e){toast_("Error: "+e.message,"err");}
+              }} style={{...S.btnD,flexShrink:0,padding:"8px 14px",fontSize:12,background:"#F0057F"}}>📄 PDF</button>
+              <button onClick={async()=>{
+                if(!selImpPDF){toast_("Selecciona una importación","err");return;}
+                const impObj=importaciones.find(i=>String(i.id)===selImpPDF);
+                if(!impObj){toast_("Selecciona una importación válida","err");return;}
+                toast_("⏳ Cargando desde Sheets...");
+                try{
+                  const res=await fetch(SHEETS_URL+"?action=getAll&t="+Date.now());
+                  const data=await res.json();
+                  const allInv=data?.inventario||[];
+                  if(allInv.length===0){toast_("Sheets devolvió inventario vacío","err");return;}
+                  const items=allInv.filter(i=>{
+                    const v=i.importacionId||i.importacion||i.importId||i.importacionNombre||"";
+                    return v===impObj.nombre||v===selImpPDF||String(v)===String(impObj.id);
+                  });
+                  if(items.length===0){
+                    const sample=allInv[0];
+                    toast_("No encontrado. Campo en Sheets: '"+Object.keys(sample).filter(k=>k.toLowerCase().includes("import")).join(",")||"ninguno"+"' Valor: '"+String(sample.importacionId||sample.importacion||"?")+"'","err");
+                    return;
+                  }
+                  toast_("✓ "+items.length+" etiquetas listas");
+                  imprimirEtiquetasImportacion(items);
+                }catch(e){toast_("Error: "+e.message,"err");}
+              }} style={{...S.btnD,flexShrink:0,padding:"8px 14px",fontSize:12,background:"#1BB6C8"}}>🖨 Etiquetas</button>
+            </div>
           </div>
 
           {invFiltrado.length===0?(
@@ -2157,6 +2299,18 @@ const w=window.open("","_blank");
                           {canEdit&&est==="pagada"&&<button onClick={()=>{setExpandedLlegada(expandedLlegada===imp.id?null:imp.id);setLlegadaItems(imp.items&&imp.items.length>0?[...imp.items]:[]);}} style={{flex:1,background:"#E8F9FB",color:"#1BB6C8",border:"1.5px solid #1BB6C8",borderRadius:8,padding:"8px",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                             📦 {expandedLlegada===imp.id?"Cerrar llegada":"Registrar llegada"}
                           </button>}
+                          {imp.estado==="recibida"&&<button onClick={async()=>{
+                            toast_("⏳ Cargando ítems desde Sheets...");
+                            try{
+                              const res=await fetch(SHEETS_URL+"?action=getAll&t="+Date.now());
+                              const data=await res.json();
+                              const allInv=data?.inventario||[];
+                              const items=allInv.filter(i=>i.importacionId===imp.nombre||String(i.importacionId)===String(imp.id)||i.importacionNombre===imp.nombre);
+                              if(items.length===0){toast_("Sin ítems en Sheets para esta importación","err");return;}
+                              toast_("✓ "+items.length+" ítems encontrados");
+                              imprimirEtiquetasImportacion(items);
+                            }catch(e){toast_("Error: "+e.message,"err");}
+                          }} style={{background:"#E8F9FB",color:"#1BB6C8",border:"1.5px solid #1BB6C8",borderRadius:8,padding:"8px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🖨</button>}
                           {canAdmin&&<button onClick={()=>eliminarImportacion(imp.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:8,padding:"8px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗑</button>}
                         </div>
                         {/* INLINE LLEGADA EDITOR */}
