@@ -280,6 +280,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [toast,setToast]=useState(null);
 
   const [labelItem,setLabelItem]=useState(null);
+  const [pendingLabels,setPendingLabels]=useState(()=>{try{return JSON.parse(localStorage.getItem("camely_pending_labels")||"[]");}catch{return [];}});
   const [showLiveModal,setShowLiveModal]=useState(false);
   const [liveInput,setLiveInput]=useState("");
   const [showInvPicker,setShowInvPicker]=useState(false);
@@ -335,6 +336,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [expandedECTarjeta,setExpandedECTarjeta]=useState(null);
   const [statusImpId,setStatusImpId]=useState(null);
   const [statusTarjetaId,setStatusTarjetaId]=useState("");
+  const [statusFleteM,setStatusFleteM]=useState("");
+  const [statusFleteTarjeta,setStatusFleteTarjeta]=useState("");
   // Import items
   const [importItems,setImportItems]=useState([]);
   // Finanzas sub-tab
@@ -674,26 +677,19 @@ const w=window.open("","_blank");
       setInventario(updInv); lSet(K.inventario,updInv); sheetsSync("saveInventario",updInv);
     }
     setCodigoBusqueda(""); setCodigoEncontrado(null);
+    // Accumulate label for strip printing
     const labelData={...item,tiktok:perfil(item.cliente)?.tiktok||"",printDate:hoy()};
     setLabelItem(labelData);
-    // Populate print area
-    const pa=document.getElementById("camely-print-area");
-    if(pa){
-      setPrintSize(80,55);
-      const prf=perfil(item.cliente);
-      const tiktokLine=prf&&prf.tiktok?'<div style="text-align:center;font-size:8pt;color:#F0057F;margin-bottom:2mm">'+prf.tiktok+'</div>':"";
-      const prendaLine=item.prenda!=="-"?'<div style="text-align:center;font-size:8pt;color:#888;margin-bottom:1mm">'+(item.qty>1?item.qty+"x ":"")+item.prenda+'</div>':"";
-      const codigoLine=item.invId?'<div style="text-align:center;font-size:9pt;font-weight:700;color:#1BB6C8;letter-spacing:2px;margin-bottom:1mm">'+item.invId+'</div>':"";
-      pa.innerHTML='<div style="width:76mm;padding:3mm;font-family:Arial,sans-serif;box-sizing:border-box">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;padding-bottom:2mm;margin-bottom:2mm">'
-        +'<span style="font-size:8pt;font-weight:900;color:#1BB6C8;">🐰 CAMELY</span>'
-        +'<span style="font-size:7pt;color:#555;">'+item.live+' · '+item.fecha+'</span></div>'
-        +'<div style="font-size:17pt;font-weight:900;color:#1A1A1A;text-align:center;margin:1.5mm 0">'+item.cliente+'</div>'
-        +tiktokLine+codigoLine+prendaLine
-        +'<div style="text-align:center;font-size:22pt;font-weight:900;color:#1A1A1A;margin:2mm 0;border-top:1px solid #eee;padding-top:2mm">$'+item.total.toFixed(2)+'</div>'
-        +'<div style="text-align:right;font-size:6pt;color:#CCC;">Impreso: '+hoy()+'</div>'
-        +'</div>';
-      setTimeout(function(){window.print();},400);
+    const newPending=[...pendingLabels,labelData];
+    setPendingLabels(newPending);
+    localStorage.setItem("camely_pending_labels",JSON.stringify(newPending));
+    if(newPending.length>=6){
+      toast_("🖨 6 etiquetas listas — abriendo para imprimir...");
+      setTimeout(()=>{imprimirTiraPedido(newPending);},300);
+      setPendingLabels([]);
+      localStorage.removeItem("camely_pending_labels");
+    } else {
+      toast_("🏷 Etiqueta acumulada ("+newPending.length+"/6)");
     }
     setForm(f=>({...f,prenda:"",pvp:"",qty:"1",invId:null}));setShowCS(false);
   }
@@ -819,29 +815,81 @@ const w=window.open("","_blank");
   }
   // Etiqueta de inventario 40×30mm
   function imprimirEtiquetas(items){
-    const pa=document.getElementById("camely-print-area");
-    if(!pa) return;
-    setPrintSize(40,30);
-    pa.innerHTML=items.map(it=>(
-      '<div style="width:38mm;height:28mm;padding:1.5mm;box-sizing:border-box;display:inline-block;vertical-align:top;page-break-inside:avoid;font-family:Arial,sans-serif;">'
-      +'<div style="font-size:6.5pt;font-weight:900;color:#1BB6C8;text-align:center;border-bottom:0.5pt solid #1BB6C8;padding-bottom:1mm;margin-bottom:1mm;">🐰 CAMELY</div>'
-      +'<div style="font-size:15pt;font-weight:900;text-align:center;letter-spacing:2px;color:#1A1A1A;margin:1.5mm 0;">'+it.codigo+'</div>'
-      +'<div style="font-size:6.5pt;text-align:center;color:#333;margin-bottom:0.5mm;">'+it.descripcion+(it.talla?' · T:'+it.talla:'')+'</div>'
-      +'<div style="font-size:6pt;text-align:center;color:#888;">'+(it.categoria==="ropa"&&it.tipoRopa?it.tipoRopa+' · ':'')+it.categoria+'</div>'
-      +'</div>'
-    )).join("");
-    setTimeout(()=>window.print(),300);
+    // 60 per A4: 6 cols x 10 rows, no gap, dashed border
+    const LBL_W=33.67,LBL_H=28.9; // mm
+    const styleTag=`<style>
+      @page{size:210mm 297mm;margin:4mm}
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif}
+      .grid{display:grid;grid-template-columns:repeat(6,1fr);width:100%}
+      .lbl{width:${LBL_W}mm;height:${LBL_H}mm;border:0.5pt dashed #999;padding:0.8mm;
+        display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0.3mm;overflow:hidden}
+      .brand{font-size:5pt;font-weight:900;color:#fff;background:#1BB6C8;width:100%;
+        text-align:center;padding:0.5mm 0;letter-spacing:0.3px}
+      .code{font-size:12pt;font-weight:900;color:#1A1A1A;letter-spacing:1px;line-height:1}
+      .desc{font-size:5.2pt;font-weight:700;color:#222;text-align:center;line-height:1.2}
+      .sub{font-size:4.5pt;color:#888;text-align:center}
+      .topbar{background:#1BB6C8;color:#fff;font-family:Arial;font-size:11px;padding:6px 10px;
+        display:flex;justify-content:space-between;align-items:center}
+      .topbar button{background:#fff;color:#1BB6C8;border:none;padding:4px 14px;
+        border-radius:4px;font-weight:700;cursor:pointer;font-size:11px}
+      @media print{.topbar{display:none}}
+    </style>`;
+    const rows=[];
+    for(let i=0;i<items.length;i+=6){rows.push(items.slice(i,i+6));}
+    const pagesHtml=rows.map(rowItems=>{
+      // Pad row to 6
+      const cells=[...rowItems];
+      while(cells.length<6)cells.push(null);
+      return '<div class="grid">'+cells.map(it=>it
+        ?`<div class="lbl">
+            <div class="brand">* CAMELY *</div>
+            <div class="code">${it.codigo||it.id||"—"}</div>
+            <div class="desc">${(it.descripcion||it.prenda||"").substring(0,20)}${it.talla?" T:"+it.talla:""}</div>
+            <div class="sub">${it.cliente?it.cliente.substring(0,14)+(" $"+(it.total||0).toFixed(0)):(it.tipoRopa?it.tipoRopa+" · ":"")+it.categoria}</div>
+          </div>`
+        :'<div class="lbl"></div>'
+      ).join("")+'</div>';
+    }).join('<div style="page-break-after:always"></div>');
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">${styleTag}</head><body>
+      <div class="topbar"><span><b>${items.length}</b> etiquetas — imprimir en A4, escala 100%</span>
+      <button onclick="window.print()">🖨 Imprimir</button></div>
+      ${pagesHtml}</body></html>`;
+    const w=window.open("","_blank","width=800,height=600");
+    if(w){w.document.write(html);w.document.close();}
   }
+
+  function imprimirTiraPedido(labels){
+    imprimirEtiquetas(labels.map(l=>({
+      id:l.invId||"",codigo:l.invId||l.id,
+      descripcion:l.prenda,talla:"",tipoRopa:"",categoria:"",
+      cliente:l.cliente,total:l.total
+    })));
+  }
+  
   // ── Estado de importación ──
-  async function cambiarEstadoImport(impId, nuevoEstado, tarjetaId){
+  async function cambiarEstadoImport(impId, nuevoEstado, tarjetaId, fleteM="", fleteTarjeta=""){
     const imp=importaciones.find(i=>i.id===impId);
     if(!imp) return;
     const upd=importaciones.map(i=>i.id===impId?{...i,estado:nuevoEstado,...(nuevoEstado==="pagada"&&tarjetaId?{tarjetaId}:{})}:i);
     setImportaciones(upd); lSet(K.imports,upd); sheetsSync("saveImports",upd);
-    if(nuevoEstado==="pagada"&&tarjetaId){
-      const cargo={id:Date.now(),fecha:hoy(),tarjetaId,descripcion:imp.nombre+" (importación)",monto:imp.costoTotal,tipo:"cargo"};
-      const updC=[...cargosTarjeta,cargo]; setCargosTarjeta(updC); lSet(K.cargos,updC); sheetsSync("saveCargos",updC);
-      toast_("Cargo de $"+imp.costoTotal.toFixed(2)+" registrado en tarjeta ✓");
+    if(nuevoEstado==="pagada"){
+      const newCargos=[...cargosTarjeta];
+      if(tarjetaId){
+        newCargos.push({id:Date.now(),fecha:hoy(),tarjetaId,descripcion:imp.nombre+" (mercadería)",monto:imp.costoTotal,tipo:"cargo"});
+      }
+      if(fleteM&&parseFloat(fleteM)>0&&fleteTarjeta!=="efectivo"){
+        const fTarjId=fleteTarjeta||tarjetaId;
+        if(fTarjId){
+          newCargos.push({id:Date.now()+1,fecha:hoy(),tarjetaId:fTarjId,descripcion:imp.nombre+" (flete/traída)",monto:parseFloat(fleteM),tipo:"cargo"});
+        }
+      }
+      if(newCargos.length>cargosTarjeta.length){
+        setCargosTarjeta(newCargos);lSet(K.cargos,newCargos);sheetsSync("saveCargos",newCargos);
+        const totalCargo=(tarjetaId?imp.costoTotal:0)+(fleteM&&fleteTarjeta!=="efectivo"?parseFloat(fleteM):0);
+        toast_("Cargo de $"+totalCargo.toFixed(2)+" registrado en tarjeta ✓");
+      }
+      setStatusFleteM("");setStatusFleteTarjeta("");
     }
     if(nuevoEstado==="recibida"){
       const itemsLlegada=expandedLlegada===impId?llegadaItems:[];
@@ -1100,8 +1148,8 @@ const w=window.open("","_blank");
     if(!totalPrendas||!importForm.costoTotal) return;
     const num=importaciones.filter(i=>i.fecha?.slice(3,10)===hoy().slice(3,10)).length+1;
     const nombre="Importacion "+num+" - "+hoy().slice(3);
-    const costoUnit=(parseFloat(importForm.costoTotal)/totalPrendas).toFixed(2);
-    const imp={...importForm,id:Date.now(),nombre,fecha:hoy(),costoUnit,costoTotal:parseFloat(importForm.costoTotal),numPrendas:totalPrendas,estado:"ingresada",items:importItems};
+    const costoUnit=((parseFloat(importForm.costoTotal)+parseFloat(importForm.fleteEstimado||0))/totalPrendas).toFixed(2);
+    const imp={...importForm,id:Date.now(),nombre,fecha:hoy(),costoUnit,costoTotal:parseFloat(importForm.costoTotal),fleteEstimado:parseFloat(importForm.fleteEstimado||0),numPrendas:totalPrendas,estado:"ingresada",items:importItems};
     const upd=[...importaciones,imp]; setImportaciones(upd); lSet(K.imports,upd); sheetsSync("saveImports",upd);
     setShowImportModal(false); setImportForm({proveedor:"",numPrendas:"",costoTotal:"",tarjetaId:"",notas:""}); setImportImgPrev(null); setImportItems([]);
   }
@@ -1313,11 +1361,23 @@ const w=window.open("","_blank");
           <div style={{display:"flex",gap:10,marginBottom:10}}>
             <div style={{flex:1}}><label style={S.lbl}># PRENDAS</label>
               <input type="number" style={{...S.inp,background:importForm.numPrendas?"#F0FFF6":"#FDFAF8"}} placeholder="0" value={importForm.numPrendas} onChange={e=>setImportForm(f=>({...f,numPrendas:e.target.value}))}/></div>
-            <div style={{flex:1}}><label style={S.lbl}>COSTO TOTAL ($)</label>
+            <div style={{flex:1}}><label style={S.lbl}>COSTO MERCADERÍA ($)</label>
               <input type="number" style={{...S.inp,background:importForm.costoTotal?"#F0FFF6":"#FDFAF8"}} placeholder="0.00" value={importForm.costoTotal} onChange={e=>setImportForm(f=>({...f,costoTotal:e.target.value}))}/></div>
           </div>
+          <div style={{display:"flex",gap:8,marginBottom:10}}>
+            <div style={{flex:1}}><label style={S.lbl}>FLETE / TRAÍDA ($) <span style={{color:"#AAA",fontWeight:400}}>opcional</span></label>
+              <input type="number" style={{...S.inp,background:importForm.fleteEstimado?"#FFF8E0":undefined}} placeholder="0.00" value={importForm.fleteEstimado} onChange={e=>setImportForm(f=>({...f,fleteEstimado:e.target.value}))}/></div>
+            <div style={{flex:1,display:"flex",flexDirection:"column",justifyContent:"flex-end"}}>
+              {importForm.fleteEstimado&&<div style={{background:"#FFF8E0",borderRadius:8,padding:"8px 10px",fontSize:11,color:"#B45309",fontWeight:700}}>
+                Costo total importación: ${(parseFloat(importForm.costoTotal||0)+parseFloat(importForm.fleteEstimado||0)).toFixed(2)}
+              </div>}
+            </div>
+          </div>
           {importForm.numPrendas&&importForm.costoTotal&&<div style={{background:"#E8F9FB",borderRadius:10,padding:"10px",textAlign:"center",marginBottom:10,fontSize:13,color:"#1BB6C8",fontWeight:700}}>
-            Costo por prenda: ${(parseFloat(importForm.costoTotal)/parseInt(importForm.numPrendas)).toFixed(2)}
+            {importForm.fleteEstimado
+              ?<span>Costo x prenda: ${((parseFloat(importForm.costoTotal)+parseFloat(importForm.fleteEstimado||0))/parseInt(importForm.numPrendas)).toFixed(2)} <span style={{fontSize:10,color:"#888",fontWeight:400}}>(mercadería + flete)</span></span>
+              :<span>Costo por prenda: ${(parseFloat(importForm.costoTotal)/parseInt(importForm.numPrendas)).toFixed(2)}</span>
+            }
           </div>}
           <div style={{marginBottom:10}}><label style={S.lbl}>PROVEEDOR</label>
             <input style={S.inp} placeholder="Nombre de la proveedora" value={importForm.proveedor} onChange={e=>setImportForm(f=>({...f,proveedor:e.target.value}))}/></div>
@@ -1406,6 +1466,13 @@ const w=window.open("","_blank");
         {/* ─── PEDIDO ─── */}
         {tab==="pedido"&&<div className="app-section" style={S.sec}>
           <div style={S.card}>
+            {pendingLabels.length>0&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#FFF3E0",borderRadius:12,padding:"8px 14px",marginBottom:10,marginTop:6}}>
+              <span style={{fontSize:12,fontWeight:700,color:"#B45309"}}>{"🏷 "+pendingLabels.length+" etiqueta"+(pendingLabels.length>1?"s":"")+" pendiente"+(pendingLabels.length>1?"s":"")+" ("+pendingLabels.length+"/6)"}</span>
+              <div style={{display:"flex",gap:6}}>
+                <button onClick={()=>{imprimirTiraPedido(pendingLabels);setPendingLabels([]);localStorage.removeItem("camely_pending_labels");}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>{"🖨 Imprimir"}</button>
+                <button onClick={()=>{if(window.confirm("Descartar etiquetas pendientes?")){setPendingLabels([]);localStorage.removeItem("camely_pending_labels");}}} style={{background:"#FEE2E2",color:"#EF4444",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,cursor:"pointer"}}>{"✕"}</button>
+              </div>
+            </div>}
             <div style={S.cT}>Nuevo Pedido</div>
           {/* ─── Búsqueda por código ─── */}
           <div style={{background:"#E8F9FB",borderRadius:14,padding:"12px",marginBottom:14}}>
@@ -1683,8 +1750,8 @@ const w=window.open("","_blank");
                             let msg="✨ *Camely Ropa Infantil* ✨\n";
                             msg+="━━━━━━━━━━━━━━━━━━\n";
                             msg+="👋 Hola *"+c.alias+"*!\n\n";
-                            msg+="💳 *Resumen de tu cuenta:*\n";
-                            msg+="🛍️ Compras:\t $"+tc.toFixed(2)+"\n";
+                            msg+="💰 *Resumen de tu cuenta:*\n";
+                            msg+="🛒 Compras:\t $"+tc.toFixed(2)+"\n";
                             msg+="✅ Abonado:\t $"+ta.toFixed(2)+"\n";
                             msg+="🔴 *Pendiente: $"+saldo.toFixed(2)+"*\n";
                             if(cps.length>0){
@@ -1696,7 +1763,7 @@ const w=window.open("","_blank");
                             msg+="🏦 *Cuentas bancarias:*\n";
                             msg+="  🟡 Pichincha Ahorros *2203554582*\n";
                             msg+="  🔵 Guayaquil Ahorros *0029388062*\n";
-                            msg+="  🪪 Cédula: *0926345752* Martha Rosado\n";
+                            msg+="  📋 Cédula: *0926345752* Martha Rosado\n";
                             msg+="\n─────────────────\n";
                             msg+="🚚 *Envío:*\n";
                             msg+="  Guayaquil *$3.60* · Provincia *$6.50*\n";
@@ -1740,7 +1807,7 @@ const w=window.open("","_blank");
           ):(()=>{
             const finSubNav=(
               <div style={{display:"flex",gap:6,marginBottom:14,background:"#E8F9FB",borderRadius:14,padding:4}}>
-                {[{id:"resumen",l:"📊 Resumen"},{id:"cxp",l:"💳 CxP"},{id:"compras",l:"🚢 Compras"},{id:"resultados",l:"📈 Resultados"}].map(s=>(
+                {[{id:"resumen",l:"📊 Resumen"},{id:"cxp",l:"💰 CxP"},{id:"compras",l:"🚢 Compras"},{id:"resultados",l:"📈 Resultados"}].map(s=>(
                   <button key={s.id} onClick={()=>setFinSub(s.id)} style={{flex:1,padding:"8px 4px",border:"none",borderRadius:10,fontSize:12,fontWeight:finSub===s.id?700:400,background:finSub===s.id?"#fff":"transparent",color:finSub===s.id?"#1BB6C8":"#888",cursor:"pointer",boxShadow:finSub===s.id?"0 2px 8px rgba(27,182,200,0.15)":"none"}}>
                     {s.l}
                   </button>
@@ -1921,7 +1988,7 @@ const w=window.open("","_blank");
               const totalImportado=importaciones.reduce((s,i)=>s+i.costoTotal,0);
               const estadoColor={"ingresada":"#FFF5E0","pagada":"#E8F9FB","recibida":"#E6F4EC"};
               const estadoText={"ingresada":"#B7570A","pagada":"#1BB6C8","recibida":"#2D6A4F"};
-              const estadoLabel={"ingresada":"📋 Ingresada","pagada":"💳 Pagada","recibida":"✅ Recibida"};
+              const estadoLabel={"ingresada":"📋 Ingresada","pagada":"💰 Pagada","recibida":"✅ Recibida"};
               const nextEstado={"ingresada":"pagada","pagada":"recibida"};
               return(<>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
@@ -1967,7 +2034,7 @@ const w=window.open("","_blank");
                             </div>
                           ))}
                         </div>}
-                        {imp.tarjetaId&&tarjetas.find(t=>t.id===imp.tarjetaId)&&<div style={{fontSize:11,color:"#888",marginBottom:8}}>💳 {tarjetas.find(t=>t.id===imp.tarjetaId)?.nombre}</div>}
+                        {imp.tarjetaId&&tarjetas.find(t=>t.id===imp.tarjetaId)&&<div style={{fontSize:11,color:"#888",marginBottom:8}}>💰 {tarjetas.find(t=>t.id===imp.tarjetaId)?.nombre}</div>}
                         <div style={{display:"flex",gap:6}}>
                           {canEdit&&est==="ingresada"&&<button onClick={()=>{setStatusImpId(imp.id);setStatusTarjetaId(imp.tarjetaId||"");setShowStatusModal(true);}} style={{flex:1,background:"#FFF0F8",color:"#F0057F",border:"none",borderRadius:8,padding:"8px",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                             Marcar como Pagada →
@@ -2052,7 +2119,7 @@ const w=window.open("","_blank");
               const hdrCell=(label,cyan)=>(<th style={{padding:"7px 10px",textAlign:"right",fontSize:10,fontWeight:700,background:cyan?"#1BB6C8":"#1A1A1A",color:"#fff",whiteSpace:"nowrap",letterSpacing:0.5}}>{label}</th>);
               // ── renderDetail: expandable breakdown per gastos type ──
               const renderDetail=(tipo)=>{
-                const tipoIcon={"servientrega":"🚚","isd":"🏦","interes":"💳","suministros":"🖨","otro":"📋"};
+                const tipoIcon={"servientrega":"🚚","isd":"🏦","interes":"💰","suministros":"🖨","otro":"📋"};
                 const allG=gastos.filter(g=>{const f=parseFecha(g.fecha);return g.tipo===tipo&&(resAno==="todos"||f.ano===year);});
                 if(allG.length===0) return null;
                 // Group by month
@@ -2087,7 +2154,7 @@ const w=window.open("","_blank");
                 null,
                 {label:"🚚 Servientrega",key:"srv",tipo:"servientrega",clickable:true,bold:false,color:"#555"},
                 {label:"🏦 ISD",key:"isd",tipo:"isd",clickable:true,bold:false,color:"#555"},
-                {label:"💳 Intereses",key:"int",tipo:"interes",clickable:true,bold:false,color:"#555"},
+                {label:"💰 Intereses",key:"int",tipo:"interes",clickable:true,bold:false,color:"#555"},
                 {label:"🖨 Suministros",key:"sum",tipo:"suministros",clickable:true,bold:false,color:"#555"},
                 {label:"📋 Otros",key:"otr",tipo:"otro",clickable:true,bold:false,color:"#555"},
                 {label:"Total Gastos",key:"tGastos",bold:true,color:"#F0057F"},
@@ -2167,9 +2234,23 @@ const w=window.open("","_blank");
                 <option value="">Sin tarjeta / efectivo</option>
                 {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre} — ${saldoTarjeta(t.id).toFixed(2)}</option>)}
               </select>
-              <div style={{fontSize:11,color:"#1BB6C8",marginTop:4}}>Al confirmar se creará un cargo de ${imp.costoTotal.toFixed(2)} en la tarjeta seleccionada</div>
+              <div style={{fontSize:11,color:"#1BB6C8",marginTop:4}}>Cargo de <b>${imp.costoTotal.toFixed(2)}</b> (mercadería)</div>
             </div>}
-            <button onClick={()=>cambiarEstadoImport(statusImpId,nxt,statusTarjetaId)} style={{...S.btnD,background:nxt==="pagada"?"#F0057F":"#2D6A4F",marginBottom:8}}>
+            {nxt==="pagada"&&<div style={{marginBottom:14,background:"#FFF8E0",borderRadius:12,padding:"12px"}}>
+              <label style={{...S.lbl,color:"#B45309"}}>FLETE / TRAÍDA ($) — cargo adicional <span style={{fontWeight:400,color:"#AAA"}}>opcional</span></label>
+              <div style={{display:"flex",gap:8,marginBottom:6}}>
+                <input type="number" placeholder="0.00" style={{...S.inp,flex:1}} value={statusFleteM} onChange={e=>setStatusFleteM(e.target.value)}/>
+                <select style={{...S.inp,flex:1}} value={statusFleteTarjeta} onChange={e=>setStatusFleteTarjeta(e.target.value)}>
+                  <option value="">Misma tarjeta</option>
+                  <option value="efectivo">Efectivo (sin cargo)</option>
+                  {tarjetas.map(t=><option key={t.id} value={t.id}>{t.nombre}</option>)}
+                </select>
+              </div>
+              {statusFleteM&&<div style={{fontSize:11,color:"#B45309",fontWeight:700}}>
+                Cargo de flete: ${parseFloat(statusFleteM||0).toFixed(2)} en {statusFleteTarjeta==="efectivo"?"efectivo":statusFleteTarjeta?tarjetas.find(t=>t.id===statusFleteTarjeta)?.nombre||"tarjeta":"misma tarjeta"}
+              </div>}
+            </div>}
+            <button onClick={()=>cambiarEstadoImport(statusImpId,nxt,statusTarjetaId,statusFleteM,statusFleteTarjeta)} style={{...S.btnD,background:nxt==="pagada"?"#F0057F":"#2D6A4F",marginBottom:8}}>
               Confirmar → {nxt}
             </button>
             <button onClick={()=>setShowStatusModal(false)} style={S.cancelBtn}>Cancelar</button>
@@ -2239,8 +2320,8 @@ const w=window.open("","_blank");
           const saldo=tc-ta;
           let msg="✨ *Camely Ropa Infantil* ✨\n━━━━━━━━━━━━━━━━━━\n";
           msg+="👋 Hola *"+c.alias+"*!\n\n";
-          msg+="💳 *Resumen de tu cuenta:*\n";
-          msg+="🛍️ Compras:\t $"+tc.toFixed(2)+"\n";
+          msg+="💰 *Resumen de tu cuenta:*\n";
+          msg+="🛒 Compras:\t $"+tc.toFixed(2)+"\n";
           msg+="✅ Abonado:\t $"+ta.toFixed(2)+"\n";
           msg+="🔴 *Pendiente: $"+saldo.toFixed(2)+"*\n";
           if(cps.length>0){
@@ -2252,7 +2333,7 @@ const w=window.open("","_blank");
           msg+="🏦 *Cuentas bancarias:*\n";
           msg+="  🟡 Pichincha Ahorros *2203554582*\n";
           msg+="  🔵 Guayaquil Ahorros *0029388062*\n";
-          msg+="  🪪 Cédula: *0926345752* Martha Rosado\n";
+          msg+="  📋 Cédula: *0926345752* Martha Rosado\n";
           msg+="\n─────────────────\n";
           msg+="🚚 *Envío:*\n";
           msg+="  Guayaquil *$3.60* · Provincia *$6.50*\n";
@@ -2362,7 +2443,7 @@ const w=window.open("","_blank");
             <select style={S.inp} value={gastoForm.tipo} onChange={e=>setGastoForm(f=>({...f,tipo:e.target.value,tarjetaId:""}))}>
               <option value="servientrega">🚚 Servientrega</option>
               <option value="isd">🏦 Impuesto Salida Divisas</option>
-              <option value="interes">💳 Intereses Tarjeta</option>
+              <option value="interes">💰 Intereses Tarjeta</option>
               <option value="suministros">🖨 Suministros (rollos, empaques...)</option>
               <option value="otro">📋 Otro gasto</option>
             </select>
@@ -2402,7 +2483,7 @@ const w=window.open("","_blank");
 
       {/* BOTTOM NAV */}
       <div id="app-bnav" style={S.bnav}>
-        {[{id:"pedido",icon:"🛍",l:"Pedido"},{id:"pago",icon:"💵",l:"Pago"},{id:"inventario",icon:"📦",l:"Stock"},{id:"clientes",icon:"👥",l:"Clientes"},{id:"saldos",icon:"📋",l:"Saldos"},...(canFinanciero?[{id:"financiero",icon:"📊",l:"Finanzas"}]:[])].map(t=>(
+        {[{id:"pedido",icon:"🛍",l:"Pedido"},{id:"saldos",icon:"📋",l:"Saldos"},{id:"pago",icon:"💵",l:"Pago"},{id:"inventario",icon:"📦",l:"Stock"},{id:"clientes",icon:"👥",l:"Clientes"},...(canFinanciero?[{id:"financiero",icon:"📊",l:"Finanzas"}]:[])].map(t=>(
           <button key={t.id} onClick={()=>setTab(t.id)} style={{...S.navI,color:tab===t.id?"#F0057F":"#CCC"}}>
             <span style={{fontSize:24}}>{t.icon}</span>
             <span style={{fontSize:isDesk?13:11,fontWeight:tab===t.id?700:500,marginTop:isDesk?0:2}}>{t.l}</span>
