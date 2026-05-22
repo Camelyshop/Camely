@@ -1014,16 +1014,20 @@ const w=window.open("","_blank");
       @page{size:210mm 297mm;margin:4mm}
       *{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif}
       .grid{display:grid;grid-template-columns:repeat(5,1fr);width:100%}
-      .lbl{height:55mm;border:0.5pt dashed #AAA;padding:2mm;box-sizing:border-box;
-        display:flex;flex-direction:column;overflow:hidden}
-      .lbl-head{display:flex;justify-content:space-between;align-items:center;
-        border-bottom:0.5pt solid #1BB6C8;padding-bottom:1mm;margin-bottom:1.5mm}
+      .lbl{height:28.9mm;border:0.5pt dashed #AAA;padding:0.8mm 1mm;box-sizing:border-box;
+        display:flex;flex-direction:column;align-items:center;overflow:hidden}
+      .lbl-head{display:flex;justify-content:space-between;align-items:center;width:100%;
+        border-bottom:0.4pt solid #1BB6C8;padding-bottom:0.5mm;margin-bottom:0.8mm}
       .lbl-brand{font-size:5pt;font-weight:900;color:#1BB6C8}
-      .lbl-live{font-size:4.5pt;color:#AAA}
-      .lbl-cliente{font-size:14pt;font-weight:900;color:#1BB6C8;line-height:1.1;margin-bottom:1mm}
-      .lbl-prenda{font-size:6pt;color:#555;margin-bottom:1.5mm;line-height:1.3}
-      .lbl-precio{font-size:18pt;font-weight:900;color:#1A1A1A;line-height:1}
-      .lbl-codigo{font-size:5pt;color:#CCC;margin-top:auto;text-align:right}
+      .lbl-live{font-size:5.5pt;font-weight:700;color:#888}
+      .lbl-cliente{font-size:10pt;font-weight:900;color:#1BB6C8;line-height:1;margin-bottom:0.5mm;
+        text-align:center;width:100%;
+        overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+        display:block;max-width:100%}
+      .lbl-prenda{font-size:5.5pt;color:#555;margin-bottom:0.5mm;line-height:1.2;
+        text-align:center;width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+      .lbl-precio{font-size:13pt;font-weight:900;color:#1A1A1A;line-height:1;text-align:center}
+      .lbl-codigo{font-size:6pt;font-weight:700;color:#888;margin-top:auto;text-align:right;width:100%}
       .topbar{background:#1BB6C8;color:#fff;font-family:Arial;font-size:11px;padding:6px 10px;
         display:flex;justify-content:space-between;align-items:center}
       .topbar button{background:#fff;color:#1BB6C8;border:none;padding:4px 14px;
@@ -1038,7 +1042,9 @@ const w=window.open("","_blank");
             <span class="lbl-brand">★ CAMELY</span>
             <span class="lbl-live">${l.live||""} · ${l.fecha||""}</span>
           </div>
-          <div class="lbl-cliente">${(l.cliente||"").substring(0,14)}</div>
+          <div class="lbl-cliente" style="font-size:${Math.max(6,(l.cliente||"").length>12?8:10)}pt">
+            ${(l.cliente||"").substring(0,18)}
+          </div>
           <div class="lbl-prenda">${l.prenda&&l.prenda!=="-"?(l.qty>1?l.qty+"x ":"")+l.prenda.substring(0,30):""}</div>
           <div class="lbl-precio">$${(l.total||0).toFixed(2)}</div>
           <div class="lbl-codigo">${l.invId||""}</div>
