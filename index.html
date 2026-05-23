@@ -286,6 +286,10 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [showInvPicker,setShowInvPicker]=useState(false);
   const [showClienteModal,setShowClienteModal]=useState(false);
   const [cliImgLoading,setCliImgLoading]=useState(false);
+  const [showGuiasModal,setShowGuiasModal]=useState(false);
+  const [guiasQueue,setGuiasQueue]=useState([]);   // [{file,b64,status,extracted,matched,action}]
+  const [guiasProcesando,setGuiasProcesando]=useState(false);
+  const [guiasCurrent,setGuiasCurrent]=useState(0);
   const [cliImgPreview,setCliImgPreview]=useState(null);
   const [editingCliente,setEditingCliente]=useState(null);
   const [showPerfilModal,setShowPerfilModal]=useState(null);
@@ -300,6 +304,13 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   // Resumen date filter
   const [resMes,setResMes]=useState("todos");
   const [resAno,setResAno]=useState(String(new Date().getFullYear()));
+  const [costosManuales,setCostosManuales]=useState(()=>{try{return JSON.parse(localStorage.getItem("camely_costos_manuales")||"{}");}catch{return {};}});
+  function guardarCostoManual(prenda,costo){
+    const upd={...costosManuales,[prenda]:parseFloat(costo)||0};
+    setCostosManuales(upd);
+    localStorage.setItem("camely_costos_manuales",JSON.stringify(upd));
+    toast_("✓ Costo asignado: $"+costo+" para "+prenda);
+  }
   // Estado cuenta modal
   const [showEstadoCuentaModal,setShowEstadoCuentaModal]=useState(false);
   const [ecTarjetaId,setEcTarjetaId]=useState("");
@@ -495,18 +506,17 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     try{
       const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});
       const apiKey=localStorage.getItem("camely_ak")||"";
-      if(!apiKey){toast_("⚠ Ingresa API Key en el Extractor de Guías","err");setCliImgLoading(false);return;}
-      const resp=await fetch("https://api.anthropic.com/v1/messages",{
+      if(!apiKey){toast_("⚠ Ingresa tu API Key de Gemini en Configuración → API Key","err");setCliImgLoading(false);return;}
+      const resp=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+apiKey,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:300,
-          messages:[{role:"user",content:[
-            {type:"image",source:{type:"base64",media_type:file.type||"image/jpeg",data:b64}},
-            {type:"text",text:"Guía de envío Servientrega Ecuador. Extrae datos del DESTINATARIO. Responde SOLO este JSON sin texto adicional:\n{\"nombre\":\"\",\"celular\":\"\",\"ciudad\":\"\",\"direccion\":\"\"}\nSi no encuentras un dato deja el campo vacío."}
-          ]}]})
+        body:JSON.stringify({contents:[{parts:[
+          {inline_data:{mime_type:file.type||"image/jpeg",data:b64}},
+          {text:"Guía de envío Servientrega Ecuador. Extrae datos del DESTINATARIO. Responde SOLO este JSON sin texto adicional ni backticks:\n{\"nombre\":\"\",\"celular\":\"\",\"ciudad\":\"\",\"direccion\":\"\"}\nSi no encuentras un dato deja el campo vacío."}
+        ]}]})
       });
       const d=await resp.json();
-      const txt=d.content?.[0]?.text||"{}";
+      const txt=d.candidates?.[0]?.content?.parts?.[0]?.text||"{}";
       const start=txt.indexOf("{"),end=txt.lastIndexOf("}")+1;const m=start>=0&&end>start?[txt.slice(start,end)]:null;
       if(m){
         const p=JSON.parse(m[0]);
@@ -521,6 +531,94 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
       }
     }catch(e){toast_("⚠ Error: "+e.message,"err");}
     setCliImgLoading(false);
+  }
+  // Flexible name match: checks how many words from guia appear in cliente alias/nombre
+  function matchScore(guiaNombre, cliente){
+    const norm=s=>s.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Z0-9 ]/g," ").trim();
+    const gWords=norm(guiaNombre).split(/\s+/).filter(w=>w.length>2);
+    const cText=norm((cliente.alias||"")+" "+(cliente.nombre||""));
+    const matches=gWords.filter(w=>cText.includes(w));
+    return matches.length/Math.max(gWords.length,1);
+  }
+
+  async function procesarGuias(files){
+    const apiKey=localStorage.getItem("camely_ak")||"";
+    if(!apiKey){toast_("⚠ Se necesita API Key de Gemini. Guárdala en Configuración → API Key","err");return;}
+    setGuiasProcesando(true);
+    const results=[];
+    for(let i=0;i<files.length;i++){
+      setGuiasCurrent(i+1);
+      const file=files[i];
+      try{
+        const b64=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(",")[1]);r.onerror=rej;r.readAsDataURL(file);});
+        const resp=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key="+apiKey,{
+          method:"POST",
+          headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({contents:[{parts:[
+            {inline_data:{mime_type:file.type||"image/jpeg",data:b64}},
+            {text:"Guía Servientrega Ecuador. Extrae datos del DESTINATARIO únicamente. Responde SOLO este JSON sin texto extra ni backticks:\n{\"nombre\":\"\",\"telefono\":\"\",\"direccion\":\"\",\"ciudad\":\"\"}"}
+          ]}]})
+        });
+        const d=await resp.json();
+        const txt=d.candidates?.[0]?.content?.parts?.[0]?.text||"{}";
+        const start=txt.indexOf("{"),end=txt.lastIndexOf("}")+1;
+        const ext=start>=0?JSON.parse(txt.slice(start,end)):{};
+        // Find best matching client
+        let bestMatch=null,bestScore=0;
+        if(ext.nombre){
+          clientes.forEach(c=>{
+            const score=matchScore(ext.nombre,c);
+            if(score>bestScore){bestScore=score;bestMatch=c;}
+          });
+        }
+        results.push({
+          file:file.name,
+          extracted:ext,
+          matched:bestScore>=0.4?bestMatch:null,
+          score:bestScore,
+          action:"update", // update|create|skip
+          preview:URL.createObjectURL(file)
+        });
+      }catch(e){
+        results.push({file:file.name,extracted:{},matched:null,score:0,action:"skip",error:e.message,preview:null});
+      }
+    }
+    setGuiasQueue(results);
+    setGuiasProcesando(false);
+    toast_("✓ "+results.length+" guías procesadas");
+  }
+
+  function aplicarGuias(){
+    let updated=0,created=0;
+    let updCli=[...clientes];
+    guiasQueue.forEach(g=>{
+      if(g.action==="skip"||!g.extracted.nombre) return;
+      const ext=g.extracted;
+      if(g.action==="update"&&g.matched){
+        updCli=updCli.map(c=>{
+          if(c.id!==g.matched.id) return c;
+          return {...c,
+            telefono:c.telefono||ext.telefono||"",
+            whatsapp:c.whatsapp||ext.telefono||"",
+            direccion:c.direccion||ext.direccion||"",
+            ciudad:c.ciudad||ext.ciudad||"",
+            nombre:c.nombre||ext.nombre||""
+          };
+        });
+        updated++;
+      } else if(g.action==="create"){
+        const alias=(ext.nombre||"").toUpperCase().trim();
+        if(alias&&!updCli.find(c=>(c.alias||"").toUpperCase()===alias)){
+          updCli.push({id:Date.now()+created,alias,nombre:ext.nombre||"",
+            telefono:ext.telefono||"",whatsapp:ext.telefono||"",
+            direccion:ext.direccion||"",ciudad:ext.ciudad||"",tiktok:"",cedula:""});
+          created++;
+        }
+      }
+    });
+    setClientes(updCli);lSet(K.clientes,updCli);sheetsSync("saveClientes",updCli);
+    toast_("✓ "+updated+" actualizados · "+created+" creados");
+    setShowGuiasModal(false);setGuiasQueue([]);
   }
   function fmtFecha(f){
     if(!f) return "";
@@ -900,6 +998,123 @@ const w=window.open("","_blank");
     if(w){w.document.write(html);w.document.close();}
   }
 
+  function generarPDFCxC(){
+    // Build data: group pedidos by cliente → live
+    const clisData={};
+    pedidos.forEach(p=>{
+      if(!clisData[p.cliente]) clisData[p.cliente]={alias:p.cliente,lives:{}};
+      if(!clisData[p.cliente].lives[p.live]) clisData[p.cliente].lives[p.live]={live:p.live,items:[],compras:0};
+      clisData[p.cliente].lives[p.live].items.push(p);
+      clisData[p.cliente].lives[p.live].compras+=p.total;
+    });
+    // Add abonos per client
+    const abonosPorCli={};
+    abonos.forEach(a=>{abonosPorCli[a.cliente]=(abonosPorCli[a.cliente]||0)+a.monto;});
+
+    // Filter clients with balance > 0 (or all if no filter)
+    const clientes_list=Object.values(clisData)
+      .map(cl=>{
+        const totComp=Object.values(cl.lives).reduce((s,l)=>s+l.compras,0);
+        const totPag=abonosPorCli[cl.alias]||0;
+        return {...cl,totComp,totPag,saldo:totComp-totPag};
+      })
+      .filter(cl=>cl.saldo>0||cl.totComp>0)
+      .sort((a,b)=>b.saldo-a.saldo);
+
+    const totGenComp=clientes_list.reduce((s,c)=>s+c.totComp,0);
+    const totGenPag=clientes_list.reduce((s,c)=>s+c.totPag,0);
+    const totGenSaldo=clientes_list.reduce((s,c)=>s+c.saldo,0);
+    const fecha=new Date().toLocaleDateString("es-EC",{day:"2-digit",month:"short",year:"numeric"});
+
+    const rowsHtml=clientes_list.map(cl=>{
+      const liveRows=Object.values(cl.lives).sort((a,b)=>a.live.localeCompare(b.live)).map((lv,li)=>{
+        const detalle=lv.items.map(p=>(p.qty>1?p.qty+"x ":"")+p.prenda).join(", ").substring(0,60);
+        const nPrendas=lv.items.reduce((s,p)=>s+(p.qty||1),0);
+        const bg=li===0?"#E8F9FB":"#ffffff";
+        return `<tr style="background:${bg}">
+          <td style="padding:5px 8px;font-weight:700;color:#1BB6C8;font-size:10px;border:1px solid #eee">${li===0?cl.alias:""}</td>
+          <td style="padding:5px 8px;font-size:10px;color:#555;border:1px solid #eee">${lv.live}</td>
+          <td style="padding:5px 8px;text-align:center;font-size:10px;border:1px solid #eee">${nPrendas}</td>
+          <td style="padding:5px 8px;font-size:9px;color:#888;border:1px solid #eee">${detalle}</td>
+          <td style="padding:5px 8px;text-align:right;font-weight:700;font-size:10px;border:1px solid #eee">$${lv.compras.toFixed(2)}</td>
+          <td style="padding:5px 8px;text-align:right;font-size:10px;color:#2D6A4F;border:1px solid #eee">${li===0?"$"+cl.totPag.toFixed(2):""}</td>
+          <td style="padding:5px 8px;text-align:right;font-size:10px;border:1px solid #eee">${li===0?`<span style="font-weight:700;color:${cl.saldo>0?"#D00000":"#2D6A4F"}">$${cl.saldo.toFixed(2)}</span>`:""}</td>
+        </tr>`;
+      }).join("");
+      const subtotBg="#FFF3EC";
+      const subtotRow=Object.values(cl.lives).length>1?`<tr style="background:${subtotBg};border-top:1.5px solid #C45C26">
+        <td style="padding:4px 8px;font-size:9px;color:#888;border:1px solid #eee"></td>
+        <td style="padding:4px 8px;font-weight:700;font-size:9px;color:#C45C26;border:1px solid #eee">SUBTOTAL ${cl.alias.split(" ")[0]}</td>
+        <td style="padding:4px 8px;text-align:center;font-size:9px;font-weight:700;border:1px solid #eee">${Object.values(cl.lives).reduce((s,l)=>s+l.items.reduce((ss,p)=>ss+(p.qty||1),0),0)}</td>
+        <td style="border:1px solid #eee"></td>
+        <td style="padding:4px 8px;text-align:right;font-weight:700;font-size:9px;color:#C45C26;border:1px solid #eee">$${cl.totComp.toFixed(2)}</td>
+        <td style="padding:4px 8px;text-align:right;font-weight:700;font-size:9px;color:#2D6A4F;border:1px solid #eee">$${cl.totPag.toFixed(2)}</td>
+        <td style="padding:4px 8px;text-align:right;font-weight:700;font-size:9px;color:${cl.saldo>0?"#D00000":"#2D6A4F"};border:1px solid #eee">$${cl.saldo.toFixed(2)}</td>
+      </tr><tr><td colspan="7" style="padding:0;height:4px;background:#f5f5f5"></td></tr>`:
+      `<tr><td colspan="7" style="padding:0;height:4px;background:#f5f5f5"></td></tr>`;
+      return liveRows+subtotRow;
+    }).join("");
+
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;padding:16px;font-size:11px;color:#1A1A1A}
+      .hdr{display:flex;justify-content:space-between;align-items:flex-end;
+        background:#1BB6C8;color:#fff;padding:12px 16px;border-radius:10px;margin-bottom:14px}
+      .brand{font-size:20px;font-weight:900}.sub{font-size:10px;opacity:0.85;margin-top:3px}
+      .meta{text-align:right;font-size:10px;opacity:0.9;line-height:1.6}
+      .kpis{display:flex;gap:10px;margin-bottom:14px}
+      .kpi{flex:1;background:#f5f5f5;border-radius:8px;padding:10px;text-align:center}
+      .kpi-v{font-size:18px;font-weight:900;color:#1BB6C8}
+      .kpi-l{font-size:9px;color:#888;margin-top:2px;text-transform:uppercase}
+      .kpi.red .kpi-v{color:#D00000}
+      table{width:100%;border-collapse:collapse}
+      th{background:#1A1A1A;color:#fff;padding:7px 8px;font-size:10px;text-align:left}
+      th:nth-child(3),th:nth-child(5),th:nth-child(6),th:nth-child(7){text-align:right}
+      .tot td{background:#1A1A1A;color:#fff;padding:7px 8px;font-weight:700;font-size:10px}
+      .tot td:nth-child(5),.tot td:nth-child(6){text-align:right}
+      .tot td:nth-child(7){text-align:right;color:#1BB6C8;font-size:12px}
+      button{background:#1BB6C8;color:#fff;border:none;padding:6px 16px;border-radius:6px;
+        cursor:pointer;font-weight:700;margin-bottom:12px;font-size:11px}
+      @media print{button{display:none}body{padding:8px}}
+    </style></head><body>
+    <div class="hdr">
+      <div><div class="brand">★ CAMELY Ropa Infantil</div>
+        <div class="sub">Reporte CxC — Cuentas por Cobrar</div></div>
+      <div class="meta">${fecha}<br>${clientes_list.length} clientes · ${clientes_list.filter(c=>c.saldo>0).length} con saldo pendiente</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi red"><div class="kpi-v">$${totGenSaldo.toFixed(2)}</div><div class="kpi-l">Por cobrar</div></div>
+      <div class="kpi"><div class="kpi-v" style="color:#2D6A4F">$${totGenPag.toFixed(2)}</div><div class="kpi-l">Cobrado</div></div>
+      <div class="kpi"><div class="kpi-v">$${totGenComp.toFixed(2)}</div><div class="kpi-l">Total vendido</div></div>
+      <div class="kpi"><div class="kpi-v">${clientes_list.length}</div><div class="kpi-l">Clientes</div></div>
+    </div>
+    <button onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+    <table>
+      <thead><tr>
+        <th style="min-width:120px">CLIENTE</th><th style="min-width:110px">LIVE</th>
+        <th style="text-align:center;width:55px">PRENDAS</th>
+        <th>DETALLE</th>
+        <th style="text-align:right;width:75px">COMPRAS</th>
+        <th style="text-align:right;width:75px">PAGADO</th>
+        <th style="text-align:right;width:75px">SALDO</th>
+      </tr></thead>
+      <tbody>${rowsHtml}</tbody>
+      <tfoot><tr class="tot">
+        <td colspan="2">TOTAL GENERAL</td>
+        <td>${clientes_list.reduce((s,c)=>s+Object.values(c.lives).reduce((ss,l)=>ss+l.items.reduce((sss,p)=>sss+(p.qty||1),0),0),0)}</td>
+        <td></td>
+        <td style="text-align:right">$${totGenComp.toFixed(2)}</td>
+        <td style="text-align:right">$${totGenPag.toFixed(2)}</td>
+        <td style="text-align:right">$${totGenSaldo.toFixed(2)}</td>
+      </tr></tfoot>
+    </table>
+    <div style="margin-top:12px;font-size:9px;color:#aaa;text-align:center">
+      CAMELY Ropa Infantil · Generado ${fecha}
+    </div></body></html>`;
+    const w=window.open("","_blank","width=1000,height=700");
+    if(w){w.document.write(html);w.document.close();}
+  }
   function generarPDFPorImportacion(impObj, items){
     const rows=Object.values(items.reduce((acc,it)=>{
       const r=qtyR(it);
@@ -1465,6 +1680,80 @@ const w=window.open("","_blank");
       </div>}
 
       {/* MODAL CLIENTE */}
+      {showGuiasModal&&<div style={S.ov} onClick={()=>!guiasProcesando&&setShowGuiasModal(false)}>
+        <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>📷 Importar desde guías Servientrega</div>
+
+          {guiasQueue.length===0&&!guiasProcesando&&<div>
+            <div style={{fontSize:12,color:"#888",marginBottom:14,lineHeight:1.5}}>
+              Sube fotos de guías Servientrega. La app extrae nombre, teléfono y dirección, y los actualiza en tus clientes existentes.
+            </div>
+            <label style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:8,padding:"24px",border:"2px dashed #1BB6C8",borderRadius:14,cursor:"pointer",background:"#F5FDFE",color:"#1BB6C8",fontWeight:700,fontSize:14,textAlign:"center"}}>
+              📷 Seleccionar fotos de guías
+              <span style={{fontSize:11,fontWeight:400,color:"#888"}}>JPG, PNG — puedes seleccionar varias a la vez</span>
+              <input type="file" accept="image/*" multiple style={{display:"none"}} onChange={e=>{
+                const files=Array.from(e.target.files);
+                if(files.length>0) procesarGuias(files);
+                e.target.value="";
+              }}/>
+            </label>
+          </div>}
+
+          {guiasProcesando&&<div style={{textAlign:"center",padding:"30px 0"}}>
+            <div style={{fontSize:32,marginBottom:12}}>⏳</div>
+            <div style={{fontSize:14,fontWeight:700,color:"#1BB6C8"}}>Procesando guía {guiasCurrent}...</div>
+            <div style={{fontSize:11,color:"#888",marginTop:4}}>Extrayendo datos con IA</div>
+          </div>}
+
+          {guiasQueue.length>0&&!guiasProcesando&&<div>
+            <div style={{fontSize:12,color:"#888",marginBottom:10}}>
+              {guiasQueue.length} guías procesadas · Revisa y confirma cada acción
+            </div>
+            {guiasQueue.map((g,gi)=>(
+              <div key={gi} style={{background:g.action==="skip"?"#F5F5F5":g.matched?"#E6F4EC":"#FFF8E0",borderRadius:12,padding:"10px 12px",marginBottom:8,border:"1.5px solid "+(g.action==="skip"?"#DDD":g.matched?"#A7F3D0":"#FDE68A")}}>
+                <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                  {g.preview&&<img src={g.preview} style={{width:50,height:50,objectFit:"cover",borderRadius:6,flexShrink:0}}/>}
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:11,fontWeight:700,color:"#1A1A1A",marginBottom:2}}>{g.extracted.nombre||"⚠ Sin nombre"}</div>
+                    {g.extracted.telefono&&<div style={{fontSize:10,color:"#555"}}>📞 {g.extracted.telefono}</div>}
+                    {g.extracted.ciudad&&<div style={{fontSize:10,color:"#555"}}>📍 {g.extracted.ciudad}</div>}
+                    {g.error&&<div style={{fontSize:10,color:"#D00"}}>⚠ Error: {g.error}</div>}
+                  </div>
+                  <div style={{flexShrink:0,textAlign:"right"}}>
+                    {g.matched
+                      ?<div style={{fontSize:10,color:"#2D6A4F",fontWeight:700}}>✓ {g.matched.alias}</div>
+                      :<div style={{fontSize:10,color:"#B45309",fontWeight:700}}>Sin coincidencia</div>
+                    }
+                    {g.matched&&<div style={{fontSize:9,color:"#888"}}>{Math.round(g.score*100)}% match</div>}
+                  </div>
+                </div>
+                {!g.error&&<div style={{display:"flex",gap:4,marginTop:8}}>
+                  {g.matched&&<button onClick={()=>setGuiasQueue(q=>q.map((x,i)=>i===gi?{...x,action:"update"}:x))}
+                    style={{flex:1,padding:"5px",fontSize:10,fontWeight:700,border:"none",borderRadius:6,cursor:"pointer",
+                      background:g.action==="update"?"#10B981":"#E5E7EB",color:g.action==="update"?"#fff":"#555"}}>
+                    ✓ Actualizar {g.matched.alias.split(" ")[0]}
+                  </button>}
+                  <button onClick={()=>setGuiasQueue(q=>q.map((x,i)=>i===gi?{...x,action:"create"}:x))}
+                    style={{flex:1,padding:"5px",fontSize:10,fontWeight:700,border:"none",borderRadius:6,cursor:"pointer",
+                      background:g.action==="create"?"#1BB6C8":"#E5E7EB",color:g.action==="create"?"#fff":"#555"}}>
+                    + Crear nuevo
+                  </button>
+                  <button onClick={()=>setGuiasQueue(q=>q.map((x,i)=>i===gi?{...x,action:"skip"}:x))}
+                    style={{flex:1,padding:"5px",fontSize:10,fontWeight:700,border:"none",borderRadius:6,cursor:"pointer",
+                      background:g.action==="skip"?"#EF4444":"#E5E7EB",color:g.action==="skip"?"#fff":"#555"}}>
+                    ✗ Saltar
+                  </button>
+                </div>}
+              </div>
+            ))}
+            <button onClick={aplicarGuias} style={{...S.btnD,width:"100%",marginTop:4}}>
+              ✓ Aplicar cambios ({guiasQueue.filter(g=>g.action!=="skip").length} guías)
+            </button>
+          </div>}
+
+          <button onClick={()=>setShowGuiasModal(false)} style={{...S.cancelBtn,marginTop:8}}>Cerrar</button>
+        </div>
+      </div>}
       {showClienteModal&&<div style={S.ov} onClick={()=>setShowClienteModal(false)}>
         <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
           <div style={S.shT}>{editingCliente?"Editar":"Nuevo"} Cliente</div>
@@ -1904,6 +2193,7 @@ const w=window.open("","_blank");
           <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center"}}>
             <input style={{...S.inp,flex:1,marginBottom:0}} placeholder="🔍 Alias, nombre, TikTok..." value={searchCli} onChange={e=>setSearchCli(e.target.value)}/>
             <button onClick={()=>abrirCliente()} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0}}>+ Nuevo</button>
+            <button onClick={()=>{setGuiasQueue([]);setShowGuiasModal(true);}} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0,background:"#10B981"}}>📷 Guías</button>
             <label title="Importar clientes desde JSON (Servientrega)" style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0,cursor:"pointer",background:"#10B981",border:"none",borderRadius:12,color:"#fff",fontWeight:700,display:"flex",alignItems:"center",gap:4}}>
               📥
               <input type="file" accept=".json" style={{display:"none"}} onChange={e=>{
@@ -1956,6 +2246,7 @@ const w=window.open("","_blank");
                   <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
                   <div style={{display:"flex",gap:6}}>
                   <button onClick={()=>{if(waSent.size>0&&window.confirm("¿Borrar los ✓✓ de todos los clientes?")){setWaSent(new Set());localStorage.removeItem("camely_wa_sent");}}} style={{background:"rgba(0,0,0,0.15)",color:"#fff",border:"none",borderRadius:10,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",display:waSent.size>0?"flex":"none",alignItems:"center"}}>✓✓ {waSent.size}</button>
+                  <button onClick={()=>generarPDFCxC()} style={{background:"rgba(255,255,255,0.2)",color:"#fff",border:"none",borderRadius:10,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>📄 CxC</button>
                   <button onClick={()=>{setEnvioLive(saldoFiltroLive||"");setEnvioIdx(0);setShowEnvioModal(true);}} style={{background:"#25D366",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>📲 Envío masivo</button>
                   <button onClick={()=>setShowDeudaModal(true)} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>+ Deuda</button>
                 </div>
@@ -2305,18 +2596,6 @@ const w=window.open("","_blank");
                           {canEdit&&est==="pagada"&&<button onClick={()=>{setExpandedLlegada(expandedLlegada===imp.id?null:imp.id);setLlegadaItems(imp.items&&imp.items.length>0?[...imp.items]:[]);}} style={{flex:1,background:"#E8F9FB",color:"#1BB6C8",border:"1.5px solid #1BB6C8",borderRadius:8,padding:"8px",fontSize:12,fontWeight:700,cursor:"pointer"}}>
                             📦 {expandedLlegada===imp.id?"Cerrar llegada":"Registrar llegada"}
                           </button>}
-                          {imp.estado==="recibida"&&<button onClick={async()=>{
-                            toast_("⏳ Cargando ítems desde Sheets...");
-                            try{
-                              const res=await fetch(SHEETS_URL+"?action=getAll&t="+Date.now());
-                              const data=await res.json();
-                              const allInv=data?.inventario||[];
-                              const items=allInv.filter(i=>i.importacionId===imp.nombre||String(i.importacionId)===String(imp.id)||i.importacionNombre===imp.nombre);
-                              if(items.length===0){toast_("Sin ítems en Sheets para esta importación","err");return;}
-                              toast_("✓ "+items.length+" ítems encontrados");
-                              imprimirEtiquetasImportacion(items);
-                            }catch(e){toast_("Error: "+e.message,"err");}
-                          }} style={{background:"#E8F9FB",color:"#1BB6C8",border:"1.5px solid #1BB6C8",borderRadius:8,padding:"8px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🖨</button>}
                           {canAdmin&&<button onClick={()=>eliminarImportacion(imp.id)} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:8,padding:"8px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🗑</button>}
                         </div>
                         {/* INLINE LLEGADA EDITOR */}
@@ -2372,7 +2651,12 @@ const w=window.open("","_blank");
                 const gm=gastos.filter(g=>{const f=parseFecha(g.fecha);return f.mes===mes&&(resAno==="todos"||f.ano===year);});
                 const cobrado=ab.reduce((s,a)=>s+a.monto,0);
                 const ventas=ped.reduce((s,p)=>s+p.total,0);
-                const costo=imps.reduce((s,i)=>s+i.costoTotal,0);
+                // COGS real: pedidos vendidos × costo unitario de cada prenda
+                const costo=ped.reduce((s,p)=>{
+                  const invItem=p.invId?inventario.find(i=>(i.id||i.codigo)===p.invId):null;
+                  const costoUnit=invItem?.precio||costosManuales[p.prenda]||0;
+                  return s+(costoUnit*(p.qty||1));
+                },0);
                 const srv=gm.filter(g=>g.tipo==="servientrega").reduce((s,g)=>s+g.monto,0);
                 const isd=gm.filter(g=>g.tipo==="isd").reduce((s,g)=>s+g.monto,0);
                 const int=gm.filter(g=>g.tipo==="interes").reduce((s,g)=>s+g.monto,0);
@@ -2444,6 +2728,15 @@ const w=window.open("","_blank");
                     {ANOS_DISP.map(a=><option key={a} value={a}>{a==="todos"?"Todos":a}</option>)}
                   </select>
                   <button onClick={resyncFromSheets} style={{background:"#E8F9FB",color:"#1BB6C8",border:"1px solid #1BB6C8",borderRadius:10,padding:"7px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🔄 Sincronizar</button>
+                  <button onClick={()=>{
+                    const current=localStorage.getItem("camely_ak")||"";
+                    const key=window.prompt("API Key de Gemini (AIza...):\n\nObtén la tuya en aistudio.google.com/apikey",current);
+                    if(key===null) return;
+                    if(key.trim()){localStorage.setItem("camely_ak",key.trim());toast_("✓ API Key guardada");}
+                    else{localStorage.removeItem("camely_ak");toast_("API Key eliminada");}
+                  }} style={{background:localStorage.getItem("camely_ak")?"#E6F4EC":"#FFF0F0",color:localStorage.getItem("camely_ak")?"#2D6A4F":"#D00",border:"1px solid "+(localStorage.getItem("camely_ak")?"#A7F3D0":"#FCA5A5"),borderRadius:10,padding:"7px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                    {localStorage.getItem("camely_ak")?"🔑 API Key ✓":"🔑 API Key"}
+                  </button>
                   {canAdmin&&<button onClick={deduplicarGastos} style={{background:"#FFF5E0",color:"#B7570A",border:"1px solid #B7570A",borderRadius:10,padding:"7px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>🧹 Duplicados</button>}
                   <button onClick={()=>{setGastoForm(f=>({...f,fecha:hoyISO()}));setShowGastoModal(true);}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:10,padding:"7px 14px",fontSize:12,fontWeight:700,cursor:"pointer",marginLeft:"auto"}}>+ Gasto</button>
                 </div>
@@ -2476,6 +2769,51 @@ const w=window.open("","_blank");
                     </tbody>
                   </table>
                 </div>
+
+                {/* ─── Sin código report ─── */}
+                {(()=>{
+                  const sinCod=pedidos.filter(p=>!p.invId);
+                  if(sinCod.length===0) return null;
+                  const grouped=Object.values(sinCod.reduce((acc,p)=>{
+                    const k=p.prenda||"-";
+                    if(!acc[k])acc[k]={prenda:k,qty:0,totalVenta:0,costoUnit:costosManuales[k]||0};
+                    acc[k].qty+=(p.qty||1);
+                    acc[k].totalVenta+=p.total;
+                    return acc;
+                  },{}));
+                  return <div style={{marginTop:16,background:"#FFF8E0",borderRadius:14,padding:"14px"}}>
+                    <div style={{fontWeight:700,fontSize:13,color:"#B45309",marginBottom:10}}>
+                      ⚠ Prendas vendidas sin código ({sinCod.length} pedidos) — asignar costo para COGS
+                    </div>
+                    <div style={{fontSize:11,color:"#888",marginBottom:10}}>
+                      Estos pedidos se registraron sin código de inventario. Asígnales un costo unitario para que aparezcan en el Costo de Venta.
+                    </div>
+                    {grouped.map(g=>(
+                      <div key={g.prenda} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:8,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
+                        <div style={{flex:2,minWidth:120}}>
+                          <div style={{fontWeight:700,fontSize:13,color:"#1A1A1A"}}>{g.prenda}</div>
+                          <div style={{fontSize:11,color:"#888"}}>{g.qty} unidad{g.qty!==1?"es":""} · Venta: ${g.totalVenta.toFixed(2)}</div>
+                        </div>
+                        <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                          <span style={{fontSize:11,color:"#888"}}>$ Costo unit:</span>
+                          <input type="number" step="0.01" placeholder="0.00"
+                            defaultValue={g.costoUnit||""}
+                            style={{...S.inp,width:80,padding:"6px 8px",fontSize:12}}
+                            onBlur={e=>guardarCostoManual(g.prenda,e.target.value)}
+                            onKeyDown={e=>{if(e.key==="Enter")guardarCostoManual(g.prenda,e.target.value);}}
+                          />
+                          <span style={{fontSize:11,color:"#1BB6C8",fontWeight:700,minWidth:70}}>
+                            COGS: ${(g.qty*(costosManuales[g.prenda]||0)).toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    <div style={{fontSize:11,color:"#B45309",fontWeight:700,marginTop:8,textAlign:"right"}}>
+                      COGS total sin código: ${grouped.reduce((s,g)=>s+g.qty*(costosManuales[g.prenda]||0),0).toFixed(2)}
+                    </div>
+                  </div>;
+                })()}
+
             </>);
           })()}
             </>);
