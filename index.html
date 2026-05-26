@@ -539,7 +539,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   }
   // Flexible name match: checks how many words from guia appear in cliente alias/nombre
   function matchScore(guiaNombre, cliente){
-    const norm=s=>s.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Z0-9 ]/g," ").trim().replace(/\s+/g," ");
+    const norm=s=>s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9 ]/g," ").trim().replace(/\s+/g," ");
     const gNorm=norm(guiaNombre);
     const cNorm=norm((cliente.alias||"")+" "+(cliente.nombre||""));
     const gWords=gNorm.split(" ").filter(w=>w.length>2);
@@ -1738,7 +1738,7 @@ const w=window.open("","_blank");
             // Group by month/year extracted from name
             const byMonth={};
             lives.forEach(l=>{
-              const m=l.match(/([A-Za-záéíóúñ]+\/\d{2,4})/i);
+              const m=l.match(/([A-Za-z\u00e1\u00e9\u00ed\u00f3\u00fa\u00f1A-Z]+\/\d{2,4})/i);
               const key=m?m[1]:"Otros";
               if(!byMonth[key]) byMonth[key]=[];
               byMonth[key].push(l);
@@ -1822,77 +1822,71 @@ const w=window.open("","_blank");
       </div>}
 
       {/* MODAL PRODUCTO DETALLE */}
-      {showProductoDetail&&<div style={S.ov} onClick={()=>setShowProductoDetail(null)}>
-        <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
-          {(()=>{
-            const item=showProductoDetail;
-            const cod=(item.codigo||item.id||"—");
-            const ventasProd=pedidos.filter(p=>p.invId===item.id||p.invId===item.codigo||p.invId===cod);
-            const totalVendido=ventasProd.reduce((s,p)=>s+p.total,0);
-            const rest=qtyR(item);
-            return <>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
-                <div>
-                  <div style={{fontSize:20,fontWeight:900,color:"#1BB6C8"}}>{cod}</div>
-                  <div style={{fontSize:15,fontWeight:700,color:"#1A1A1A",marginTop:2}}>{item.descripcion||"Prenda"}</div>
-                  <div style={{fontSize:11,color:"#888",marginTop:2}}>{item.categoria}{item.tipoRopa?" · "+item.tipoRopa:""}{item.talla?" · T:"+item.talla:""}</div>
-                </div>
-                <div style={{textAlign:"right"}}>
-                  <div style={{fontSize:11,color:"#888"}}>Estado</div>
-                  <div style={{fontWeight:700,color:item.estado==="ajuste"?"#B45309":rest<=0?"#D00":"#2D6A4F"}}>{item.estado==="ajuste"?"⚠ Baja":rest<=0?"Agotado":"Disponible"}</div>
-                </div>
+      {showProductoDetail&&(()=>{
+        const item=showProductoDetail;
+        const cod=String(item.codigo||item.id||"—");
+        const ventasProd=pedidos.filter(p=>String(p.invId||"")===String(item.id||item.codigo||""));
+        const totalVendido=ventasProd.reduce((s,p)=>s+p.total,0);
+        const rest=qtyR(item);
+        return <div style={S.ov} onClick={()=>setShowProductoDetail(null)}>
+          <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:14}}>
+              <div>
+                <div style={{fontSize:20,fontWeight:900,color:"#1BB6C8"}}>{cod}</div>
+                <div style={{fontSize:15,fontWeight:700,color:"#1A1A1A",marginTop:2}}>{item.descripcion||"Prenda"}</div>
+                <div style={{fontSize:11,color:"#888",marginTop:2}}>{item.categoria||""}{item.tipoRopa?" · "+item.tipoRopa:""}{item.talla?"  T:"+item.talla:""}</div>
               </div>
-
-              {/* KPIs */}
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:14}}>
-                {[["Ingresadas",item.qty||1,"#1BB6C8"],["Vendidas",(item.qty||1)-rest,"#F0057F"],["Disponibles",rest,rest>0?"#2D6A4F":"#D00"]].map(([l,v,c])=>(
-                  <div key={l} style={{background:"#F5FDFE",borderRadius:10,padding:"10px",textAlign:"center"}}>
-                    <div style={{fontSize:18,fontWeight:900,color:c}}>{v}</div>
-                    <div style={{fontSize:10,color:"#888",marginTop:2}}>{l}</div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:11,color:"#888"}}>Estado</div>
+                <div style={{fontWeight:700,color:item.estado==="ajuste"?"#B45309":rest<=0?"#D00":"#2D6A4F"}}>{item.estado==="ajuste"?"⚠ Baja":rest<=0?"Agotado":"Disponible"}</div>
+              </div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,marginBottom:10}}>
+              {[["Ingresadas",item.qty||1,"#1BB6C8"],["Vendidas",(item.qty||1)-rest,"#F0057F"],["Disponibles",rest,rest>0?"#2D6A4F":"#D00"]].map(([l,v,c])=>(
+                <div key={l} style={{background:"#F5FDFE",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                  <div style={{fontSize:18,fontWeight:900,color:c}}>{v}</div>
+                  <div style={{fontSize:10,color:"#888",marginTop:2}}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:14}}>
+              <div style={{background:"#F5FDFE",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#1BB6C8"}}>${(item.precio||0).toFixed(2)}</div>
+                <div style={{fontSize:10,color:"#888",marginTop:2}}>Costo unitario</div>
+              </div>
+              <div style={{background:"#F5FDFE",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                <div style={{fontSize:16,fontWeight:900,color:"#2D6A4F"}}>${totalVendido.toFixed(2)}</div>
+                <div style={{fontSize:10,color:"#888",marginTop:2}}>Total vendido</div>
+              </div>
+            </div>
+            <div style={{fontWeight:700,fontSize:12,color:"#1A1A1A",marginBottom:6}}>📦 INGRESO</div>
+            <div style={{background:"#E8F9FB",borderRadius:10,padding:"10px 12px",marginBottom:14,fontSize:12}}>
+              <div style={{display:"flex",justifyContent:"space-between"}}>
+                <span style={{color:"#555"}}>{item.importacionNombre||"Importación"}</span>
+                <span style={{fontWeight:700}}>{fmtFecha(item.fecha)}</span>
+              </div>
+              <div style={{fontSize:11,color:"#888",marginTop:3}}>Costo: ${(item.precio||0).toFixed(2)} / unidad</div>
+              {item.estado==="ajuste"&&<div style={{fontSize:11,color:"#B45309",marginTop:3}}>⚠ Dado de baja el {fmtFecha(item.ajusteFecha)}</div>}
+            </div>
+            <div style={{fontWeight:700,fontSize:12,color:"#1A1A1A",marginBottom:6}}>🛍️ VENTAS ({ventasProd.length})</div>
+            {ventasProd.length===0
+              ?<div style={{color:"#AAA",fontSize:12,padding:"8px 0",textAlign:"center"}}>Sin ventas registradas</div>
+              :<div style={{maxHeight:180,overflowY:"auto"}}>
+                {ventasProd.map(p=>(
+                  <div key={p.id} style={{display:"flex",justifyContent:"space-between",padding:"8px 12px",borderBottom:"1px solid #F0F0F0",fontSize:12}}>
+                    <div>
+                      <div style={{fontWeight:700,color:"#1BB6C8"}}>{p.cliente}</div>
+                      <div style={{fontSize:10,color:"#888"}}>{fmtFecha(p.fecha)} · {p.live}</div>
+                    </div>
+                    <div style={{fontWeight:700}}>${p.total.toFixed(2)}</div>
                   </div>
                 ))}
               </div>
-              <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:16}}>
-                <div style={{background:"#F5FDFE",borderRadius:10,padding:"10px",textAlign:"center"}}>
-                  <div style={{fontSize:16,fontWeight:900,color:"#1BB6C8"}}>${(item.precio||0).toFixed(2)}</div>
-                  <div style={{fontSize:10,color:"#888",marginTop:2}}>Costo unitario</div>
-                </div>
-                <div style={{background:"#F5FDFE",borderRadius:10,padding:"10px",textAlign:"center"}}>
-                  <div style={{fontSize:16,fontWeight:900,color:"#2D6A4F"}}>${totalVendido.toFixed(2)}</div>
-                  <div style={{fontSize:10,color:"#888",marginTop:2}}>Total vendido</div>
-                </div>
-              </div>
-
-              {/* Ingreso */}
-              <div style={{fontWeight:700,fontSize:12,color:"#1A1A1A",marginBottom:6,letterSpacing:0.5}}>📦 INGRESO</div>
-              <div style={{background:"#E8F9FB",borderRadius:10,padding:"10px 12px",marginBottom:14,fontSize:12}}>
-                <div style={{display:"flex",justifyContent:"space-between"}}>
-                  <span style={{color:"#555"}}>{item.importacionNombre||"Importación"}</span>
-                  <span style={{fontWeight:700}}>{fmtFecha(item.fecha)}</span>
-                </div>
-                <div style={{fontSize:11,color:"#888",marginTop:3}}>Costo: ${(item.precio||0).toFixed(2)} por unidad</div>
-                {item.estado==="ajuste"&&<div style={{fontSize:11,color:"#B45309",marginTop:3}}>⚠ Dado de baja el {fmtFecha(item.ajusteFecha)} — {item.ajusteMotivo||"Manual"}</div>}
-              </div>
-
-              {/* Ventas */}
-              <div style={{fontWeight:700,fontSize:12,color:"#1A1A1A",marginBottom:6,letterSpacing:0.5}}>🛍️ VENTAS ({ventasProd.length})</div>
-              {ventasProd.length===0
-                ?<div style={{color:"#AAA",fontSize:12,padding:"8px 0",textAlign:"center"}}>Sin ventas registradas</div>
-                :<div style={{maxHeight:200,overflowY:"auto"}}>
-                  {ventasProd.map(p=>(
-                    <div key={p.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"8px 12px",borderBottom:"1px solid #F0F0F0",fontSize:12}}>
-                      <div>
-                        <div style={{fontWeight:700,color:"#1BB6C8"}}>{p.cliente}</div>
-                        <div style={{fontSize:10,color:"#888"}}>{fmtFecha(p.fecha)} · {p.live}</div>
-                      </div>
-                      <div style={{textAlign:"right"}}>
-                        <div style={{fontWeight:700}}>${p.total.toFixed(2)}</div>
-                        {p.qty>1&&<div style={{fontSize:10,color:"#888"}}>×{p.qty}</div>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
+            }
+            <button onClick={()=>setShowProductoDetail(null)} style={{...S.cancelBtn,marginTop:12}}>Cerrar</button>
+          </div>
+        </div>;
+      })()}
       {/* MODAL CLIENTE */}
       {showGuiasModal&&<div style={S.ov} onClick={()=>!guiasProcesando&&setShowGuiasModal(false)}>
         <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
@@ -3061,13 +3055,6 @@ const w=window.open("","_blank");
                   </table>
                 </div>
 
-                
-              }
-              <button onClick={()=>setShowProductoDetail(null)} style={{...S.cancelBtn,marginTop:14}}>Cerrar</button>
-            </>;
-          })()}
-        </div>
-      </div>}
       {showCOGSDetail&&<div style={S.ov} onClick={()=>setShowCOGSDetail(null)}>
         <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto",width:"min(96vw,680px)"}} onClick={e=>e.stopPropagation()}>
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
@@ -3228,7 +3215,6 @@ const w=window.open("","_blank");
 
             </>);
           })()}
-            </>);
           })()}
         </div>}
 
