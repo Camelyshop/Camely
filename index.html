@@ -1086,9 +1086,10 @@ const w=window.open("","_blank");
     if(w){w.document.write(html);w.document.close();}
   }
   function generarPDFCxC(){
-    // Build data: group pedidos by cliente → live
+    // Build data: group pedidos by cliente → live (filtered by selected live)
+    const pedsFiltrados=saldoFiltroLive?pedidos.filter(p=>p.live===saldoFiltroLive):pedidos;
     const clisData={};
-    pedidos.forEach(p=>{
+    pedsFiltrados.forEach(p=>{
       if(!clisData[p.cliente]) clisData[p.cliente]={alias:p.cliente,lives:{}};
       if(!clisData[p.cliente].lives[p.live]) clisData[p.cliente].lives[p.live]={live:p.live,items:[],compras:0};
       clisData[p.cliente].lives[p.live].items.push(p);
@@ -1112,6 +1113,7 @@ const w=window.open("","_blank");
     const totGenPag=clientes_list.reduce((s,c)=>s+c.totPag,0);
     const totGenSaldo=clientes_list.reduce((s,c)=>s+c.saldo,0);
     const fecha=new Date().toLocaleDateString("es-EC",{day:"2-digit",month:"short",year:"numeric"});
+    const liveLabel=saldoFiltroLive?" — "+saldoFiltroLive:"— Todos los lives";
 
     const rowsHtml=clientes_list.map(cl=>{
       const liveRows=Object.values(cl.lives).sort((a,b)=>a.live.localeCompare(b.live)).map((lv,li)=>{
@@ -1167,8 +1169,8 @@ const w=window.open("","_blank");
     </style></head><body>
     <div class="hdr">
       <div><div class="brand">★ CAMELY Ropa Infantil</div>
-        <div class="sub">Reporte CxC — Cuentas por Cobrar</div></div>
-      <div class="meta">${fecha}<br>${clientes_list.length} clientes · ${clientes_list.filter(c=>c.saldo>0).length} con saldo pendiente</div>
+        <div class="sub">Reporte CxC — Cuentas por Cobrar ${liveLabel}</div></div>
+      <div class="meta">${fecha}<br>${clientes_list.length} clientes · ${clientes_list.filter(c=>c.saldo>0).length} con saldo pendiente${saldoFiltroLive?" · "+saldoFiltroLive:""}</div>
     </div>
     <div class="kpis">
       <div class="kpi red"><div class="kpi-v">$${totGenSaldo.toFixed(2)}</div><div class="kpi-l">Por cobrar</div></div>
@@ -2909,13 +2911,37 @@ const w=window.open("","_blank");
                       ⚠ Prendas vendidas sin código ({sinCod.length} pedidos) — asignar costo para COGS
                     </div>
                     <div style={{fontSize:11,color:"#888",marginBottom:10}}>
-                      Estos pedidos se registraron sin código de inventario. Asígnales un costo unitario para que aparezcan en el Costo de Venta.
+                      Estos pedidos se registraron sin código de inventario. Puedes asignar el código directamente aquí o poner el costo manual para el COGS.
                     </div>
                     {grouped.map(g=>(
                       <div key={g.prenda} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:8,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
                         <div style={{flex:2,minWidth:120}}>
                           <div style={{fontWeight:700,fontSize:13,color:"#1A1A1A"}}>{g.prenda}</div>
                           <div style={{fontSize:11,color:"#888"}}>{g.qty} unidad{g.qty!==1?"es":""} · Venta: ${g.totalVenta.toFixed(2)}</div>
+                          {/* Show pedidos list for this prenda */}
+                          <div style={{marginTop:4}}>
+                            {sinCod.filter(p=>p.prenda===g.prenda).map(p=>(
+                              <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
+                                <span style={{fontSize:10,color:"#888",minWidth:80}}>{fmtFecha(p.fecha)} · {p.cliente.substring(0,12)}</span>
+                                <input placeholder="C-0001 o nro" style={{...S.inp,width:90,padding:"3px 6px",fontSize:10}}
+                                  defaultValue={p.invId||""}
+                                  onBlur={e=>{
+                                    const raw=e.target.value.trim().toUpperCase();
+                                    if(!raw) return;
+                                    const num=raw.replace(/^C-?0*/,"");
+                                    const variants=["C-"+num,"C-"+num.padStart(2,"0"),"C-"+num.padStart(3,"0"),"C-"+num.padStart(4,"0"),raw];
+                                    const item=inventario.find(i=>variants.includes((i.codigo||i.id||"").toUpperCase()));
+                                    if(!item){toast_("⚠ Código no encontrado","err");return;}
+                                    const updP=pedidos.map(x=>x.id===p.id?{...x,invId:item.id||item.codigo}:x);
+                                    setPedidos(updP);lSet(K.pedidos,updP);sheetsSync("savePedidos",updP);
+                                    toast_("✓ Código "+( item.codigo||item.id)+" asignado a pedido de "+p.cliente);
+                                  }}
+                                  onKeyDown={e=>{if(e.key==="Enter")e.target.blur();}}
+                                />
+                                {p.invId&&<span style={{fontSize:10,color:"#2D6A4F",fontWeight:700}}>{p.invId} ✓</span>}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                         <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
                           <span style={{fontSize:11,color:"#888"}}>$ Costo unit:</span>
