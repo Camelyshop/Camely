@@ -2861,11 +2861,11 @@ const w=window.open("","_blank");
                 const cobrado=ab.reduce((s,a)=>s+a.monto,0);
                 const ventas=ped.reduce((s,p)=>s+p.total,0);
                 // COGS real: pedidos vendidos × costo unitario de cada prenda
-                const costo=ped.reduce((s,p)=>{
-                  const invItem=p.invId?inventario.find(i=>(i.id||i.codigo)===p.invId):null;
+                const costo=(()=>{try{return ped.reduce((s,p)=>{
+                  const invItem=p.invId?inventario.find(i=>String(i.id||i.codigo||"")===String(p.invId||"")&&String(p.invId||"")!=="0"):null;
                   const costoUnit=invItem?.precio||costosManuales[p.prenda]||0;
                   return s+(costoUnit*(p.qty||1));
-                },0);
+                },0);}catch(e){return 0;}})();
                 const srv=gm.filter(g=>g.tipo==="servientrega").reduce((s,g)=>s+g.monto,0);
                 const isd=gm.filter(g=>g.tipo==="isd").reduce((s,g)=>s+g.monto,0);
                 const int=gm.filter(g=>g.tipo==="interes").reduce((s,g)=>s+g.monto,0);
@@ -3067,7 +3067,7 @@ const w=window.open("","_blank");
             <button onClick={()=>{
               // Generate PDF
               const rows=Object.values(showCOGSDetail.ped.reduce((acc,p)=>{
-                const invItem=p.invId?inventario.find(i=>(i.id||i.codigo)===p.invId):null;
+                const invItem=p.invId?inventario.find(i=>String(i.id||i.codigo||"")===String(p.invId||"")&&String(p.invId||"")!=="0"):null;
                 const cu=invItem?.precio||costosManuales[p.prenda]||0;
                 const k=(p.prenda||"-")+"__"+(p.invId||"sin-cod");
                 if(!acc[k])acc[k]={prenda:p.prenda||"-",codigo:p.invId||"—",qty:0,cu,subtotal:0,live:p.live};
@@ -3096,7 +3096,7 @@ const w=window.open("","_blank");
           </div>
           {(()=>{
             const rows=Object.values(showCOGSDetail.ped.reduce((acc,p)=>{
-              const invItem=p.invId?inventario.find(i=>(i.id||i.codigo)===p.invId):null;
+              const invItem=p.invId?inventario.find(i=>String(i.id||i.codigo||"")===String(p.invId||"")&&String(p.invId||"")!=="0"):null;
               const cu=invItem?.precio||costosManuales[p.prenda]||0;
               const k=(p.prenda||"-")+"__"+(p.invId||"sin-cod");
               if(!acc[k])acc[k]={prenda:p.prenda||"-",codigo:p.invId||"—",qty:0,cu,subtotal:0,live:p.live};
@@ -3144,7 +3144,8 @@ const w=window.open("","_blank");
       {/* ─── Sin código report ─── */}
                 {(()=>{
                   const livesConSinCod=[...new Set(pedidos.filter(p=>!p.invId).map(p=>p.live).filter(Boolean))].sort().reverse();
-                  const sinCod=pedidos.filter(p=>!p.invId&&(!filtroSinCodLive||p.live===filtroSinCodLive));
+                  const CONS_CODES=["999999","0","000000"];
+                  const sinCod=pedidos.filter(p=>(!p.invId||CONS_CODES.includes(String(p.invId||"")))&&(!filtroSinCodLive||p.live===filtroSinCodLive));
                   if(pedidos.filter(p=>!p.invId).length===0) return null;
                   const grouped=Object.values(sinCod.reduce((acc,p)=>{
                     const k=p.prenda||"-";
