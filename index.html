@@ -3008,18 +3008,19 @@ const w=window.open("","_blank");
                             {sinCod.filter(p=>p.prenda===g.prenda).map(p=>(
                               <div key={p.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
                                 <span style={{fontSize:10,color:"#888",minWidth:80}}>{fmtFecha(p.fecha)} · {p.cliente.substring(0,12)}</span>
-                                <input placeholder="C-0001 o nro" style={{...S.inp,width:90,padding:"3px 6px",fontSize:10}}
+                                <input placeholder="CONS00001 o C-0001" style={{...S.inp,width:110,padding:"3px 6px",fontSize:10}}
                                   defaultValue={p.invId||""}
                                   onBlur={e=>{
                                     const raw=e.target.value.trim().toUpperCase();
                                     if(!raw) return;
                                     const num=raw.replace(/^C-?0*/,"");
                                     const variants=["C-"+num,"C-"+num.padStart(2,"0"),"C-"+num.padStart(3,"0"),"C-"+num.padStart(4,"0"),raw];
+                                    // First try to find in inventory; if not found, assign the code as-is (e.g. CONS00001)
                                     const item=inventario.find(i=>variants.includes((i.codigo||i.id||"").toUpperCase()));
-                                    if(!item){toast_("⚠ Código no encontrado","err");return;}
-                                    const updP=pedidos.map(x=>x.id===p.id?{...x,invId:item.id||item.codigo}:x);
+                                    const codigoFinal=item?(item.id||item.codigo):raw;
+                                    const updP=pedidos.map(x=>x.id===p.id?{...x,invId:codigoFinal}:x);
                                     setPedidos(updP);lSet(K.pedidos,updP);sheetsSync("savePedidos",updP);
-                                    toast_("✓ Código "+( item.codigo||item.id)+" asignado a pedido de "+p.cliente);
+                                    toast_("✓ Código "+codigoFinal+" asignado a "+p.cliente);
                                   }}
                                   onKeyDown={e=>{if(e.key==="Enter")e.target.blur();}}
                                 />
