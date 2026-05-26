@@ -378,6 +378,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [form,setForm]=useState({cliente:"",prenda:"",pvp:"",qty:"1",invId:null});
   const [showCS,setShowCS]=useState(false);
   const [pagoF,setPagoF]=useState({cliente:"",monto:"",nota:""});
+  const [filtroAbonoCli,setFiltroAbonoCli]=useState("");
   const [showPS,setShowPS]=useState(false);
   const [imgPrev,setImgPrev]=useState(null);
   const [reading,setReading]=useState(false);
@@ -998,6 +999,92 @@ const w=window.open("","_blank");
     if(w){w.document.write(html);w.document.close();}
   }
 
+  function generarEstadoCuenta(alias){
+    const cps=pedidos.filter(p=>p.cliente===alias).sort((a,b)=>a.fecha>b.fecha?1:-1);
+    const abs=abonos.filter(a=>a.cliente===alias).sort((a,b)=>a.fecha>b.fecha?1:-1);
+    const tc=cps.reduce((s,p)=>s+p.total,0);
+    const ta=abs.reduce((s,a)=>s+a.monto,0);
+    const saldo=tc-ta;
+    const cli=clientes.find(c=>c.alias===alias)||{};
+    const fecha=new Date().toLocaleDateString("es-EC",{day:"2-digit",month:"long",year:"numeric"});
+    const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+    <style>
+      *{box-sizing:border-box;margin:0;padding:0}
+      body{font-family:Arial,sans-serif;padding:20px;font-size:11px;color:#1A1A1A}
+      .hdr{background:#1BB6C8;color:#fff;padding:14px 18px;border-radius:10px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start}
+      .brand{font-size:20px;font-weight:900}.sub{font-size:10px;opacity:0.85;margin-top:2px}
+      .corte{font-size:10px;opacity:0.85;text-align:right;line-height:1.6}
+      .cli-box{background:#F5FDFE;border:1px solid #D0F2F6;border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+      .cli-name{font-size:16px;font-weight:900;color:#1BB6C8}
+      .cli-data{font-size:10px;color:#888;margin-top:3px;line-height:1.5}
+      h3{font-size:11px;font-weight:700;color:#1A1A1A;letter-spacing:1px;text-transform:uppercase;margin:14px 0 6px;padding-bottom:4px;border-bottom:2px solid #1BB6C8}
+      table{width:100%;border-collapse:collapse;margin-bottom:4px}
+      th{background:#1A1A1A;color:#fff;padding:6px 8px;font-size:10px;text-align:left}
+      th.r,td.r{text-align:right}
+      td{padding:6px 8px;border-bottom:1px solid #eee;font-size:10px}
+      tr:nth-child(even) td{background:#FAFAFA}
+      .tot-row td{background:#E8F9FB!important;font-weight:700;border-top:2px solid #1BB6C8}
+      .saldo-box{margin-top:16px;border-radius:10px;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;background:${saldo>0?"#FEE2E2":"#E6F4EC"};border:2px solid ${saldo>0?"#FCA5A5":"#A7F3D0"}}
+      .saldo-lbl{font-size:12px;font-weight:700;color:${saldo>0?"#D00":"#2D6A4F"}}
+      .saldo-val{font-size:24px;font-weight:900;color:${saldo>0?"#D00":"#2D6A4F"}}
+      .banco-box{margin-top:14px;background:#FFF8E0;border-radius:8px;padding:12px 14px;border:1px solid #FDE68A}
+      .banco-tit{font-size:10px;font-weight:700;color:#B45309;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px}
+      .banco-row{font-size:10px;color:#555;margin-bottom:3px;line-height:1.5}
+      .banco-row b{color:#1A1A1A}
+      button{background:#1BB6C8;color:#fff;border:none;padding:6px 16px;border-radius:6px;cursor:pointer;font-weight:700;margin-bottom:12px}
+      @media print{button{display:none}body{padding:10px}}
+    </style></head><body>
+    <div class="hdr">
+      <div><div class="brand">★ CAMELY Ropa Infantil</div><div class="sub">Estado de Cuenta del Cliente</div></div>
+      <div class="corte">Fecha de corte:<br><b>${fecha}</b></div>
+    </div>
+    <div class="cli-box">
+      <div>
+        <div class="cli-name">${alias}</div>
+        <div class="cli-data">
+          ${cli.nombre&&cli.nombre!==alias?cli.nombre+"<br>":""}
+          ${cli.telefono?"📞 "+cli.telefono+"<br>":""}
+          ${cli.ciudad?"📍 "+cli.ciudad:""}
+        </div>
+      </div>
+      <div style="text-align:right;font-size:10px;color:#888">
+        ${cps.length} compras<br>${abs.length} pagos
+      </div>
+    </div>
+    <button onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+
+    <h3>Compras</h3>
+    <table><thead><tr><th>Fecha</th><th>Live</th><th>Prenda</th><th class="r">Valor</th></tr></thead>
+    <tbody>
+    ${cps.map(p=>`<tr><td>${fmtFecha(p.fecha)}</td><td>${p.live||"-"}</td><td>${p.prenda||"-"}</td><td class="r">$${p.total.toFixed(2)}</td></tr>`).join("")}
+    <tr class="tot-row"><td colspan="3"><b>Total compras</b></td><td class="r"><b>$${tc.toFixed(2)}</b></td></tr>
+    </tbody></table>
+
+    <h3>Pagos realizados</h3>
+    ${abs.length>0?`<table><thead><tr><th>Fecha</th><th>Nota</th><th class="r">Monto</th></tr></thead>
+    <tbody>
+    ${abs.map(a=>`<tr><td>${fmtFecha(a.fecha)}</td><td>${a.nota||"-"}</td><td class="r" style="color:#2D6A4F;font-weight:700">$${a.monto.toFixed(2)}</td></tr>`).join("")}
+    <tr class="tot-row"><td colspan="2"><b>Total pagado</b></td><td class="r"><b>$${ta.toFixed(2)}</b></td></tr>
+    </tbody></table>`:"<div style='color:#aaa;font-size:11px;padding:8px 0'>Sin pagos registrados</div>"}
+
+    <div class="saldo-box">
+      <div class="saldo-lbl">${saldo>0?"💳 Saldo pendiente":"✅ Cuenta al día"}</div>
+      <div class="saldo-val">$${saldo.toFixed(2)}</div>
+    </div>
+
+    ${saldo>0?`<div class="banco-box">
+      <div class="banco-tit">🏦 Datos para pago</div>
+      <div class="banco-row">🟡 Banco Pichincha · Ahorros · <b>2203554582</b></div>
+      <div class="banco-row">🔵 Banco Guayaquil · Ahorros · <b>0029388062</b></div>
+      <div class="banco-row">📋 Cédula: <b>0926345752</b> · Martha Rosado</div>
+    </div>`:""}
+
+    <div style="margin-top:14px;font-size:9px;color:#aaa;text-align:center">
+      CAMELY Ropa Infantil · Estado de cuenta al ${fecha}
+    </div></body></html>`;
+    const w=window.open("","_blank","width=800,height=700");
+    if(w){w.document.write(html);w.document.close();}
+  }
   function generarPDFCxC(){
     // Build data: group pedidos by cliente → live
     const clisData={};
@@ -2058,7 +2145,29 @@ const w=window.open("","_blank");
             <div style={S.fg}><label style={S.lbl}>NOTA (opcional)</label><input style={S.inp} placeholder="Ej: abono semana anterior" value={pagoF.nota} onChange={e=>setPagoF(f=>({...f,nota:e.target.value}))}/></div>
             <button onClick={registrarPago} disabled={!pagoF.cliente.trim()||!pagoF.monto} style={{...S.btnGreen,opacity:(!pagoF.cliente.trim()||!pagoF.monto)?0.4:1}}>Registrar Pago</button>
           </div>
-          {abonos.length>0&&<div style={S.card}><div style={S.cT}>Últimos pagos</div><div style={{maxHeight:200,overflowY:"auto"}}>{[...abonos].reverse().slice(0,20).map(a=><div key={a.id} style={S.li}><div><div style={S.liN}>{a.cliente}</div><div style={S.liS}>{a.fecha}{a.nota?" · "+a.nota:""}{a.conComp?" 📎":""}</div></div><div style={{...S.liA,color:"#2D6A4F"}}>+${a.monto.toFixed(2)}</div></div>)}</div></div>}
+          {abonos.length>0&&<div style={S.card}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+              <div style={S.cT}>Historial de pagos</div>
+              {filtroAbonoCli&&<span style={{fontSize:11,color:"#1BB6C8",fontWeight:700}}>
+                Total: ${abonos.filter(a=>(a.cliente||"").toUpperCase().includes(filtroAbonoCli.toUpperCase())).reduce((s,a)=>s+a.monto,0).toFixed(2)}
+              </span>}
+            </div>
+            <input style={{...S.inp,marginBottom:10}} placeholder="🔍 Filtrar por cliente..." value={filtroAbonoCli} onChange={e=>setFiltroAbonoCli(e.target.value)}/>
+            <div style={{maxHeight:300,overflowY:"auto"}}>
+              {[...abonos].filter(a=>!filtroAbonoCli||(a.cliente||"").toUpperCase().includes(filtroAbonoCli.toUpperCase())).reverse().map(a=>(
+                <div key={a.id} style={S.li}>
+                  <div>
+                    <div style={S.liN}>{a.cliente}</div>
+                    <div style={S.liS}>{fmtFecha(a.fecha)}{a.nota?" · "+a.nota:""}{a.conComp?" 📎":""}</div>
+                  </div>
+                  <div style={{...S.liA,color:"#2D6A4F",fontWeight:700}}>+${a.monto.toFixed(2)}</div>
+                </div>
+              ))}
+              {filtroAbonoCli&&abonos.filter(a=>(a.cliente||"").toUpperCase().includes(filtroAbonoCli.toUpperCase())).length===0&&
+                <div style={{textAlign:"center",color:"#aaa",padding:"16px 0",fontSize:12}}>Sin pagos para ese cliente</div>
+              }
+            </div>
+          </div>}
         </div>}
 
         {/* ─── INVENTARIO ─── */}
@@ -2338,6 +2447,9 @@ const w=window.open("","_blank");
                           }} style={{background:"#F0057F",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#fff",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,marginTop:4,flexShrink:0}}>
                             <span>💰</span><span>Pagar todo</span>
                           </button>}
+                          <button onClick={e=>{e.stopPropagation();generarEstadoCuenta(c.alias);}} style={{background:"#1BB6C8",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#fff",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,marginTop:4,flexShrink:0}}>
+                            <span>📄</span><span>Estado</span>
+                          </button>
                         </div>
                         {isExp&&<div style={{borderTop:"1px solid #E8F9FB",padding:"10px 14px",background:"#F8FDFE"}}>
                           <div style={{fontSize:10,color:"#1BB6C8",letterSpacing:1,textTransform:"uppercase",marginBottom:8,fontWeight:700}}>Detalle de compras</div>
