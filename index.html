@@ -689,13 +689,13 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     (i.categoria||"").toLowerCase().includes(q)||
     (i.talla||"").toLowerCase().includes(q)||
     (i.importacionNombre||i.importacion||"").toLowerCase().includes(q)||
-    (i.codigo||i.id||"").toLowerCase().includes(q)
+    String(i.codigo||i.id||"").toLowerCase().includes(q)
   );
   const invDisp=inventario.filter(i=>qtyR(i)>0&&(!q||
     (i.descripcion||"").toLowerCase().includes(q)||
     (i.categoria||"").toLowerCase().includes(q)||
     (i.talla||"").toLowerCase().includes(q)||
-    (i.codigo||i.id||"").toLowerCase().includes(q)
+    String(i.codigo||i.id||"").toLowerCase().includes(q)
   ));
 
   // ── PDF ──
