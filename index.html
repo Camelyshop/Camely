@@ -305,6 +305,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   // Resumen date filter
   const [resMes,setResMes]=useState("todos");
   const [resAno,setResAno]=useState(String(new Date().getFullYear()));
+  const [filtroSinCodLive,setFiltroSinCodLive]=useState("");
   const [costosManuales,setCostosManuales]=useState(()=>{try{return JSON.parse(localStorage.getItem("camely_costos_manuales")||"{}");}catch{return {};}});
   function guardarCostoManual(prenda,costo){
     const upd={...costosManuales,[prenda]:parseFloat(costo)||0};
@@ -2974,8 +2975,9 @@ const w=window.open("","_blank");
 
                 {/* ─── Sin código report ─── */}
                 {(()=>{
-                  const sinCod=pedidos.filter(p=>!p.invId);
-                  if(sinCod.length===0) return null;
+                  const livesConSinCod=[...new Set(pedidos.filter(p=>!p.invId).map(p=>p.live).filter(Boolean))].sort().reverse();
+                  const sinCod=pedidos.filter(p=>!p.invId&&(!filtroSinCodLive||p.live===filtroSinCodLive));
+                  if(pedidos.filter(p=>!p.invId).length===0) return null;
                   const grouped=Object.values(sinCod.reduce((acc,p)=>{
                     const k=p.prenda||"-";
                     if(!acc[k])acc[k]={prenda:k,qty:0,totalVenta:0,costoUnit:costosManuales[k]||0};
@@ -2984,11 +2986,17 @@ const w=window.open("","_blank");
                     return acc;
                   },{}));
                   return <div style={{marginTop:16,background:"#FFF8E0",borderRadius:14,padding:"14px"}}>
-                    <div style={{fontWeight:700,fontSize:13,color:"#B45309",marginBottom:10}}>
-                      ⚠ Prendas vendidas sin código ({sinCod.length} pedidos) — asignar costo para COGS
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                      <div style={{fontWeight:700,fontSize:13,color:"#B45309"}}>
+                        ⚠ Prendas sin código ({sinCod.length} pedidos) — asignar costo para COGS
+                      </div>
+                      <select style={{...S.inp,width:"auto",padding:"5px 8px",fontSize:11,marginBottom:0}} value={filtroSinCodLive} onChange={e=>setFiltroSinCodLive(e.target.value)}>
+                        <option value="">Todos los lives</option>
+                        {livesConSinCod.map(l=><option key={l} value={l}>{l}</option>)}
+                      </select>
                     </div>
                     <div style={{fontSize:11,color:"#888",marginBottom:10}}>
-                      Estos pedidos se registraron sin código de inventario. Puedes asignar el código directamente aquí o poner el costo manual para el COGS.
+                      {filtroSinCodLive?"Live: "+filtroSinCodLive+" · ":""}Puedes asignar código o costo manual para el COGS.
                     </div>
                     {grouped.map(g=>(
                       <div key={g.prenda} style={{background:"#fff",borderRadius:10,padding:"10px 12px",marginBottom:8,display:"flex",alignItems:"center",gap:10,flexWrap:"wrap"}}>
