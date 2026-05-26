@@ -683,10 +683,11 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
 
   const q=searchInv.trim().toLowerCase();
   const invFiltrado=inventario.filter(i=>!q||
-    i.descripcion.toLowerCase().includes(q)||
-    i.categoria.toLowerCase().includes(q)||
+    (i.descripcion||"").toLowerCase().includes(q)||
+    (i.categoria||"").toLowerCase().includes(q)||
     (i.talla||"").toLowerCase().includes(q)||
-    (i.importacion||"").toLowerCase().includes(q)
+    (i.importacionNombre||i.importacion||"").toLowerCase().includes(q)||
+    (i.codigo||i.id||"").toLowerCase().includes(q)
   );
   const invDisp=inventario.filter(i=>qtyR(i)>0&&(!q||
     i.descripcion.toLowerCase().includes(q)||
@@ -2264,37 +2265,55 @@ const w=window.open("","_blank");
               {!searchInv&&<button onClick={()=>abrirInv()} style={{...S.btnD,width:"auto",padding:"12px 24px"}}>+ Registrar primera entrada</button>}
             </div>
           ):(
-            <div className={isDesk?"desktop-grid":""} style={isDesk?{display:"grid"}:{}}>
-              {invFiltrado.map((item,idx,arr)=>{
-                if(item.codigo&&item.estado==="vendido") return null;
-                const rest=qtyR(item),vendido=item.qty-rest,pct=item.qty>0?Math.round((vendido/item.qty)*100):0;
-                return(
-                  <div key={item.id} style={{...S.li,borderBottom:idx<arr.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13}}>
-                    <div style={{flex:1}}>
-                      <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap"}}>
-                        <div style={{fontSize:14,fontWeight:800,color:"#1A1A1A"}}>{item.descripcion}</div>
-                        {item.talla&&<span style={{background:"#FFF3EC",color:"#F0057F",borderRadius:5,padding:"1px 7px",fontSize:11,fontWeight:700}}>{item.talla}</span>}
-                        <span style={{background:rest<=0?"#FFE4E4":rest<=3?"#FFF0D4":"#E6F4EC",color:rest<=0?"#D00":rest<=3?"#B7570A":"#2D6A4F",borderRadius:5,padding:"1px 7px",fontSize:10,fontWeight:600}}>{rest<=0?"Agotado":`${rest} disp.`}</span>
-                      </div>
-                      <div style={{fontSize:11,color:"#AAA",marginTop:2}}>{item.categoria}{item.importacion?" · "+item.importacion:""}</div>
-                      <div style={{marginTop:6,background:"#F5EDE4",borderRadius:6,height:4,overflow:"hidden"}}>
-                        <div style={{height:"100%",background:pct>=90?"#D00":pct>=60?"#F0057F":"#2D6A4F",width:pct+"%"}}/>
-                      </div>
-                      <div style={{fontSize:10,color:"#AAA",marginTop:2}}>{vendido} vendido / {item.qty} total</div>
-                    </div>
-                    <div style={{textAlign:"right",flexShrink:0,marginLeft:10}}>
-                      <div style={{fontWeight:800,color:"#F0057F",fontSize:15}}>${item.precio.toFixed(2)}</div>
-                      <div style={{fontSize:10,color:"#1BB6C8",fontWeight:600}}>Costo: ${(item.precio||0).toFixed(2)}</div>
-                      <div style={{fontSize:10,color:"#AAA",marginTop:1}}>Stock: <b style={{color:"#1A1A1A"}}>${(item.precio*rest).toFixed(2)}</b></div>
-                      <div style={{display:"flex",gap:4,marginTop:5}}>
-                        <button onClick={()=>abrirInv(item)} style={{background:"#F5EDE4",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#888",cursor:"pointer"}}>✏️</button>
-                        {item.estado!=="ajuste"&&item.estado!=="vendido"&&<button onClick={()=>{if(window.confirm("¿Dar de baja "+item.codigo+" como ajuste?")){const upd=inventario.map(i=>i.id===item.id?{...i,estado:"ajuste",ajusteFecha:hoy(),ajusteMotivo:"Manual"}:i);setInventario(upd);lSet(K.inventario,upd);sheetsSync("saveInventario",upd);toast_("🗑 Dado de baja como ajuste");}}} style={{background:"#FEF3C7",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#B45309",cursor:"pointer",fontWeight:700}}>Ajuste</button>}
-                        {item.estado==="ajuste"&&<span style={{fontSize:10,color:"#B45309",fontWeight:700,padding:"5px 6px"}}>⚠ Baja</span>}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{overflowX:"auto"}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
+                <thead>
+                  <tr style={{background:"#1A1A1A",color:"#fff"}}>
+                    <th style={{padding:"8px 10px",textAlign:"left",fontWeight:700,fontSize:11}}>Código</th>
+                    <th style={{padding:"8px 10px",textAlign:"left",fontWeight:700,fontSize:11}}>Prenda</th>
+                    <th style={{padding:"8px 10px",textAlign:"left",fontWeight:700,fontSize:11}}>Categoría</th>
+                    <th style={{padding:"8px 6px",textAlign:"center",fontWeight:700,fontSize:11}}>Talla</th>
+                    <th style={{padding:"8px 6px",textAlign:"center",fontWeight:700,fontSize:11}}>Disp.</th>
+                    <th style={{padding:"8px 6px",textAlign:"right",fontWeight:700,fontSize:11}}>Costo</th>
+                    <th style={{padding:"8px 6px",textAlign:"center",fontWeight:700,fontSize:11}}>Estado</th>
+                    <th style={{padding:"8px 6px",textAlign:"center",fontWeight:700,fontSize:11}}></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {invFiltrado.map((item,idx)=>{
+                    if(item.estado==="vendido") return null;
+                    const rest=qtyR(item);
+                    const cod=(item.codigo||item.id||"—");
+                    const rowBg=item.estado==="ajuste"?"#FFF8E0":idx%2===0?"#fff":"#FAFAFA";
+                    return(
+                      <tr key={item.id} style={{background:rowBg,borderBottom:"1px solid #F0F0F0"}}>
+                        <td style={{padding:"7px 10px",fontWeight:700,color:"#1BB6C8",fontSize:11}}>{cod}</td>
+                        <td style={{padding:"7px 10px",fontWeight:600,color:"#1A1A1A",fontSize:12}}>{item.descripcion||"Prenda"}</td>
+                        <td style={{padding:"7px 10px",color:"#888",fontSize:11}}>{item.categoria||""}{item.tipoRopa?" · "+item.tipoRopa:""}</td>
+                        <td style={{padding:"7px 6px",textAlign:"center",color:"#555",fontSize:11}}>{item.talla||"—"}</td>
+                        <td style={{padding:"7px 6px",textAlign:"center",fontWeight:700,
+                          color:rest<=0?"#D00":rest<=3?"#B45309":"#2D6A4F",fontSize:12}}>
+                          {rest<=0?"Ago.":rest}
+                        </td>
+                        <td style={{padding:"7px 6px",textAlign:"right",color:"#1BB6C8",fontWeight:700,fontSize:11}}>
+                          ${(item.precio||0).toFixed(2)}
+                        </td>
+                        <td style={{padding:"7px 6px",textAlign:"center",fontSize:10}}>
+                          {item.estado==="ajuste"
+                            ?<span style={{color:"#B45309",fontWeight:700}}>⚠ Baja</span>
+                            :<span style={{color:"#2D6A4F"}}>✓</span>}
+                        </td>
+                        <td style={{padding:"7px 6px",textAlign:"center"}}>
+                          <div style={{display:"flex",gap:3,justifyContent:"center"}}>
+                            <button onClick={()=>abrirInv(item)} style={{background:"#F5EDE4",border:"none",borderRadius:6,padding:"4px 8px",fontSize:11,color:"#888",cursor:"pointer"}}>✏️</button>
+                            {item.estado!=="ajuste"&&rest>0&&<button onClick={()=>{if(window.confirm("¿Dar de baja "+cod+" como ajuste?")){const upd=inventario.map(i=>i.id===item.id?{...i,estado:"ajuste",ajusteFecha:hoy(),ajusteMotivo:"Manual"}:i);setInventario(upd);lSet(K.inventario,upd);sheetsSync("saveInventario",upd);toast_("🗑 Dado de baja");}}} style={{background:"#FEF3C7",border:"none",borderRadius:6,padding:"4px 8px",fontSize:11,color:"#B45309",cursor:"pointer"}}>↓</button>}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>}
