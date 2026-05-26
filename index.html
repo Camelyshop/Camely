@@ -2120,8 +2120,12 @@ const w=window.open("","_blank");
             <button onClick={registrarPedido} disabled={!form.cliente.trim()||!form.pvp} style={{...S.btnD,opacity:(!form.cliente.trim()||!form.pvp)?0.4:1}}>Registrar + Etiqueta</button>
           </div>
           {pedidos.filter(p=>p.live===live).length>0&&<div style={S.card}>
-            <div style={{...S.cT,display:"flex",justifyContent:"space-between"}}>
-              <span>{live}</span><span style={{color:"#F0057F"}}>${pedidos.filter(p=>p.live===live).reduce((s,p)=>s+p.total,0).toFixed(2)}</span>
+            <div style={{...S.cT,display:"flex",justifyContent:"space-between",alignItems:"flex-start"}}>
+              <span>{live}</span>
+              <div style={{textAlign:"right"}}>
+                <div style={{color:"#F0057F",fontWeight:900,fontSize:15}}>${pedidos.filter(p=>p.live===live).reduce((s,p)=>s+p.total,0).toFixed(2)}</div>
+                <div style={{fontSize:9,color:"#AAA",fontWeight:400,marginTop:1}}>TOTAL VENDIDO (sin descontar pagos)</div>
+              </div>
             </div>
             <div style={{maxHeight:200,overflowY:"auto"}}>
               {[...pedidos.filter(p=>p.live===live)].reverse().map(p=><div key={p.id} style={S.li}><div><div style={S.liN}>{p.cliente}</div><div style={S.liS}>{p.prenda!=="-"?p.prenda:"—"}</div></div><div style={S.liA}>${p.total.toFixed(2)}</div></div>)}
@@ -2376,12 +2380,19 @@ const w=window.open("","_blank");
               const matchCli=!saldoFiltroCliente||c.alias.includes(saldoFiltroCliente.toUpperCase())||(c.p?.nombre||"").toLowerCase().includes(saldoFiltroCliente.toLowerCase());
               const matchLive=!saldoFiltroLive||pedidos.some(p=>p.cliente===c.alias&&p.live===saldoFiltroLive);
               return matchCli&&matchLive;
-            });
+            }).map(c=>{
+              if(!saldoFiltroLive) return c;
+              // Recalculate tc/saldo for selected live only
+              const tcLive=pedidos.filter(p=>p.cliente===c.alias&&p.live===saldoFiltroLive).reduce((s,p)=>s+p.total,0);
+              const ta=abonos.filter(a=>a.cliente===c.alias).reduce((s,a)=>s+a.monto,0);
+              const saldoLive=Math.max(0,tcLive-ta);
+              return {...c,tc:tcLive,saldo:saldoLive};
+            }).filter(c=>c.tc>0);
             const totalFiltrado=filtrados.reduce((s,c)=>s+c.saldo,0);
             return(<>
               <div style={S.summCard}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-                  <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Total por cobrar</div>
+                  <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Saldo pendiente por cobrar</div>
                   <div style={{display:"flex",gap:6}}>
                   <button onClick={()=>{if(waSent.size>0&&window.confirm("¿Borrar los ✓✓ de todos los clientes?")){setWaSent(new Set());localStorage.removeItem("camely_wa_sent");}}} style={{background:"rgba(0,0,0,0.15)",color:"#fff",border:"none",borderRadius:10,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",display:waSent.size>0?"flex":"none",alignItems:"center"}}>✓✓ {waSent.size}</button>
                   <button onClick={()=>generarPDFCxC()} style={{background:"rgba(255,255,255,0.2)",color:"#fff",border:"none",borderRadius:10,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>📄 CxC</button>
