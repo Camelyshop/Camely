@@ -281,6 +281,7 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
 
   const [labelItem,setLabelItem]=useState(null);
   const [pendingLabels,setPendingLabels]=useState(()=>{try{return JSON.parse(localStorage.getItem("camely_pending_labels")||"[]");}catch{return [];}});
+  const [lastPrintedLabels,setLastPrintedLabels]=useState(()=>{try{return JSON.parse(localStorage.getItem("camely_last_printed")||"[]");}catch{return [];}});
   const [showLiveModal,setShowLiveModal]=useState(false);
   const [liveInput,setLiveInput]=useState("");
   const [showInvPicker,setShowInvPicker]=useState(false);
@@ -794,9 +795,9 @@ const w=window.open("","_blank");
     localStorage.setItem("camely_pending_labels",JSON.stringify(newPending));
     if(newPending.length>=5){
       toast_("🖨 6 etiquetas listas — abriendo para imprimir...");
+      setLastPrintedLabels(newPending);localStorage.setItem("camely_last_printed",JSON.stringify(newPending));
       setTimeout(()=>{imprimirTiraPedido(newPending);},300);
-      setPendingLabels([]);
-      localStorage.removeItem("camely_pending_labels");
+      setPendingLabels([]);localStorage.removeItem("camely_pending_labels");
     } else {
       toast_("🏷 Etiqueta acumulada ("+newPending.length+"/5)");
     }
@@ -2034,10 +2035,17 @@ const w=window.open("","_blank");
             {pendingLabels.length>0&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#FFF3E0",borderRadius:12,padding:"8px 14px",marginBottom:10,marginTop:6}}>
               <span style={{fontSize:12,fontWeight:700,color:"#B45309"}}>{"🏷 "+pendingLabels.length+" etiqueta"+(pendingLabels.length>1?"s":"")+" pendiente"+(pendingLabels.length>1?"s":"")+" ("+pendingLabels.length+"/5)"}</span>
               <div style={{display:"flex",gap:6}}>
-                <button onClick={()=>{imprimirTiraPedido(pendingLabels);setPendingLabels([]);localStorage.removeItem("camely_pending_labels");}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>{"🖨 Imprimir"}</button>
+                <button onClick={()=>{setLastPrintedLabels(pendingLabels);localStorage.setItem("camely_last_printed",JSON.stringify(pendingLabels));imprimirTiraPedido(pendingLabels);setPendingLabels([]);localStorage.removeItem("camely_pending_labels");}} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>{"🖨 Imprimir"}</button>
                 <button onClick={()=>{if(window.confirm("Descartar etiquetas pendientes?")){setPendingLabels([]);localStorage.removeItem("camely_pending_labels");}}} style={{background:"#FEE2E2",color:"#EF4444",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,cursor:"pointer"}}>{"✕"}</button>
               </div>
             </div>}
+          {lastPrintedLabels.length>0&&pendingLabels.length===0&&<div style={{display:"flex",alignItems:"center",justifyContent:"space-between",background:"#F5F5F5",borderRadius:12,padding:"8px 14px",marginBottom:10}}>
+            <span style={{fontSize:12,color:"#888"}}>Último lote: {lastPrintedLabels.length} etiq · {lastPrintedLabels[0]?.fecha||""}</span>
+            <div style={{display:"flex",gap:6}}>
+              <button onClick={()=>imprimirTiraPedido(lastPrintedLabels)} style={{background:"#555",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:12,fontWeight:700,cursor:"pointer"}}>Reimprimir</button>
+              <button onClick={()=>{setLastPrintedLabels([]);localStorage.removeItem("camely_last_printed");}} style={{background:"#EEE",color:"#AAA",border:"none",borderRadius:8,padding:"6px 10px",fontSize:12,cursor:"pointer"}}>X</button>
+            </div>
+          </div>}
             <div style={S.cT}>Nuevo Pedido</div>
           {/* ─── Búsqueda por código ─── */}
           <div style={{background:"#E8F9FB",borderRadius:14,padding:"12px",marginBottom:14}}>
