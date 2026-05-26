@@ -1706,15 +1706,54 @@ const w=window.open("","_blank");
 
       {/* MODAL LIVE */}
       {showLiveModal&&<div style={S.ov} onClick={()=>setShowLiveModal(false)}>
-        <div style={S.sh} onClick={e=>e.stopPropagation()}>
-          <div style={S.shT}>Nombre del Live</div>
-          <label style={S.lbl}>NOMBRE / FECHA</label>
-          <input style={{...S.inp,marginBottom:10}} value={liveInput} onChange={e=>setLiveInput(e.target.value)} placeholder={liveDefault()}/>
-          <button style={{...S.btnD,marginBottom:10}} onClick={async()=>{if(!liveInput.trim())return;setLive(liveInput.trim());lSetS(K.live,liveInput.trim());sheetsSync("saveLive",liveInput.trim());setShowLiveModal(false);}}>Confirmar</button>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:6,marginBottom:6}}>
-            {[liveDefault(),"Live Sábado","Live Domingo","Live Viernes"].map(s=><button key={s} onClick={async()=>{setLive(s);lSetS(K.live,s);sheetsSync("saveLive",s);setShowLiveModal(false);}} style={{...S.liveBtn,...(live===s?S.liveBtnOn:{})}}>{s}</button>)}
+        <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>Seleccionar Live</div>
+
+          {/* New live */}
+          <label style={S.lbl}>NUEVO LIVE</label>
+          <div style={{display:"flex",gap:8,marginBottom:14}}>
+            <input style={{...S.inp,flex:1,marginBottom:0}} value={liveInput} onChange={e=>setLiveInput(e.target.value)} placeholder={liveDefault()}/>
+            <button style={{...S.btnD,flexShrink:0,width:"auto",padding:"10px 14px"}} onClick={async()=>{
+              const v=liveInput.trim()||liveDefault();
+              setLive(v);lSetS(K.live,v);sheetsSync("saveLive",v);setShowLiveModal(false);
+            }}>+ Crear</button>
           </div>
-          <button onClick={()=>setShowLiveModal(false)} style={S.cancelBtn}>Cancelar</button>
+
+          {/* Existing lives grouped by month */}
+          {(()=>{
+            const lives=allLivesAll;
+            if(lives.length===0) return null;
+            // Group by month/year extracted from name
+            const byMonth={};
+            lives.forEach(l=>{
+              const m=l.match(/([A-Za-záéíóúñ]+\/\d{2,4})/i);
+              const key=m?m[1]:"Otros";
+              if(!byMonth[key]) byMonth[key]=[];
+              byMonth[key].push(l);
+            });
+            return <div>
+              <label style={{...S.lbl,marginBottom:8}}>LIVES ANTERIORES</label>
+              {Object.entries(byMonth).map(([mes,livs])=>(
+                <div key={mes} style={{marginBottom:12}}>
+                  <div style={{fontSize:10,fontWeight:700,color:"#888",letterSpacing:1,textTransform:"uppercase",marginBottom:6,paddingBottom:4,borderBottom:"1px solid #F0F0F0"}}>{mes}</div>
+                  <div style={{display:"flex",flexDirection:"column",gap:4}}>
+                    {livs.map(l=>(
+                      <button key={l} onClick={async()=>{setLive(l);lSetS(K.live,l);sheetsSync("saveLive",l);setShowLiveModal(false);}}
+                        style={{textAlign:"left",padding:"10px 14px",borderRadius:10,border:"1.5px solid "+(live===l?"#1BB6C8":"#EEE"),
+                          background:live===l?"#E8F9FB":"#fff",color:live===l?"#1BB6C8":"#1A1A1A",
+                          fontWeight:live===l?700:400,fontSize:13,cursor:"pointer",
+                          display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <span>{l}</span>
+                        <span style={{fontSize:10,color:"#AAA"}}>{pedidos.filter(p=>p.live===l).length} pedidos</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>;
+          })()}
+
+          <button onClick={()=>setShowLiveModal(false)} style={{...S.cancelBtn,marginTop:10}}>Cancelar</button>
         </div>
       </div>}
 
@@ -2382,17 +2421,15 @@ const w=window.open("","_blank");
               return matchCli&&matchLive;
             }).map(c=>{
               if(!saldoFiltroLive) return c;
-              // Recalculate tc/saldo for selected live only
+              // When live filter: show total sold in that live (abonos not linked to lives)
               const tcLive=pedidos.filter(p=>p.cliente===c.alias&&p.live===saldoFiltroLive).reduce((s,p)=>s+p.total,0);
-              const ta=abonos.filter(a=>a.cliente===c.alias).reduce((s,a)=>s+a.monto,0);
-              const saldoLive=Math.max(0,tcLive-ta);
-              return {...c,tc:tcLive,saldo:saldoLive};
+              return {...c,tc:tcLive,saldo:tcLive};
             }).filter(c=>c.tc>0);
             const totalFiltrado=filtrados.reduce((s,c)=>s+c.saldo,0);
             return(<>
               <div style={S.summCard}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4}}>
-                  <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>Saldo pendiente por cobrar</div>
+                  <div style={{fontSize:11,opacity:0.6,letterSpacing:2,textTransform:"uppercase"}}>{saldoFiltroLive?"Total vendido en "+saldoFiltroLive:"Saldo pendiente por cobrar"}</div>
                   <div style={{display:"flex",gap:6}}>
                   <button onClick={()=>{if(waSent.size>0&&window.confirm("¿Borrar los ✓✓ de todos los clientes?")){setWaSent(new Set());localStorage.removeItem("camely_wa_sent");}}} style={{background:"rgba(0,0,0,0.15)",color:"#fff",border:"none",borderRadius:10,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",display:waSent.size>0?"flex":"none",alignItems:"center"}}>✓✓ {waSent.size}</button>
                   <button onClick={()=>generarPDFCxC()} style={{background:"rgba(255,255,255,0.2)",color:"#fff",border:"none",borderRadius:10,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>📄 CxC</button>
@@ -2440,7 +2477,9 @@ const w=window.open("","_blank");
                           </div>
                           <div style={{textAlign:"right",flexShrink:0}}>
                             <div style={{color:"#F0057F",fontWeight:800,fontSize:16}}>${c.saldo.toFixed(2)}</div>
-                            <div style={{fontSize:10,marginTop:2,color:c.ta>=10?"#2D6A4F":"#E07040"}}>{c.ta>=10?"✓ abono":"sin abono"}</div>
+                            <div style={{fontSize:10,marginTop:2,color:saldoFiltroLive?"#1BB6C8":c.ta>=10?"#2D6A4F":"#E07040"}}>
+                              {saldoFiltroLive?"vendido en este live":c.ta>=10?"✓ abono":"sin abono"}
+                            </div>
                             <div style={{fontSize:11,color:"#1BB6C8",marginTop:2}}>{isExp?"▲ cerrar":"▼ ver compras"}{waSent.has(c.alias)&&<span style={{fontSize:11,color:"#25D366",fontWeight:700,marginLeft:4}}>✓✓</span>}</div>
                           </div>
                           <button onClick={e=>{
