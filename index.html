@@ -306,6 +306,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [resMes,setResMes]=useState("todos");
   const [resAno,setResAno]=useState(String(new Date().getFullYear()));
   const [filtroSinCodLive,setFiltroSinCodLive]=useState("");
+  const [showCOGSDetail,setShowCOGSDetail]=useState(null);
+  const [showProductoDetail,setShowProductoDetail]=useState(null);
   const [costosManuales,setCostosManuales]=useState(()=>{try{return JSON.parse(localStorage.getItem("camely_costos_manuales")||"{}");}catch{return {};}});
   function guardarCostoManual(prenda,costo){
     const upd={...costosManuales,[prenda]:parseFloat(costo)||0};
