@@ -683,20 +683,23 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const allLivesAll=[...new Set(pedidos.map(p=>p.live).filter(Boolean))].sort().reverse();
   const clientesConSaldo=allAliases.filter(a=>a&&a.trim()).map(a=>({alias:a,p:perfil(a),...balance(a)})).filter(c=>c.saldo>0.009).sort((a,b)=>b.saldo-a.saldo);
 
-  const q=searchInv.trim().toLowerCase();
-  const invFiltrado=inventario.filter(i=>!q||
-    (i.descripcion||"").toLowerCase().includes(q)||
-    (i.categoria||"").toLowerCase().includes(q)||
-    (i.talla||"").toLowerCase().includes(q)||
-    (i.importacionNombre||i.importacion||"").toLowerCase().includes(q)||
-    String(i.codigo||i.id||"").toLowerCase().includes(q)
-  );
-  const invDisp=inventario.filter(i=>qtyR(i)>0&&(!q||
-    (i.descripcion||"").toLowerCase().includes(q)||
-    (i.categoria||"").toLowerCase().includes(q)||
-    (i.talla||"").toLowerCase().includes(q)||
-    String(i.codigo||i.id||"").toLowerCase().includes(q)
-  ));
+  const q=searchInv.trim();
+  const qUp=q.toUpperCase();
+  const qNum=q.replace(/^C-?0*/i,"");
+  const matchItem=(i)=>{
+    if(!q) return true;
+    try{
+      const cod=String(i.codigo||i.id||"").toUpperCase();
+      const desc=String(i.descripcion||"").toUpperCase();
+      const cat=String(i.categoria||"").toUpperCase();
+      const talla=String(i.talla||"").toUpperCase();
+      const imp=String(i.importacionNombre||i.importacion||"").toUpperCase();
+      const num=cod.replace(/^C-?0*/,"");
+      return cod.includes(qUp)||desc.includes(qUp)||cat.includes(qUp)||talla.includes(qUp)||imp.includes(qUp)||(qNum&&num===qNum);
+    }catch(e){return false;}
+  };
+  const invFiltrado=inventario.filter(matchItem);
+  const invDisp=inventario.filter(i=>qtyR(i)>0&&matchItem(i));
 
   // ── PDF ──
   function generarPDF(){
