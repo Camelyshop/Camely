@@ -383,6 +383,8 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [showCS,setShowCS]=useState(false);
   const [pagoF,setPagoF]=useState({cliente:"",monto:"",nota:""});
   const [filtroAbonoCli,setFiltroAbonoCli]=useState("");
+  const [editAbonoId,setEditAbonoId]=useState(null);
+  const [livePagoMontos,setLivePagoMontos]=useState({});
   const [showPS,setShowPS]=useState(false);
   const [imgPrev,setImgPrev]=useState(null);
   const [reading,setReading]=useState(false);
@@ -681,6 +683,21 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     const ta=abonos.filter(a=>a.cliente===alias).reduce((s,a)=>s+a.monto,0);
     return{tc,ta,saldo:tc-ta};
   }
+  function balancePorLive(alias){
+    // Returns per-live breakdown with abonos vinculados applied first
+    const lives=[...new Set(pedidos.filter(p=>p.cliente===alias).map(p=>p.live))].sort();
+    const result=lives.map(lv=>{
+      const totalLive=pedidos.filter(p=>p.cliente===alias&&p.live===lv).reduce((s,p)=>s+p.total,0);
+      const abonosVinc=abonos.filter(a=>a.cliente===alias&&a.liveVinculado===lv).reduce((s,a)=>s+a.monto,0);
+      return{live:lv,total:totalLive,pagado:abonosVinc,pendiente:Math.max(0,totalLive-abonosVinc),
+        prendas:pedidos.filter(p=>p.cliente===alias&&p.live===lv)};
+    });
+    // Distribute unlinked abonos (FIFO) to remaining balances
+    const noVinc=abonos.filter(a=>a.cliente===alias&&!a.liveVinculado).reduce((s,a)=>s+a.monto,0);
+    let restante=noVinc;
+    result.forEach(lv=>{const aplicado=Math.min(restante,lv.pendiente);lv.pagado+=aplicado;lv.pendiente=Math.max(0,lv.pendiente-aplicado);restante-=aplicado;});
+    return result;
+  }
   function qtyR(item){
     return item.qty-pedidos.filter(p=>p.invId===item.id).reduce((s,p)=>s+(p.qty||1),0);
   }
@@ -835,11 +852,13 @@ const w=window.open("","_blank");
     };
     reader.readAsDataURL(file);
   }
-  async function registrarPago(){
-    if(!pagoF.cliente.trim()||!pagoF.monto)return;
-    const a={id:Date.now(),fecha:hoy(),live,cliente:pagoF.cliente.trim().toUpperCase(),monto:parseFloat(pagoF.monto),nota:pagoF.nota.trim(),conComp:!!imgPrev};
+  async function registrarPago(liveVinculado=null,montoOverride=null){
+    if(!pagoF.cliente.trim()||(montoOverride===null&&!pagoF.monto))return;
+    const monto=montoOverride!==null?montoOverride:parseFloat(pagoF.monto);
+    if(!monto||monto<=0)return;
+    const a={id:Date.now(),fecha:hoy(),liveVinculado:liveVinculado||null,cliente:pagoF.cliente.trim().toUpperCase(),monto,nota:pagoF.nota.trim(),conComp:!!imgPrev};
     const upd=[...abonos,a];setAbonos(upd);lSet(K.abonos,upd);sheetsSync("saveAbonos",upd);
-    setPagoF({cliente:"",monto:"",nota:""});setImgPrev(null);setShowPS(false);
+    if(!montoOverride){setPagoF({cliente:"",monto:"",nota:""});setImgPrev(null);setShowPS(false);}
     toast_("Pago de $"+a.monto.toFixed(2)+" registrado ✓");
   }
 
@@ -2273,9 +2292,51 @@ const w=window.open("","_blank");
               </div>}
             </div>
             {pagoF.cliente.trim().length>1&&(()=>{const b=balance(pagoF.cliente.trim().toUpperCase());return b.tc>0?(<div style={{background:"#FFF3EC",borderRadius:10,padding:"10px 14px",marginBottom:12}}><div style={{display:"flex",justifyContent:"space-between",fontSize:13}}><span style={{color:"#888"}}>Compró: <b style={{color:"#333"}}>${b.tc.toFixed(2)}</b></span><span style={{color:"#888"}}>Abonó: <b style={{color:"#2D6A4F"}}>${b.ta.toFixed(2)}</b></span></div><div style={{color:"#F0057F",fontWeight:800,fontSize:16,marginTop:4}}>Saldo: ${b.saldo.toFixed(2)}</div></div>):null;})()}
-            <div style={S.fg}><label style={S.lbl}>MONTO ($)</label><input type="number" style={{...S.inp,background:pagoF.monto?"#F0FFF6":"#FDFAF8",borderColor:pagoF.monto?"#A8D5B5":"#EDE0D7"}} placeholder="0.00" value={pagoF.monto} inputMode="decimal" onChange={e=>setPagoF(f=>({...f,monto:e.target.value}))}/></div>
+            {pagoF.cliente.trim()&&(()=>{
+              const cli=pagoF.cliente.trim().toUpperCase();
+              const livesData=balancePorLive(cli);
+              const pendientes=livesData.filter(lv=>lv.pendiente>0.009);
+              if(pendientes.length===0) return <div style={{background:"#E6F4EC",borderRadius:10,padding:"10px 14px",marginBottom:10,fontSize:12,color:"#2D6A4F",fontWeight:700}}>✅ Esta cliente no tiene saldo pendiente</div>;
+              return <div style={{marginBottom:14}}>
+                <label style={S.lbl}>PAGAR POR LIVE</label>
+                {pendientes.map(lv=>{
+                  const fecha=lv.prendas.map(p=>p.fecha).sort()[0]||"";
+                  const key=lv.live;
+                  const montoField=livePagoMontos[key]!==undefined?livePagoMontos[key]:lv.pendiente.toFixed(2);
+                  return <div key={key} style={{background:"#FDFAF8",border:"1.5px solid #EDE0D7",borderRadius:10,padding:"10px 12px",marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:12,color:"#1A1A1A"}}>📅 {fmtFecha(fecha)}</div>
+                        <div style={{fontSize:10,color:"#888"}}>{lv.prendas.length} prenda{lv.prendas.length!==1?"s":""} · Debe: <b style={{color:"#D00"}}>${lv.pendiente.toFixed(2)}</b></div>
+                      </div>
+                      <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                        <input type="number" step="0.01" placeholder="0.00"
+                          value={montoField}
+                          style={{...S.inp,width:80,padding:"6px 8px",fontSize:12,marginBottom:0}}
+                          onChange={e=>setLivePagoMontos(m=>({...m,[key]:e.target.value}))}
+                        />
+                        <button onClick={()=>{
+                          const monto=parseFloat(livePagoMontos[key]!==undefined?livePagoMontos[key]:lv.pendiente)||0;
+                          if(!monto||monto<=0){toast_("Ingresa un monto","err");return;}
+                          if(monto>lv.pendiente+0.01){toast_("El monto supera el saldo de este live","err");return;}
+                          const a={id:Date.now(),fecha:hoy(),liveVinculado:lv.live,cliente:cli,monto,nota:pagoF.nota.trim()||"",conComp:!!imgPrev};
+                          const upd=[...abonos,a];setAbonos(upd);lSet(K.abonos,upd);sheetsSync("saveAbonos",upd);
+                          setLivePagoMontos(m=>{const n={...m};delete n[key];return n;});
+                          toast_("✓ $"+monto.toFixed(2)+" registrado para "+fmtFecha(fecha));
+                        }} style={{background:"#1BB6C8",color:"#fff",border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>
+                          💰 Pagar
+                        </button>
+                      </div>
+                    </div>
+                    <div style={{fontSize:10,color:"#AAA"}}>
+                      {lv.prendas.slice(0,3).map(p=>p.prenda||"Prenda").join(" · ")}{lv.prendas.length>3?" · ...":""}
+                    </div>
+                  </div>;
+                })}
+              </div>;
+            })()}
             <div style={S.fg}><label style={S.lbl}>NOTA (opcional)</label><input style={S.inp} placeholder="Ej: abono semana anterior" value={pagoF.nota} onChange={e=>setPagoF(f=>({...f,nota:e.target.value}))}/></div>
-            <button onClick={registrarPago} disabled={!pagoF.cliente.trim()||!pagoF.monto} style={{...S.btnGreen,opacity:(!pagoF.cliente.trim()||!pagoF.monto)?0.4:1}}>Registrar Pago</button>
+            
           </div>
           {abonos.length>0&&<div style={S.card}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
@@ -2287,12 +2348,38 @@ const w=window.open("","_blank");
             <input style={{...S.inp,marginBottom:10}} placeholder="🔍 Filtrar por cliente..." value={filtroAbonoCli} onChange={e=>setFiltroAbonoCli(e.target.value)}/>
             <div style={{maxHeight:300,overflowY:"auto"}}>
               {[...abonos].filter(a=>!filtroAbonoCli||(a.cliente||"").toUpperCase().includes(filtroAbonoCli.toUpperCase())).reverse().map(a=>(
-                <div key={a.id} style={S.li}>
-                  <div>
-                    <div style={S.liN}>{a.cliente}</div>
-                    <div style={S.liS}>{fmtFecha(a.fecha)}{a.nota?" · "+a.nota:""}{a.conComp?" 📎":""}</div>
+                <div key={a.id} style={{...S.li,flexDirection:"column",alignItems:"stretch",gap:0}}>
+                  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                    <div>
+                      <div style={S.liN}>{a.cliente}</div>
+                      <div style={S.liS}>{fmtFecha(a.fecha)}{a.nota?" · "+a.nota:""}{a.conComp?" 📎":""}{a.liveVinculado&&<span style={{fontSize:9,background:"#E8F9FB",color:"#1BB6C8",borderRadius:4,padding:"1px 4px",marginLeft:4}}>{a.liveVinculado}</span>}</div>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:6}}>
+                      <div style={{...S.liA,color:"#2D6A4F",fontWeight:700}}>+${a.monto.toFixed(2)}</div>
+                      {!a.liveVinculado&&<button onClick={()=>setEditAbonoId(a.id===editAbonoId?null:a.id)}
+                        style={{background:"#F5EDE4",border:"none",borderRadius:6,padding:"3px 8px",fontSize:10,color:"#888",cursor:"pointer"}}>
+                        {a.id===editAbonoId?"✕":"✏️ Live"}
+                      </button>}
+                    </div>
                   </div>
-                  <div style={{...S.liA,color:"#2D6A4F",fontWeight:700}}>+${a.monto.toFixed(2)}</div>
+                  {editAbonoId===a.id&&(()=>{
+                    const clienteLives=[...new Set(pedidos.filter(p=>p.cliente===a.cliente).map(p=>p.live))].sort();
+                    return <div style={{padding:"8px 4px",borderTop:"1px solid #F0F0F0",marginTop:4}}>
+                      <div style={{fontSize:10,color:"#888",marginBottom:6}}>Asignar al live:</div>
+                      <div style={{display:"flex",flexWrap:"wrap",gap:4}}>
+                        {clienteLives.map(lv=>(
+                          <button key={lv} onClick={()=>{
+                            const upd=abonos.map(x=>x.id===a.id?{...x,liveVinculado:lv}:x);
+                            setAbonos(upd);lSet(K.abonos,upd);sheetsSync("saveAbonos",upd);
+                            setEditAbonoId(null);
+                            toast_("✓ Abono vinculado a "+lv);
+                          }} style={{background:"#E8F9FB",color:"#1BB6C8",border:"1.5px solid #1BB6C8",borderRadius:8,padding:"4px 10px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                            {lv}
+                          </button>
+                        ))}
+                      </div>
+                    </div>;
+                  })()}
                 </div>
               ))}
               {filtroAbonoCli&&abonos.filter(a=>(a.cliente||"").toUpperCase().includes(filtroAbonoCli.toUpperCase())).length===0&&
@@ -2562,22 +2649,38 @@ const w=window.open("","_blank");
                           </div>
                           <button onClick={e=>{
                             e.stopPropagation();
-                            const cps=pedidos.filter(p=>p.cliente===c.alias&&(!saldoFiltroLive||p.live===saldoFiltroLive));
+                            const todosLosPedidos=pedidos.filter(p=>p.cliente===c.alias);
                             const abo=abonos.filter(a=>a.cliente===c.alias);
-                            const tc=cps.reduce((s,p)=>s+p.total,0);
+                            const tcTotal=todosLosPedidos.reduce((s,p)=>s+p.total,0);
                             const ta=abo.reduce((s,a)=>s+a.monto,0);
-                            const saldo=tc-ta;
+                            const saldoTotal=tcTotal-ta;
+                            // Build per-live breakdown to show only lives with pending balance
+                            const livesData=balancePorLive(c.alias);
+                            const livesPendientes=livesData.filter(lv=>lv.pendiente>0.009);
+                            const cps=saldoFiltroLive
+                              ?todosLosPedidos.filter(p=>p.live===saldoFiltroLive)
+                              :livesPendientes.flatMap(lv=>lv.prendas);
+                            const tc=cps.reduce((s,p)=>s+p.total,0);
+                            const saldo=saldoTotal;
                             let msg="✨ *Camely Ropa Infantil* ✨\n";
                             msg+="━━━━━━━━━━━━━━━━━━\n";
                             msg+="👋 Hola *"+c.alias+"*!\n\n";
                             msg+="💰 *Resumen de tu cuenta:*\n";
-                            msg+="🛒 Compras:\t $"+tc.toFixed(2)+"\n";
+                            msg+="🛒 Total compras:\t $"+tcTotal.toFixed(2)+"\n";
                             msg+="✅ Abonado:\t $"+ta.toFixed(2)+"\n";
                             msg+="🔴 *Pendiente: $"+saldo.toFixed(2)+"*\n";
                             if(cps.length>0){
-                              msg+="\n📋 *Detalle:*\n";
-                              cps.slice(0,8).forEach(p=>{msg+="  • "+p.prenda+(p.prenda==="-"?"Prenda":"")+": $"+p.total.toFixed(2)+"\n";});
-                              if(cps.length>8) msg+="  ... y "+(cps.length-8)+" más\n";
+                              msg+="\n📋 *Prendas pendientes de pago:*\n";
+                              // Group by live
+                              const byLive={};
+                              cps.forEach(p=>{if(!byLive[p.live])byLive[p.live]=[];byLive[p.live].push(p);});
+                              (saldoFiltroLive?[{live:saldoFiltroLive,prendas:cps}]:livesPendientes).forEach(lv=>{
+                                const fechaLive=lv.prendas.map(p=>p.fecha).sort()[0]||"";
+                                const fechaLabel=fechaLive?fmtFecha(fechaLive):lv.live;
+                                msg+="\n📅 "+fechaLabel+" — $"+lv.pendiente.toFixed(2)+" pendiente\n";
+                                lv.prendas.slice(0,6).forEach(p=>{msg+="  • "+(p.prenda||"Prenda")+": $"+p.total.toFixed(2)+"\n";});
+                                if(lv.prendas.length>6) msg+="  ... y "+(lv.prendas.length-6)+" más\n";
+                              });
                             }
                             msg+="\n─────────────────\n";
                             msg+="🏦 *Cuentas bancarias:*\n";
