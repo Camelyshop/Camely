@@ -635,10 +635,19 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   function fmtFecha(f){
     if(!f) return "";
     try{
-      const d=new Date(f.includes("T")?f:f+"T12:00:00");
-      const mo=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
-      return d.getDate()+"-"+mo[d.getMonth()]+"-"+d.getFullYear();
-    }catch{return f;}
+      const MESES_ABR=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+      // Already in DD-Mon-YYYY format (from hoy())
+      if(/^\d{1,2}-[A-Za-z]{3}-\d{4}$/.test(String(f))) return String(f);
+      // ISO format YYYY-MM-DD
+      if(/^\d{4}-\d{2}-\d{2}/.test(String(f))){
+        const p=String(f).split("T")[0].split("-");
+        return parseInt(p[2])+"-"+MESES_ABR[parseInt(p[1])-1]+"-"+p[0];
+      }
+      // Try generic Date parse as fallback
+      const d=new Date(f);
+      if(isNaN(d.getTime())) return String(f);
+      return d.getDate()+"-"+MESES_ABR[d.getMonth()]+"-"+d.getFullYear();
+    }catch{return String(f||"");}
   }
   function marcarWASent(alias){
     setWaSent(prev=>{const n=new Set(prev);n.add(alias);localStorage.setItem("camely_wa_sent",JSON.stringify([...n]));return n;});
@@ -1829,6 +1838,21 @@ const w=window.open("","_blank");
                 <div key={k} style={{marginBottom:10}}><div style={{fontSize:10,color:"#AAA",letterSpacing:1,textTransform:"uppercase",marginBottom:1}}>{k}</div><div style={{fontSize:15,fontWeight:700,color:"#1A1A1A"}}>{v}</div></div>
               ):null)}
             </div>
+            {/* WhatsApp shipping data button */}
+            <button onClick={()=>{
+              const p=showPerfilModal.perfil||{};
+              const nombre=p.nombre||showPerfilModal.alias||"";
+              const tel=p.whatsapp||p.telefono||"";
+              const dir=p.direccion||"";
+              const ciudad=p.ciudad||"";
+              const lineas=["📦 *Datos de envío*","━━━━━━━━━━━━━━━━━━","👤 *Destinatario:* "+nombre,"📞 *Teléfono:* "+(tel||"—"),"📍 *Dirección:* "+(dir||"—"),"🏙 *Ciudad:* "+(ciudad||"—")];
+              const msg=encodeURIComponent(lineas.join("\n"));
+              const num=tel.replace(/[^0-9]/g,"");
+              const url=num?"https://wa.me/593"+num.replace(/^0/,"")+"?text="+msg:"https://wa.me/?text="+msg;
+              window.open(url,"_blank");
+            }} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,width:"100%",background:"#25D366",color:"#fff",border:"none",borderRadius:10,padding:"11px",fontSize:13,fontWeight:700,cursor:"pointer",marginTop:10,marginBottom:6}}>
+              <span>📲</span><span>Enviar datos de envío por WhatsApp</span>
+            </button>
             <button onClick={()=>{const al=(showPerfilModal.alias||"").toUpperCase();const cli=clientes.find(c=>(c.alias||"").toUpperCase()===al);setShowPerfilModal(null);if(cli){if(!cli.id){const updC=clientes.map(c=>(c.alias||"").toUpperCase()===al?{...c,id:Date.now()}:c);setClientes(updC);lSet(K.clientes,updC);abrirCliente({...cli,id:Date.now()});}else abrirCliente(cli);}else{abrirCliente();setCliF(f=>({...f,alias:showPerfilModal.alias}));}}} style={{...S.btnD,width:"100%",marginTop:10,fontSize:13}}>✏️ Editar datos</button>
           </div>):(
             <div style={{textAlign:"center",color:"#aaa",padding:"16px 0",fontSize:13}}>
@@ -2555,9 +2579,9 @@ const w=window.open("","_blank");
             <div style={{textAlign:"center",padding:"40px 0",color:"#bbb"}}><div style={{fontSize:32,marginBottom:8}}>👥</div><div style={{fontSize:14}}>Sin clientes registrados</div></div>
           ):(
             <div className={isDesk?"desktop-grid":""} style={isDesk?{gap:16}:{}}>
-              {clientes.filter(c=>!searchCli||(c.alias||"").toUpperCase().includes(searchCli.toUpperCase())||(c.nombre||"").toLowerCase().includes(searchCli.toLowerCase())||(c.tiktok||"").toLowerCase().includes(searchCli.toLowerCase())).map((c,i,arr)=>{
+              {clientes.filter(c=>!searchCli||(c.alias||"").toUpperCase().includes(searchCli.toUpperCase())||(c.nombre||"").toLowerCase().includes(searchCli.toLowerCase())||(c.tiktok||"").toLowerCase().includes(searchCli.toLowerCase())).filter(c=>c&&(c.alias||c.nombre||c.id)).map((c,i,arr)=>{
                 const b=balance(c.alias);
-                return(<div key={c.id} style={{...S.li,borderBottom:i<arr.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13}}>
+                return(<div key={c.id||c.alias||i} style={{...S.li,borderBottom:i<arr.length-1?"1px solid #F5EDE4":"none",alignItems:"flex-start",paddingTop:13,paddingBottom:13}}>
                   <div style={{flex:1,cursor:"pointer"}} onClick={()=>setShowPerfilModal({alias:c.alias,perfil:c})}>
                     <div style={{fontSize:15,fontWeight:800,color:"#1A1A1A"}}>{c.alias}</div>
                     <div style={{fontSize:12,color:"#888",marginTop:1}}>{c.nombre}</div>
@@ -2692,7 +2716,10 @@ const w=window.open("","_blank");
                             msg+="  Guayaquil *$3.60* · Provincia *$6.50*\n";
                             if(diaEnvio){const d=new Date(diaEnvio+"T12:00:00");const dias=["domingo","lunes","martes","miércoles","jueves","viernes","sábado"];const meses=["ene","feb","mar","abr","may","jun","jul","ago","sep","oct","nov","dic"];msg+="📅 *Día de envío: "+dias[d.getDay()]+" "+d.getDate()+" de "+meses[d.getMonth()]+"*\n";}
                             msg+="\n💕 ¡Gracias por tu compra en Camely!";
-                            window.open("https://wa.me/?text="+encodeURIComponent(msg),"_blank");marcarWASent(c.alias);
+                            const cliP=perfil(c.alias);
+                            const telP=(cliP?.whatsapp||cliP?.telefono||"").replace(/[^0-9]/g,"");
+                            const waUrl=telP?"https://wa.me/593"+telP.replace(/^0/,"")+"?text="+encodeURIComponent(msg):"https://wa.me/?text="+encodeURIComponent(msg);
+                            window.open(waUrl,"_blank");marcarWASent(c.alias);
                           }} style={{background:"#25D366",border:"none",borderRadius:8,padding:"5px 10px",fontSize:11,color:"#fff",fontWeight:700,cursor:"pointer",display:"flex",alignItems:"center",gap:4,marginTop:4,flexShrink:0}}>
                             <span>📲</span><span>WhatsApp</span>
                           </button>
@@ -2716,7 +2743,11 @@ const w=window.open("","_blank");
                           {compras.length===0?<div style={{fontSize:12,color:"#aaa"}}>Sin compras en este live</div>:
                             compras.map(p=>(
                               <div key={p.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"5px 0",borderBottom:"1px solid #EEF",fontSize:12}}>
-                                <div style={{flex:1}}><span style={{color:"#AAA",fontSize:10}}>{p.live} · {p.fecha}</span><br/><span style={{fontWeight:600}}>{p.prenda!=="-"?p.prenda:"Prenda"}</span></div>
+                                <div style={{flex:1}}>
+                                  <span style={{color:"#AAA",fontSize:10}}>{p.live} · {fmtFecha(p.fecha)}</span><br/>
+                                  <span style={{fontWeight:600}}>{p.prenda!=="-"?p.prenda:"Prenda"}</span>
+                                  <span style={{fontSize:10,color:"#1BB6C8",marginLeft:6,fontWeight:700}}>{p.invId||"—"}</span>
+                                </div>
                                 <div style={{textAlign:"right",fontWeight:700,color:"#1BB6C8",marginRight:8}}>${p.total.toFixed(2)}</div>
                                 <button onClick={()=>{if(canAdmin||window.confirm("¿Segura que deseas eliminar esta compra?"))eliminarPedido(p.id);}} style={{background:"#FFE4E4",color:"#D00",border:"none",borderRadius:6,padding:"3px 7px",fontSize:11,cursor:"pointer",flexShrink:0}}>✕</button>
                               </div>
