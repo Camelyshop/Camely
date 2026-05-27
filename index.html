@@ -288,6 +288,9 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [showClienteModal,setShowClienteModal]=useState(false);
   const [cliImgLoading,setCliImgLoading]=useState(false);
   const [showGuiasModal,setShowGuiasModal]=useState(false);
+  const [showFusionModal,setShowFusionModal]=useState(false);
+  const [fusionPares,setFusionPares]=useState([]);
+  const [fusionIdx,setFusionIdx]=useState(0);
   const [guiasQueue,setGuiasQueue]=useState([]);   // [{file,b64,status,extracted,matched,action}]
   const [guiasProcesando,setGuiasProcesando]=useState(false);
   const [guiasCurrent,setGuiasCurrent]=useState(0);
@@ -540,6 +543,51 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
     setCliImgLoading(false);
   }
   // Flexible name match: checks how many words from guia appear in cliente alias/nombre
+  function similaridad(a,b){
+    const norm=s=>s.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^A-Z0-9]/g," ").trim();
+    const wa=norm(a).split(" ").filter(w=>w.length>1);
+    const wb=norm(b).split(" ").filter(w=>w.length>1);
+    if(!wa.length||!wb.length) return 0;
+    const matches=wa.filter(w=>wb.some(v=>v===w||v.startsWith(w)||w.startsWith(v)));
+    return matches.length/Math.max(wa.length,wb.length);
+  }
+  function detectarDuplicados(){
+    const pares=[];
+    const vistos=new Set();
+    clientes.forEach((a,i)=>{
+      clientes.slice(i+1).forEach(b=>{
+        const key=[a.alias||a.id,b.alias||b.id].sort().join("|||");
+        if(vistos.has(key)) return;
+        const score=similaridad(a.alias||a.nombre||"",b.alias||b.nombre||"");
+        if(score>=0.5){vistos.add(key);pares.push({a,b,score});}
+      });
+    });
+    return pares.sort((x,y)=>y.score-x.score);
+  }
+  function fusionarClientes(principal,secundario){
+    // Move all pedidos from secundario to principal
+    const updPed=pedidos.map(p=>p.cliente===secundario.alias?{...p,cliente:principal.alias}:p);
+    // Move all abonos from secundario to principal
+    const updAbo=abonos.map(a=>a.cliente===secundario.alias?{...a,cliente:principal.alias}:a);
+    // Merge data: fill empty fields of principal with secundario data
+    const updCli=clientes.map(c=>{
+      if(c.alias===principal.alias) return{...c,
+        nombre:c.nombre||secundario.nombre||"",
+        telefono:c.telefono||secundario.telefono||"",
+        whatsapp:c.whatsapp||secundario.whatsapp||"",
+        ciudad:c.ciudad||secundario.ciudad||"",
+        direccion:c.direccion||secundario.direccion||"",
+        tiktok:c.tiktok||secundario.tiktok||"",
+        cedula:c.cedula||secundario.cedula||""
+      };
+      if(c.alias===secundario.alias) return null;
+      return c;
+    }).filter(Boolean);
+    setPedidos(updPed);lSet(K.pedidos,updPed);sheetsSync("savePedidos",updPed);
+    setAbonos(updAbo);lSet(K.abonos,updAbo);sheetsSync("saveAbonos",updAbo);
+    setClientes(updCli);lSet(K.clientes,updCli);sheetsSync("saveClientes",updCli);
+    toast_("✓ Fusionado: "+secundario.alias+" → "+principal.alias);
+  }
   function matchScore(guiaNombre, cliente){
     const norm=s=>s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^A-Z0-9 ]/g," ").trim().replace(/\s+/g," ");
     const gNorm=norm(guiaNombre);
@@ -1930,6 +1978,59 @@ const w=window.open("","_blank");
           </div>
         </div>;
       })()}
+      {/* MODAL FUSIONAR DUPLICADOS */}
+      {showFusionModal&&fusionPares.length>0&&(()=>{
+        const par=fusionPares[fusionIdx];
+        const bA=balance(par.a.alias);const bB=balance(par.b.alias);
+        const pedA=pedidos.filter(p=>p.cliente===par.a.alias).length;
+        const pedB=pedidos.filter(p=>p.cliente===par.b.alias).length;
+        return <div style={S.ov} onClick={()=>setShowFusionModal(false)}>
+          <div style={{...S.sh,maxWidth:500}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+              <div style={S.shT}>🔀 Posible duplicado</div>
+              <div style={{fontSize:11,color:"#888"}}>{fusionIdx+1} / {fusionPares.length}</div>
+            </div>
+            <div style={{fontSize:11,color:"#888",marginBottom:14,textAlign:"center"}}>
+              Similitud: {Math.round(par.score*100)}% — ¿Son la misma persona?
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:14}}>
+              {[{cli:par.a,b:bA,ped:pedA},{cli:par.b,b:bB,ped:pedB}].map(({cli,b,ped},i)=>(
+                <div key={i} style={{background:"#F5FDFE",borderRadius:12,padding:"12px 10px",border:"1.5px solid #D0F2F6"}}>
+                  <div style={{fontWeight:900,fontSize:14,color:"#1BB6C8",marginBottom:6}}>{cli.alias}</div>
+                  {cli.nombre&&cli.nombre!==cli.alias&&<div style={{fontSize:11,color:"#555",marginBottom:2}}>{cli.nombre}</div>}
+                  {cli.telefono&&<div style={{fontSize:11,color:"#888"}}>📞 {cli.telefono}</div>}
+                  {cli.ciudad&&<div style={{fontSize:11,color:"#888"}}>📍 {cli.ciudad}</div>}
+                  {cli.direccion&&<div style={{fontSize:10,color:"#AAA",marginTop:2}}>{cli.direccion.substring(0,30)}</div>}
+                  <div style={{marginTop:8,paddingTop:6,borderTop:"1px solid #E8F9FB",fontSize:11}}>
+                    <span style={{color:"#F0057F",fontWeight:700}}>{ped} pedido{ped!==1?"s":""}</span>
+                    <span style={{color:"#888",marginLeft:6}}>${b.tc.toFixed(2)} vendido</span>
+                  </div>
+                  {b.saldo>0&&<div style={{fontSize:11,color:"#D00",fontWeight:700}}>Debe ${b.saldo.toFixed(2)}</div>}
+                </div>
+              ))}
+            </div>
+            <div style={{fontSize:11,color:"#888",textAlign:"center",marginBottom:10}}>
+              El cliente principal conserva su alias. El secundario se elimina y sus pedidos pasan al principal.
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:6}}>
+              <button onClick={()=>{fusionarClientes(par.a,par.b);const np=fusionPares.filter((_,i)=>i!==fusionIdx);setFusionPares(np);if(np.length===0){setShowFusionModal(false);}else{setFusionIdx(Math.min(fusionIdx,np.length-1));}}}
+                style={{...S.btnD,background:"#1BB6C8",fontSize:12}}>
+                ← Conservar <b>{par.a.alias}</b> (eliminar {par.b.alias})
+              </button>
+              <button onClick={()=>{fusionarClientes(par.b,par.a);const np=fusionPares.filter((_,i)=>i!==fusionIdx);setFusionPares(np);if(np.length===0){setShowFusionModal(false);}else{setFusionIdx(Math.min(fusionIdx,np.length-1));}}}
+                style={{...S.btnD,background:"#8B5CF6",fontSize:12}}>
+                Conservar <b>{par.b.alias}</b> (eliminar {par.a.alias}) →
+              </button>
+              <button onClick={()=>{const np=fusionPares.filter((_,i)=>i!==fusionIdx);setFusionPares(np);if(np.length===0){setShowFusionModal(false);}else{setFusionIdx(Math.min(fusionIdx,np.length-1));}}}
+                style={{background:"#F5F5F5",border:"none",borderRadius:10,padding:"10px",fontSize:12,color:"#888",cursor:"pointer",fontWeight:600}}>
+                ✗ No son la misma persona — saltar
+              </button>
+            </div>
+            <button onClick={()=>setShowFusionModal(false)} style={{...S.cancelBtn,marginTop:8}}>Cerrar</button>
+          </div>
+        </div>;
+      })()}
+
       {/* MODAL CLIENTE */}
       {showGuiasModal&&<div style={S.ov} onClick={()=>!guiasProcesando&&setShowGuiasModal(false)}>
         <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
@@ -2564,6 +2665,7 @@ const w=window.open("","_blank");
             <input style={{...S.inp,flex:1,marginBottom:0}} placeholder="🔍 Alias, nombre, TikTok..." value={searchCli} onChange={e=>setSearchCli(e.target.value)}/>
             <button onClick={()=>abrirCliente()} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0}}>+ Nuevo</button>
             <button onClick={()=>{setGuiasQueue([]);setShowGuiasModal(true);}} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0,background:"#10B981"}}>📷 Guías</button>
+            <button onClick={()=>{const p=detectarDuplicados();if(p.length===0){toast_("✓ Sin duplicados detectados");return;}setFusionPares(p);setFusionIdx(0);setShowFusionModal(true);}} style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0,background:"#8B5CF6"}}>🔀 Fusionar</button>
             <label title="Importar clientes desde JSON (Servientrega)" style={{...S.btnD,width:"auto",padding:"12px 14px",fontSize:13,flexShrink:0,cursor:"pointer",background:"#10B981",border:"none",borderRadius:12,color:"#fff",fontWeight:700,display:"flex",alignItems:"center",gap:4}}>
               📥
               <input type="file" accept=".json" style={{display:"none"}} onChange={e=>{
