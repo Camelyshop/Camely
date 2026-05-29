@@ -303,6 +303,11 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
   const [cargosTarjeta,setCargosTarjeta]=useState([]);
   // Importaciones
   const [importaciones,setImportaciones]=useState([]);
+  const [consignaciones,setConsignaciones]=useState(()=>{try{return JSON.parse(localStorage.getItem("camely_consig")||"[]");}catch{return [];}});
+  const [showConsigModal,setShowConsigModal]=useState(false);
+  const [consigF,setConsigF]=useState({nombre:"",proveedor:"",items:[{desc:"",cant:"",costo:""}]});
+  const [showCobrarLive,setShowCobrarLive]=useState(false);
+  const [cobrarWASent,setCobrarWASent]=useState(new Set());
   const [gastos,setGastos]=useState([]);
   const [estadosCuenta,setEstadosCuenta]=useState([]);
   // Resumen date filter
@@ -563,6 +568,23 @@ function App({onLogout, currentUser}){ const canFinanciero=["stefy","admin"].inc
       });
     });
     return pares.sort((x,y)=>y.score-x.score);
+  }
+  function guardarConsig(){
+    if(!consigF.nombre.trim()){toast_("Ingresa un nombre para el lote","err");return;}
+    const items=consigF.items.filter(i=>i.desc.trim()&&parseFloat(i.costo)>0).map((i,idx)=>({
+      id:"ci-"+Date.now()+"-"+idx,
+      descripcion:i.desc.trim(),
+      cantidad:parseInt(i.cant)||1,
+      costoUnit:parseFloat(i.costo)||0
+    }));
+    if(items.length===0){toast_("Agrega al menos una prenda con costo","err");return;}
+    const lote={id:Date.now(),tipo:"consignacion",nombre:consigF.nombre.trim(),
+      proveedor:consigF.proveedor.trim(),fecha:hoy(),estado:"activo",items};
+    const upd=[...consignaciones,lote];
+    setConsignaciones(upd);localStorage.setItem("camely_consig",JSON.stringify(upd));
+    setConsigF({nombre:"",proveedor:"",items:[{desc:"",cant:"",costo:""}]});
+    setShowConsigModal(false);
+    toast_("✓ Lote de consignación creado: "+lote.nombre);
   }
   function fusionarClientes(principal,secundario){
     // Move all pedidos from secundario to principal
@@ -859,7 +881,7 @@ const w=window.open("","_blank");
     if(!form.cliente.trim()||!form.pvp)return;
     const qty=parseInt(form.qty)||1,pvp=parseFloat(form.pvp);
     const clienteAlias=form.cliente.trim().toUpperCase();
-    const item={id:Date.now(),fecha:hoy(),live,cliente:clienteAlias,prenda:form.prenda.trim()||"-",pvp,qty,total:pvp*qty,invId:form.invId||null};
+    const item={id:Date.now(),fecha:hoy(),live,cliente:clienteAlias,prenda:form.prenda.trim()||"-",pvp,qty,total:pvp*qty,invId:form.invId||null,consignItemId:form.consignItemId||null,consignLoteId:form.consignLoteId||null};
     const upd=[...pedidos,item];setPedidos(upd);lSet(K.pedidos,upd);sheetsSync("savePedidos",upd);
     // Auto-crear cliente si no existe
     const existe=clientes.find(c=>(c.alias||"").toUpperCase()===clienteAlias);
@@ -1978,6 +2000,140 @@ const w=window.open("","_blank");
           </div>
         </div>;
       })()}
+      {/* MODAL COBRAR ESTE LIVE */}
+      {showCobrarLive&&(()=>{
+        // Group pedidos of current live by client
+        const pedLive=pedidos.filter(p=>p.live===live);
+        const clientesLive=[...new Set(pedLive.map(p=>p.cliente))].sort();
+        return <div style={S.ov} onClick={()=>setShowCobrarLive(false)}>
+          <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+              <div style={S.shT}>📲 Cobrar — {live}</div>
+              <div style={{fontSize:11,color:"#888"}}>{clientesLive.filter(a=>!cobrarWASent.has(a)).length} pendientes</div>
+            </div>
+            <div style={{fontSize:11,color:"#888",marginBottom:12}}>
+              Toca el botón de cada cliente para enviar su cobro por WhatsApp. Solo muestra las prendas de este live.
+            </div>
+            {clientesLive.map(alias=>{
+              const cliPeds=pedLive.filter(p=>p.cliente===alias);
+              const totalLive=cliPeds.reduce((s,p)=>s+p.total,0);
+              const abonosLive=abonos.filter(a=>a.cliente===alias&&a.liveVinculado===live).reduce((s,a)=>s+a.monto,0);
+              const abonosLibres=abonos.filter(a=>a.cliente===alias&&!a.liveVinculado).reduce((s,a)=>s+a.monto,0);
+              // Apply free abonos proportionally
+              const saldoGlobal=balance(alias).saldo;
+              const saldoEste=Math.max(0,totalLive-abonosLive-Math.max(0,abonosLibres-(balance(alias).tc-totalLive)));
+              const sent=cobrarWASent.has(alias);
+              const cliP=perfil(alias);
+              const tel=(cliP?.whatsapp||cliP?.telefono||"").replace(/[^0-9]/g,"");
+              return <div key={alias} style={{background:sent?"#E6F4EC":"#fff",border:"1.5px solid "+(sent?"#A7F3D0":"#EEE"),borderRadius:12,padding:"10px 12px",marginBottom:8}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:6}}>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:13,color:sent?"#2D6A4F":"#1A1A1A"}}>{sent?"✓✓ ":""}{alias}</div>
+                    <div style={{fontSize:10,color:"#888"}}>{cliPeds.length} prenda{cliPeds.length!==1?"s":""} · Total: <b>${totalLive.toFixed(2)}</b></div>
+                  </div>
+                  <div style={{textAlign:"right"}}>
+                    <div style={{fontWeight:900,fontSize:14,color:saldoEste>0.01?"#D00":"#2D6A4F"}}>${saldoEste.toFixed(2)}</div>
+                    <div style={{fontSize:9,color:"#AAA"}}>pendiente este live</div>
+                  </div>
+                </div>
+                <div style={{fontSize:10,color:"#AAA",marginBottom:8}}>
+                  {cliPeds.slice(0,3).map(p=>p.prenda||"Prenda").join(" · ")}{cliPeds.length>3?" · ...":""}
+                </div>
+                <button onClick={()=>{
+                  const fecha=cliPeds.map(p=>p.fecha).sort()[0]||hoy();
+                  const lineas=[
+                    "✨ *Camely Ropa Infantil* ✨",
+                    "━━━━━━━━━━━━━━━━━━",
+                    "👋 Hola *"+alias+"*!",
+                    "",
+                    "🛒 *Tu compra del "+fmtFecha(fecha)+":*"
+                  ];
+                  cliPeds.forEach(p=>{lineas.push("  • "+(p.prenda||"Prenda")+": $"+(p.total||0).toFixed(2));});
+                  lineas.push("");
+                  lineas.push("💰 Total: $"+totalLive.toFixed(2));
+                  if(abonosLive>0) lineas.push("✅ Abonado: $"+abonosLive.toFixed(2));
+                  if(saldoEste>0.01){
+                    lineas.push("🔴 *Pendiente: $"+saldoEste.toFixed(2)+"*");
+                    lineas.push("");
+                    lineas.push("─────────────────");
+                    lineas.push("🏦 Banco Pichincha Ahorros *2203554582*");
+                    lineas.push("🏦 Banco Guayaquil Ahorros *0029388062*");
+                    lineas.push("📋 Cédula *0926345752* Martha Rosado");
+                  } else {
+                    lineas.push("✅ *¡Gracias! Tu cuenta está al día* 🌸");
+                  }
+                  lineas.push("");
+                  lineas.push("💕 ¡Gracias por tu compra en Camely!");
+                  const msg=encodeURIComponent(lineas.join("\n"));
+                  const url=tel?"https://wa.me/593"+tel.replace(/^0/,"")+"?text="+msg:"https://wa.me/?text="+msg;
+                  window.open(url,"_blank");
+                  setCobrarWASent(s=>new Set([...s,alias]));
+                }} style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,width:"100%",
+                  background:sent?"#A7F3D0":"#25D366",color:sent?"#2D6A4F":"#fff",
+                  border:"none",borderRadius:8,padding:"9px",fontSize:12,fontWeight:700,cursor:"pointer"}}>
+                  <span>📲</span><span>{sent?"Reenviar":"Enviar cobro por WhatsApp"}</span>
+                </button>
+              </div>;
+            })}
+            <div style={{marginTop:6,display:"flex",gap:6}}>
+              <div style={{flex:1,background:"#F5FDFE",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                <div style={{fontWeight:900,color:"#1BB6C8",fontSize:16}}>{clientesLive.length}</div>
+                <div style={{fontSize:10,color:"#888"}}>clientes</div>
+              </div>
+              <div style={{flex:1,background:"#FEF2F2",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                <div style={{fontWeight:900,color:"#D00",fontSize:16}}>{clientesLive.filter(a=>!cobrarWASent.has(a)).length}</div>
+                <div style={{fontSize:10,color:"#888"}}>sin enviar</div>
+              </div>
+              <div style={{flex:1,background:"#E6F4EC",borderRadius:10,padding:"10px",textAlign:"center"}}>
+                <div style={{fontWeight:900,color:"#2D6A4F",fontSize:16}}>{cobrarWASent.size}</div>
+                <div style={{fontSize:10,color:"#888"}}>enviados ✓✓</div>
+              </div>
+            </div>
+            <button onClick={()=>setShowCobrarLive(false)} style={{...S.cancelBtn,marginTop:10}}>Cerrar</button>
+          </div>
+        </div>;
+      })()}
+
+      {/* MODAL CONSIGNACIÓN */}
+      {showConsigModal&&<div style={S.ov} onClick={()=>setShowConsigModal(false)}>
+        <div style={{...S.sh,maxHeight:"90vh",overflowY:"auto"}} onClick={e=>e.stopPropagation()}>
+          <div style={S.shT}>📦 Nuevo Lote de Consignación</div>
+          <div style={S.fg}><label style={S.lbl}>NOMBRE DEL LOTE</label>
+            <input style={S.inp} placeholder="Consig. Mayo-2026" value={consigF.nombre}
+              onChange={e=>setConsigF(f=>({...f,nombre:e.target.value}))}/></div>
+          <div style={S.fg}><label style={S.lbl}>PROVEEDOR</label>
+            <input style={S.inp} placeholder="Nombre del proveedor" value={consigF.proveedor}
+              onChange={e=>setConsigF(f=>({...f,proveedor:e.target.value}))}/></div>
+          <div style={{marginBottom:12}}>
+            <label style={S.lbl}>PRENDAS DEL LOTE</label>
+            {consigF.items.map((item,i)=>(
+              <div key={i} style={{display:"flex",gap:6,marginBottom:6,alignItems:"center"}}>
+                <input style={{...S.inp,flex:2,marginBottom:0}} placeholder="Descripción" value={item.desc}
+                  onChange={e=>setConsigF(f=>({...f,items:f.items.map((x,j)=>j===i?{...x,desc:e.target.value}:x)}))}/>
+                <input type="number" style={{...S.inp,width:55,marginBottom:0,padding:"8px 6px"}} placeholder="Cant." value={item.cant}
+                  onChange={e=>setConsigF(f=>({...f,items:f.items.map((x,j)=>j===i?{...x,cant:e.target.value}:x)}))}/>
+                <input type="number" style={{...S.inp,width:70,marginBottom:0,padding:"8px 6px"}} placeholder="$Costo" value={item.costo}
+                  onChange={e=>setConsigF(f=>({...f,items:f.items.map((x,j)=>j===i?{...x,costo:e.target.value}:x)}))}/>
+                {consigF.items.length>1&&<button onClick={()=>setConsigF(f=>({...f,items:f.items.filter((_,j)=>j!==i)}))}
+                  style={{background:"#FEE2E2",border:"none",borderRadius:8,padding:"6px 8px",color:"#D00",cursor:"pointer",flexShrink:0}}>✕</button>}
+              </div>
+            ))}
+            <button onClick={()=>setConsigF(f=>({...f,items:[...f.items,{desc:"",cant:"",costo:""}]}))}
+              style={{background:"#F5F5F5",border:"1px dashed #CCC",borderRadius:8,padding:"7px 14px",fontSize:12,color:"#888",cursor:"pointer",width:"100%",marginTop:4}}>
+              + Agregar prenda
+            </button>
+            {consigF.items.filter(i=>i.desc&&i.costo).length>0&&(()=>{
+              const tot=consigF.items.filter(i=>i.desc&&i.costo).reduce((s,i)=>(parseInt(i.cant)||1)*parseFloat(i.costo)+s,0);
+              return <div style={{marginTop:8,fontSize:11,color:"#888",textAlign:"right"}}>
+                {consigF.items.filter(i=>i.desc).length} prendas · Costo total si se vende todo: <b>${tot.toFixed(2)}</b>
+              </div>;
+            })()}
+          </div>
+          <button onClick={guardarConsig} style={{...S.btnD,background:"#8B5CF6",marginBottom:6}}>✓ Crear lote</button>
+          <button onClick={()=>setShowConsigModal(false)} style={S.cancelBtn}>Cancelar</button>
+        </div>
+      </div>}
+
       {/* MODAL FUSIONAR DUPLICADOS */}
       {showFusionModal&&fusionPares.length>0&&(()=>{
         const par=fusionPares[fusionIdx];
@@ -2368,8 +2524,28 @@ const w=window.open("","_blank");
             <div style={{marginBottom:10}}>
               <label style={S.lbl}>PRENDA</label>
               <div style={{display:"flex",gap:8}}>
-                <input style={{...S.inp,flex:1}} placeholder="Descripción de la prenda" value={form.prenda} onChange={e=>setForm(f=>({...f,prenda:e.target.value,invId:null}))}/>
-                
+                <input style={{...S.inp,flex:1}} placeholder="Descripción de la prenda" value={form.prenda} onChange={e=>setForm(f=>({...f,prenda:e.target.value,invId:null,consignItemId:null}))}/>
+                {consignaciones.filter(c=>c.estado==="activo").length>0&&<div style={{marginTop:6}}>
+                  <select style={{...S.inp,fontSize:12,color:"#8B5CF6"}} value={form.consignItemId||""}
+                    onChange={e=>{
+                      const val=e.target.value;
+                      if(!val){setForm(f=>({...f,consignItemId:null}));return;}
+                      // val = "loteId:::itemId"
+                      const [lotId,itmId]=val.split(":::");
+                      const lote=consignaciones.find(c=>String(c.id)===lotId);
+                      const item=lote?.items.find(i=>i.id===itmId);
+                      if(item) setForm(f=>({...f,prenda:item.descripcion,consignItemId:itmId,consignLoteId:lotId}));
+                    }}>
+                    <option value="">📦 Elegir de lote consignación (opcional)</option>
+                    {consignaciones.filter(c=>c.estado==="activo").map(lote=>(
+                      lote.items.map(item=>(
+                        <option key={item.id} value={lote.id+":::"+item.id}>
+                          {lote.nombre} · {item.descripcion} (${item.costoUnit}/u)
+                        </option>
+                      ))
+                    ))}
+                  </select>
+                </div>}
               </div>
               {form.invId&&<div style={{fontSize:11,color:"#2D6A4F",marginTop:3}}>✓ Se descontará del inventario al registrar</div>}
             </div>
@@ -2388,6 +2564,10 @@ const w=window.open("","_blank");
                 <div style={{fontSize:9,color:"#AAA",fontWeight:400,marginTop:1}}>TOTAL VENDIDO (sin descontar pagos)</div>
               </div>
             </div>
+            <button onClick={()=>{setCobrarWASent(new Set());setShowCobrarLive(true);}}
+              style={{display:"flex",alignItems:"center",justifyContent:"center",gap:6,width:"100%",background:"#25D366",color:"#fff",border:"none",borderRadius:12,padding:"12px",fontSize:14,fontWeight:700,cursor:"pointer",marginBottom:10}}>
+              <span>📲</span><span>Cobrar este live</span>
+            </button>
             <div style={{maxHeight:200,overflowY:"auto"}}>
               {[...pedidos.filter(p=>p.live===live)].reverse().map(p=><div key={p.id} style={S.li}><div><div style={S.liN}>{p.cliente}</div><div style={S.liS}>{p.prenda!=="-"?p.prenda:"—"}</div></div><div style={S.liA}>${p.total.toFixed(2)}</div></div>)}
             </div>
@@ -3076,7 +3256,53 @@ const w=window.open("","_blank");
                   <div style={{textAlign:"right"}}><div style={{fontSize:10,opacity:0.7}}>IMPORTACIONES</div><div style={{fontSize:22,fontWeight:900}}>{importaciones.length}</div></div>
                 </div>
                 <button onClick={()=>{setImportItems([]);setShowImportModal(true);}} style={{...S.btnD,marginBottom:14}}>+ Nueva Importación</button>
-                {importaciones.length===0?<div style={{textAlign:"center",color:"#aaa",padding:"20px",fontSize:13}}>Sin importaciones</div>:
+                {consignaciones.filter(c=>c.estado==="activo").length>0&&<div style={{marginBottom:14}}>
+                <div style={{fontSize:11,fontWeight:700,color:"#8B5CF6",letterSpacing:1,textTransform:"uppercase",marginBottom:8}}>📦 Lotes de Consignación Activos</div>
+                {consignaciones.filter(c=>c.estado==="activo").map(lote=>{
+                  const vendidas=lote.items.map(item=>({
+                    ...item,
+                    vendidas:pedidos.filter(p=>p.consignItemId===item.id).reduce((s,p)=>s+(p.qty||1),0)
+                  }));
+                  const totalVendido=vendidas.reduce((s,i)=>s+i.vendidas*i.costoUnit,0);
+                  const totalSiTodo=vendidas.reduce((s,i)=>s+i.cantidad*i.costoUnit,0);
+                  return <div key={lote.id} style={{background:"#FAF5FF",border:"1.5px solid #C4B5FD",borderRadius:12,padding:"12px 14px",marginBottom:8}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:13,color:"#6D28D9"}}>{lote.nombre}</div>
+                        <div style={{fontSize:11,color:"#888"}}>{lote.proveedor} · {fmtFecha(lote.fecha)} · {lote.items.length} tipo{lote.items.length!==1?"s":""} de prenda</div>
+                      </div>
+                      <div style={{textAlign:"right"}}>
+                        <div style={{fontSize:12,fontWeight:700,color:"#6D28D9"}}>${totalVendido.toFixed(2)}</div>
+                        <div style={{fontSize:10,color:"#AAA"}}>vendido de ${totalSiTodo.toFixed(2)}</div>
+                      </div>
+                    </div>
+                    {lote.items.map(item=>{
+                      const vend=vendidas.find(v=>v.id===item.id);
+                      const pct=item.cantidad>0?Math.round((vend?.vendidas||0)/item.cantidad*100):0;
+                      return <div key={item.id} style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:11,padding:"4px 0",borderTop:"1px solid #EDE9FE"}}>
+                        <span style={{color:"#555"}}>{item.descripcion}</span>
+                        <span style={{color:"#888"}}>{vend?.vendidas||0}/{item.cantidad} · ${item.costoUnit}/u · <b style={{color:"#6D28D9"}}>{pct}%</b></span>
+                      </div>;
+                    })}
+                    <div style={{display:"flex",gap:6,marginTop:8}}>
+                      <button onClick={()=>{
+                        if(!window.confirm("¿Liquidar lote "+lote.nombre+"? Se marcará como liquidado.")) return;
+                        const upd=consignaciones.map(c=>c.id===lote.id?{...c,estado:"liquidado",fechaLiquidacion:hoy()}:c);
+                        setConsignaciones(upd);localStorage.setItem("camely_consig",JSON.stringify(upd));
+                        toast_("✓ Lote liquidado: "+lote.nombre);
+                      }} style={{background:"#8B5CF6",color:"#fff",border:"none",borderRadius:8,padding:"6px 12px",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                        💰 Liquidar lote · Le debes ${totalVendido.toFixed(2)}
+                      </button>
+                      <button onClick={()=>{
+                        if(!window.confirm("¿Eliminar este lote?")) return;
+                        const upd=consignaciones.filter(c=>c.id!==lote.id);
+                        setConsignaciones(upd);localStorage.setItem("camely_consig",JSON.stringify(upd));
+                      }} style={{background:"#FEE2E2",color:"#D00",border:"none",borderRadius:8,padding:"6px 10px",fontSize:11,cursor:"pointer"}}>🗑</button>
+                    </div>
+                  </div>;
+                })}
+              </div>}
+              {importaciones.length===0?<div style={{textAlign:"center",color:"#aaa",padding:"20px",fontSize:13}}>Sin importaciones</div>:
                   [...importaciones].reverse().map(imp=>{
                     const est=imp.estado||"ingresada";
                     const canEdit=est!=="recibida";
