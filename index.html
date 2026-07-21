@@ -332,18 +332,6 @@ function lSet(k, v) {
           _u: old._u || now
         };
       });
-      const newIds = new Set(v.map(r => r && r.id).filter(x => x != null));
-      const removed = prev.filter(r => r && r.id != null && !newIds.has(r.id)).map(r => r.id);
-      if (removed.length && typeof TOMB_KEYS !== "undefined" && TOMB_KEYS.has(k)) {
-        try {
-          const tomb = JSON.parse(localStorage.getItem("camely_tomb") || "{}");
-          tomb[k] = tomb[k] || {};
-          removed.forEach(id => {
-            tomb[k][id] = now;
-          });
-          localStorage.setItem("camely_tomb", JSON.stringify(tomb));
-        } catch (e) {}
-      }
     }
     localStorage.setItem(k, JSON.stringify(v));
   } catch {}
@@ -488,6 +476,18 @@ const K = {
   estadosCuenta: "c-estados"
 };
 const TOMB_KEYS = new Set([K.pedidos, K.abonos, K.clientes, K.inventario, K.tarjetas, K.cargos, K.imports, K.gastos, K.estadosCuenta]);
+function tomb(storeKey, ids) {
+  if (!TOMB_KEYS.has(storeKey) || !ids || !ids.length) return;
+  try {
+    const t = JSON.parse(localStorage.getItem("camely_tomb") || "{}");
+    t[storeKey] = t[storeKey] || {};
+    const now = Date.now();
+    ids.forEach(id => {
+      if (id != null) t[storeKey][id] = now;
+    });
+    localStorage.setItem("camely_tomb", JSON.stringify(t));
+  } catch (e) {}
+}
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 function fmtLive(n, m, y) {
   return "Live " + n + " - " + m + "/" + y;
@@ -713,6 +713,7 @@ function App({
     nota: ""
   });
   const [filtroAbonoCli, setFiltroAbonoCli] = useState("");
+  const [showDupAbonos, setShowDupAbonos] = useState(false);
   const [editAbonoId, setEditAbonoId] = useState(null);
   const [livePagoMontos, setLivePagoMontos] = useState({});
   const [showPS, setShowPS] = useState(false);
@@ -2037,20 +2038,25 @@ function App({
   async function eliminarPedido(pedidoId) {
     if (!window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")) return;
     const pedido = pedidos.find(p => p.id === pedidoId);
-    const upd = pedidos.filter(p => p.id !== pedidoId);
-    setPedidos(upd);
-    lSet(K.pedidos, upd);
-    sheetsSync("savePedidos", upd);
+    tomb(K.pedidos, [pedidoId]);
+    setPedidos(prev => {
+      const upd = prev.filter(p => p.id !== pedidoId);
+      lSet(K.pedidos, upd);
+      sheetsSync("savePedidos", upd);
+      return upd;
+    });
     if (pedido?.invId) {
-      const updInv = inventario.map(i => i.id === pedido.invId && i.pedidoId === pedidoId ? {
-        ...i,
-        estado: "disponible",
-        pedidoId: null,
-        cliente: null
-      } : i);
-      setInventario(updInv);
-      lSet(K.inventario, updInv);
-      sheetsSync("saveInventario", updInv);
+      setInventario(prev => {
+        const updInv = prev.map(i => i.id === pedido.invId && i.pedidoId === pedidoId ? {
+          ...i,
+          estado: "disponible",
+          pedidoId: null,
+          cliente: null
+        } : i);
+        lSet(K.inventario, updInv);
+        sheetsSync("saveInventario", updInv);
+        return updInv;
+      });
     }
     toast_("✓ Pedido eliminado — código disponible nuevamente");
   }
@@ -2058,20 +2064,25 @@ function App({
     if (!window.confirm("¿Eliminar TODOS los pedidos de " + alias + "? Esta acción no se puede deshacer.")) return;
     const pedidosCliente = pedidos.filter(p => p.cliente === alias);
     const invIds = new Set(pedidosCliente.map(p => p.invId).filter(Boolean));
-    const upd = pedidos.filter(p => p.cliente !== alias);
-    setPedidos(upd);
-    lSet(K.pedidos, upd);
-    sheetsSync("savePedidos", upd);
+    tomb(K.pedidos, pedidosCliente.map(p => p.id));
+    setPedidos(prev => {
+      const upd = prev.filter(p => p.cliente !== alias);
+      lSet(K.pedidos, upd);
+      sheetsSync("savePedidos", upd);
+      return upd;
+    });
     if (invIds.size > 0) {
-      const updInv = inventario.map(i => invIds.has(i.id) && i.estado === "vendido" ? {
-        ...i,
-        estado: "disponible",
-        pedidoId: null,
-        cliente: null
-      } : i);
-      setInventario(updInv);
-      lSet(K.inventario, updInv);
-      sheetsSync("saveInventario", updInv);
+      setInventario(prev => {
+        const updInv = prev.map(i => invIds.has(i.id) && i.estado === "vendido" ? {
+          ...i,
+          estado: "disponible",
+          pedidoId: null,
+          cliente: null
+        } : i);
+        lSet(K.inventario, updInv);
+        sheetsSync("saveInventario", updInv);
+        return updInv;
+      });
     }
     toast_("Pedidos de " + alias + " eliminados");
   }
@@ -2958,25 +2969,37 @@ function App({
   }
   async function eliminarTarjeta(id) {
     if (!window.confirm("¿Eliminar esta tarjeta y todos sus movimientos?")) return;
-    const upd = tarjetas.filter(t => t.id !== id);
-    setTarjetas(upd);
-    lSet(K.tarjetas, upd);
-    sheetsSync("saveTarjetas", upd);
-    const updC = cargosTarjeta.filter(c => c.tarjetaId !== id);
-    setCargosTarjeta(updC);
-    lSet(K.cargos, updC);
-    sheetsSync("saveCargos", updC);
-    const updE = estadosCuenta.filter(e => e.tarjetaId !== id);
-    setEstadosCuenta(updE);
-    lSet(K.estadosCuenta, updE);
-    sheetsSync("saveEstadosCuenta", updE);
+    tomb(K.tarjetas, [id]);
+    tomb(K.cargos, cargosTarjeta.filter(c => c.tarjetaId === id).map(c => c.id));
+    tomb(K.estadosCuenta, estadosCuenta.filter(e => e.tarjetaId === id).map(e => e.id));
+    setTarjetas(prev => {
+      const upd = prev.filter(t => t.id !== id);
+      lSet(K.tarjetas, upd);
+      sheetsSync("saveTarjetas", upd);
+      return upd;
+    });
+    setCargosTarjeta(prev => {
+      const updC = prev.filter(c => c.tarjetaId !== id);
+      lSet(K.cargos, updC);
+      sheetsSync("saveCargos", updC);
+      return updC;
+    });
+    setEstadosCuenta(prev => {
+      const updE = prev.filter(e => e.tarjetaId !== id);
+      lSet(K.estadosCuenta, updE);
+      sheetsSync("saveEstadosCuenta", updE);
+      return updE;
+    });
     toast_("Tarjeta eliminada");
   }
   async function eliminarCargo(id) {
-    const upd = cargosTarjeta.filter(c => c.id !== id);
-    setCargosTarjeta(upd);
-    lSet(K.cargos, upd);
-    sheetsSync("saveCargos", upd);
+    tomb(K.cargos, [id]);
+    setCargosTarjeta(prev => {
+      const upd = prev.filter(c => c.id !== id);
+      lSet(K.cargos, upd);
+      sheetsSync("saveCargos", upd);
+      return upd;
+    });
     toast_("Movimiento eliminado");
   }
   async function deduplicarGastos() {
@@ -3009,18 +3032,24 @@ function App({
   }
   async function eliminarGasto(id) {
     if (!window.confirm("¿Eliminar este gasto?")) return;
-    const upd = gastos.filter(g => g.id !== id);
-    setGastos(upd);
-    lSet(K.gastos, upd);
-    sheetsSync("saveGastos", upd);
+    tomb(K.gastos, [id]);
+    setGastos(prev => {
+      const upd = prev.filter(g => g.id !== id);
+      lSet(K.gastos, upd);
+      sheetsSync("saveGastos", upd);
+      return upd;
+    });
     toast_("Gasto eliminado");
   }
   async function eliminarImportacion(id) {
     if (!window.confirm("¿Eliminar esta importación?")) return;
-    const upd = importaciones.filter(i => i.id !== id);
-    setImportaciones(upd);
-    lSet(K.imports, upd);
-    sheetsSync("saveImports", upd);
+    tomb(K.imports, [id]);
+    setImportaciones(prev => {
+      const upd = prev.filter(i => i.id !== id);
+      lSet(K.imports, upd);
+      sheetsSync("saveImports", upd);
+      return upd;
+    });
     toast_("Importación eliminada");
   }
   async function guardarCargo() {
@@ -6348,7 +6377,119 @@ function App({
       ...f,
       nota: e.target.value
     }))
-  }))), abonos.length > 0 && React.createElement("div", {
+  }))), showDupAbonos && (() => {
+    const groups = Object.values(abonos.reduce((acc, a) => {
+      const k = normCli(a.cliente) + "|" + (a.monto || 0).toFixed(2) + "|" + (a.fecha || "") + "|" + (a.liveVinculado || "");
+      (acc[k] = acc[k] || []).push(a);
+      return acc;
+    }, {})).filter(g => g.length > 1);
+    const totalExtras = groups.reduce((s, g) => s + (g.length - 1), 0);
+    const extrasDe = g => [...g].sort((x, y) => (x.id || 0) - (y.id || 0)).slice(1).map(a => a.id);
+    const quitar = ids => {
+      if (!ids.length) return;
+      tomb(K.abonos, ids);
+      setAbonos(prev => {
+        const upd = prev.filter(a => !ids.includes(a.id));
+        lSet(K.abonos, upd);
+        sheetsSync("saveAbonos", upd);
+        return upd;
+      });
+      toast_("✓ " + ids.length + " duplicado(s) eliminado(s)");
+    };
+    return React.createElement("div", {
+      style: S.ov,
+      onClick: () => setShowDupAbonos(false)
+    }, React.createElement("div", {
+      style: {
+        ...S.sh,
+        maxHeight: "90vh",
+        overflowY: "auto"
+      },
+      onClick: e => e.stopPropagation()
+    }, React.createElement("div", {
+      style: S.shT
+    }, "🔍 Abonos duplicados"), groups.length === 0 ? React.createElement("div", {
+      style: {
+        textAlign: "center",
+        color: "#2D6A4F",
+        fontSize: 13,
+        padding: "20px 0",
+        fontWeight: 700
+      }
+    }, "✅ No se encontraron duplicados") : React.createElement("div", null, React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: "#888",
+        marginBottom: 10
+      }
+    }, "Se detectaron ", React.createElement("b", {
+      style: {
+        color: "#D00"
+      }
+    }, totalExtras), " pago(s) repetido(s) (mismo cliente, monto, fecha y live). Se conserva uno de cada grupo."), React.createElement("button", {
+      onClick: () => quitar(groups.flatMap(extrasDe)),
+      style: {
+        width: "100%",
+        background: "#F0057F",
+        color: "#fff",
+        border: "none",
+        borderRadius: 10,
+        padding: "11px",
+        fontSize: 13,
+        fontWeight: 700,
+        cursor: "pointer",
+        marginBottom: 12
+      }
+    }, "🧹 Quitar TODOS los extras (", totalExtras, ")"), groups.map((g, gi) => {
+      const a0 = g[0];
+      return React.createElement("div", {
+        key: gi,
+        style: {
+          background: "#FFF8F0",
+          border: "1.5px solid #F8C9AE",
+          borderRadius: 10,
+          padding: "10px 12px",
+          marginBottom: 8,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center"
+        }
+      }, React.createElement("div", null, React.createElement("div", {
+        style: {
+          fontWeight: 700,
+          fontSize: 13
+        }
+      }, a0.cliente), React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: "#888"
+        }
+      }, "$", (a0.monto || 0).toFixed(2), " · ", a0.fecha || "-", a0.liveVinculado ? " · " + a0.liveVinculado : "", " · ", React.createElement("b", {
+        style: {
+          color: "#D00"
+        }
+      }, g.length, "×"))), React.createElement("button", {
+        onClick: () => quitar(extrasDe(g)),
+        style: {
+          background: "#D00",
+          color: "#fff",
+          border: "none",
+          borderRadius: 8,
+          padding: "6px 10px",
+          fontSize: 11,
+          fontWeight: 700,
+          cursor: "pointer",
+          flexShrink: 0
+        }
+      }, "Dejar 1"));
+    })), React.createElement("button", {
+      onClick: () => setShowDupAbonos(false),
+      style: {
+        ...S.cancelBtn,
+        marginTop: 10
+      }
+    }, "Cerrar")));
+  })(), abonos.length > 0 && React.createElement("div", {
     style: S.card
   }, React.createElement("div", {
     style: {
@@ -6359,7 +6500,19 @@ function App({
     }
   }, React.createElement("div", {
     style: S.cT
-  }, "Historial de pagos"), filtroAbonoCli && React.createElement("span", {
+  }, "Historial de pagos"), React.createElement("button", {
+    onClick: () => setShowDupAbonos(true),
+    style: {
+      background: "#FFF0F0",
+      color: "#D00",
+      border: "1px solid #FCA5A5",
+      borderRadius: 8,
+      padding: "5px 10px",
+      fontSize: 11,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "🔍 Duplicados"), filtroAbonoCli && React.createElement("span", {
     style: {
       fontSize: 11,
       color: "#1BB6C8",
@@ -6428,7 +6581,29 @@ function App({
       color: "#888",
       cursor: "pointer"
     }
-  }, a.id === editAbonoId ? "✕" : "✏️ Live"))), editAbonoId === a.id && (() => {
+  }, a.id === editAbonoId ? "✕" : "✏️ Live"), React.createElement("button", {
+    onClick: () => {
+      if (window.confirm("¿Eliminar este pago de $" + a.monto.toFixed(2) + " de " + a.cliente + "?")) {
+        tomb(K.abonos, [a.id]);
+        setAbonos(prev => {
+          const upd = prev.filter(x => x.id !== a.id);
+          lSet(K.abonos, upd);
+          sheetsSync("saveAbonos", upd);
+          return upd;
+        });
+        toast_("🗑 Pago eliminado");
+      }
+    },
+    style: {
+      background: "#FFE4E4",
+      color: "#D00",
+      border: "none",
+      borderRadius: 6,
+      padding: "3px 7px",
+      fontSize: 10,
+      cursor: "pointer"
+    }
+  }, "🗑"))), editAbonoId === a.id && (() => {
     const clienteLives = [...new Set(pedidos.filter(p => p.cliente === a.cliente).map(p => p.live))].sort();
     return React.createElement("div", {
       style: {
@@ -7068,10 +7243,13 @@ function App({
     }, "✏️"), React.createElement("button", {
       onClick: () => {
         if (window.confirm("¿Eliminar cliente " + c.alias + "? Esta acción no se puede deshacer.")) {
-          const upd = clientes.filter(x => x.id !== c.id);
-          setClientes(upd);
-          lSet(K.clientes, upd);
-          sheetsSync("saveClientes", upd);
+          tomb(K.clientes, [c.id]);
+          setClientes(prev => {
+            const upd = prev.filter(x => x.id !== c.id);
+            lSet(K.clientes, upd);
+            sheetsSync("saveClientes", upd);
+            return upd;
+          });
           toast_("🗑 Cliente eliminado");
         }
       },
