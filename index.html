@@ -452,10 +452,11 @@ function mergeById(remote, local, tombKey) {
   const map = new Map();
   const put = r => {
     if (!r || r.id == null) return;
-    const dz = tomb[r.id];
+    const key = String(r.id);
+    const dz = tomb[key];
     if (dz && dz >= (r._u || 0)) return;
-    const ex = map.get(r.id);
-    if (!ex || (r._u || 0) >= (ex._u || 0)) map.set(r.id, r);
+    const ex = map.get(key);
+    if (!ex || (r._u || 0) >= (ex._u || 0)) map.set(key, r);
   };
   local.forEach(put);
   remote.forEach(put);
