@@ -801,39 +801,29 @@ function App({
             sheetsSync("saveTombstones", lt);
           } catch (e) {}
         }
-        const mejor = (rk, local) => mergeById(remote[rk] || [], local, K[rk]);
-        const rp = mejor("pedidos", p),
-          ra = mejor("abonos", a),
-          rc = mejor("clientes", c);
-        const ri = mejor("inventario", inv),
-          rt = mejor("tarjetas", tarj);
-        const rcg = mejor("cargos", carg),
-          rim = mejor("imports", imps);
-        const rg = mejor("gastos", gast),
-          re2 = mejor("estadosCuenta", ecs);
-        const hubo = rp.length !== p.length || ra.length !== a.length || rg.length !== gast.length || rc.length !== c.length;
-        setPedidos(rp);
-        setAbonos(ra);
-        setInventario(ri);
-        setTarjetas(rt);
-        setCargosTarjeta(rcg);
-        setImportaciones(rim);
-        setGastos(rg);
-        setEstadosCuenta(re2);
-        if (rc.length > 0) {
-          setClientes(rc);
-          lSet(K.clientes, rc);
-        }
+        // FIX: fusionar contra el estado ACTUAL (prev), no contra la copia
+        // capturada al iniciar la carga. Evita que una respuesta lenta de la nube
+        // sobreescriba cambios (p.ej. un pago) hechos mientras cargaba.
+        const mergeSet = (setter, rk) => setter(prev => {
+          const m = mergeById(remote[rk] || [], prev, K[rk]);
+          lSet(K[rk], m);
+          return m;
+        });
+        mergeSet(setPedidos, "pedidos");
+        mergeSet(setAbonos, "abonos");
+        mergeSet(setInventario, "inventario");
+        mergeSet(setTarjetas, "tarjetas");
+        mergeSet(setCargosTarjeta, "cargos");
+        mergeSet(setImportaciones, "imports");
+        mergeSet(setGastos, "gastos");
+        mergeSet(setEstadosCuenta, "estadosCuenta");
+        setClientes(prev => {
+          const m = mergeById(remote.clientes || [], prev, K.clientes);
+          if (m.length > 0) { lSet(K.clientes, m); return m; }
+          return prev;
+        });
         if (remote.live) setLive(remote.live);
-        lSet(K.pedidos, rp);
-        lSet(K.abonos, ra);
-        lSet(K.inventario, ri);
-        lSet(K.tarjetas, rt);
-        lSet(K.cargos, rcg);
-        lSet(K.imports, rim);
-        lSet(K.gastos, rg);
-        lSet(K.estadosCuenta, re2);
-        if (hubo) toast_("✓ Datos actualizados desde la nube");
+        toast_("✓ Datos actualizados desde la nube");
       }).catch(e => console.warn("Sync:", e));
     }
     const DR = {
@@ -1163,38 +1153,26 @@ function App({
           sheetsSync("saveTombstones", lt);
         } catch (e) {}
       }
-      const rG = (rk, loc) => mergeById(remote[rk] || [], loc || [], K[rk]);
-      const rp = rG("pedidos", pedidos),
-        ra = rG("abonos", abonos),
-        rc = rG("clientes", clientes),
-        ri = rG("inventario", inventario);
-      const rt = rG("tarjetas", tarjetas),
-        rcg = rG("cargos", cargosTarjeta),
-        rim = rG("imports", importaciones);
-      const rg = rG("gastos", gastos),
-        re2 = rG("estadosCuenta", estadosCuenta);
-      setPedidos(rp);
-      setAbonos(ra);
-      setInventario(ri);
-      setTarjetas(rt);
-      setCargosTarjeta(rcg);
-      setImportaciones(rim);
-      setGastos(rg);
-      setEstadosCuenta(re2);
-      if (rc.length > 0) {
-        setClientes(rc);
-        lSet(K.clientes, rc);
-      }
+      const mergeSet = (setter, rk) => setter(prev => {
+        const m = mergeById(remote[rk] || [], prev, K[rk]);
+        lSet(K[rk], m);
+        return m;
+      });
+      mergeSet(setPedidos, "pedidos");
+      mergeSet(setAbonos, "abonos");
+      mergeSet(setInventario, "inventario");
+      mergeSet(setTarjetas, "tarjetas");
+      mergeSet(setCargosTarjeta, "cargos");
+      mergeSet(setImportaciones, "imports");
+      mergeSet(setGastos, "gastos");
+      mergeSet(setEstadosCuenta, "estadosCuenta");
+      setClientes(prev => {
+        const m = mergeById(remote.clientes || [], prev, K.clientes);
+        if (m.length > 0) { lSet(K.clientes, m); return m; }
+        return prev;
+      });
       if (remote.live) setLive(remote.live);
-      lSet(K.pedidos, rp);
-      lSet(K.abonos, ra);
-      lSet(K.inventario, ri);
-      lSet(K.tarjetas, rt);
-      lSet(K.cargos, rcg);
-      lSet(K.imports, rim);
-      lSet(K.gastos, rg);
-      lSet(K.estadosCuenta, re2);
-      toast_("✓ Sincronizado: " + rp.length + " pedidos, " + rg.length + " gastos");
+      toast_("✓ Sincronizado con la nube");
     } catch (e) {
       toast_("⚠ Error: " + e.message, "err");
     }
