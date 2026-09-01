@@ -7302,12 +7302,14 @@ function App({
     }).map(c => {
       if (!saldoFiltroLive) return c;
       const tcLive = pedidos.filter(p => p.cliente === c.alias && p.live === saldoFiltroLive).reduce((s, p) => s + p.total, 0);
+      const _lv = balancePorLive(c.alias).find(lv => lv.live === saldoFiltroLive);
+      const pendLive = _lv ? _lv.pendiente : tcLive;
       return {
         ...c,
         tc: tcLive,
-        saldo: tcLive
+        saldo: pendLive
       };
-    }).filter(c => c.tc > 0);
+    }).filter(c => saldoFiltroLive ? c.saldo > 0.009 : c.tc > 0);
     const totalFiltrado = filtrados.reduce((s, c) => s + c.saldo, 0);
     return React.createElement(React.Fragment, null, React.createElement("div", {
       style: S.summCard
@@ -7325,7 +7327,7 @@ function App({
         letterSpacing: 2,
         textTransform: "uppercase"
       }
-    }, saldoFiltroLive ? "Total vendido en " + saldoFiltroLive : "Saldo pendiente por cobrar"), React.createElement("div", {
+    }, saldoFiltroLive ? "Pendiente en " + saldoFiltroLive : "Saldo pendiente por cobrar"), React.createElement("div", {
       style: {
         display: "flex",
         gap: 6
@@ -7568,7 +7570,7 @@ function App({
           marginTop: 2,
           color: saldoFiltroLive ? "#1BB6C8" : c.ta >= 10 ? "#2D6A4F" : "#E07040"
         }
-      }, saldoFiltroLive ? "vendido en este live" : c.ta >= 10 ? "✓ abono" : "sin abono"), React.createElement("div", {
+      }, saldoFiltroLive ? "pendiente este live" : c.ta >= 10 ? "✓ abono" : "sin abono"), React.createElement("div", {
         style: {
           fontSize: 11,
           color: "#1BB6C8",
@@ -7669,7 +7671,8 @@ function App({
               fecha: hoy(),
               cliente: c.alias,
               monto: c.saldo,
-              nota: "Pago total saldo",
+              liveVinculado: saldoFiltroLive || null,
+              nota: saldoFiltroLive ? "Pago " + saldoFiltroLive : "Pago total saldo",
               conComp: false
             };
             if (dupAbono(a.cliente + "|" + (a.monto || 0).toFixed(2) + "|" + (a.liveVinculado || ""))) {
@@ -11098,10 +11101,10 @@ function Root() {
     currentUser: currentUser
   });
 }
-console.log("CAMELY build v-2026-07-21-e");
+console.log("CAMELY build v-2026-07-21-f");
 try {
   var _cv = document.createElement("div");
-  _cv.textContent = "v-2026-07-21-e";
+  _cv.textContent = "v-2026-07-21-f";
   _cv.style.cssText = "position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";
   addEventListener("load", function () {
     document.body && document.body.appendChild(_cv);
