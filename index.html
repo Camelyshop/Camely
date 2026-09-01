@@ -462,6 +462,36 @@ function mergeById(remote, local, tombKey) {
   remote.forEach(put);
   return Array.from(map.values());
 }
+let __camLastId = 0;
+function nextId() {
+  let t = Date.now();
+  if (t <= __camLastId) t = __camLastId + 1;
+  __camLastId = t;
+  return t;
+}
+function ensureIds(arr) {
+  if (!Array.isArray(arr)) return arr;
+  const seen = new Set();
+  let changed = false;
+  const out = arr.map(r => {
+    if (!r || typeof r !== "object") return r;
+    let id = r.id;
+    const k = id == null ? null : String(id);
+    if (k === null || seen.has(k)) {
+      const nid = nextId();
+      seen.add(String(nid));
+      changed = true;
+      return {
+        ...r,
+        id: nid
+      };
+    }
+    seen.add(k);
+    return r;
+  });
+  out.__changed = changed;
+  return out;
+}
 const CATS = ["Ropa", "Zapatos", "Carteras", "Accesorios", "Perfumes", "Otros"];
 const CLIENTES_SEED = ["ABIGAIL PANCHIS", "ABIGAIL SUAREZ", "ADRIANA AMEZAGA", "ADRIANA MOSQUERA", "ADRIANA SISALEMA", "ALE TIPICO", "ALEJANDRA 07", "ALEJANDRA TIPICO", "ALEJANDRO BURGOS", "ALEXANDRA AVILA", "ALEXANDRA BRAVO", "ALEXI MOREIRA", "ALEXIS MOREIRA", "ALIS ANTUÑEZ", "ALONDRA", "ALONDRITA", "AMANDA ORDOÑEZ", "AMCELY POSLIGUA", "AMELIA YAGUAL", "ANA VALERO", "ANA ZAMBRANO", "ANABEL CUNISCUMA", "ANAHI", "ANAHI LEON", "ANCELI POSLIGUA", "ANDREA MAJO", "ANDREA NOBOA", "ANDREA SISA", "ANDREA TITO", "ANDREA VARGAS", "ANDRES GUERRERO", "ANGELICA A", "ANGIE", "ANGIE SERRANO", "ANGIE VARGAS", "ANGRY BRAVO", "ANGY MORAN", "ANGY SERRANO", "ANGY VARGAS", "ANI ALCIVAR", "ANIKITA", "ARACELY", "ARELIS SANCAN", "ARELYS SACAN", "ASHLEY TORRES", "AZUCENA AVILA", "BARZOLA", "BEATRIZ RIVERA", "BELEN MORAN", "BELGICA", "BELLA SUAREZ", "BRIGITTE", "CABANILLA", "CANDIDA", "CANDY SHOP", "CARITO DELGADO", "CARLA TAPIA", "CARLOS REQUENA", "CARMEN ACOSTA", "CAROLA", "CECIBEL VIVAS", "CHIKI ZAMBRANO", "CINDY BODERO", "CINTHIA", "CINTHIA LUCERO", "CINTHIA RG", "CLAUDIA", "CRIS 46", "DAISY OLIVO", "DANIELA GUEVARA", "DARI PACHO", "DAYSI CALVA", "DAYSI OLIVO", "DENIS FAJARDO", "DENIS FERNANDEZ", "DENIS LINDAO", "DENISSE FERNANDEZ", "DIANA BARRAGAN", "DIANA CHACON", "DIANA ORTEGA", "DIANA PEREZ", "DIANA PILLAJO", "DIANA PINCAY", "DOLORES CEVALLOS", "DORIS GARCIA", "EDITH DELGADO", "ELI REA", "ELIANA CEDEÑO", "ELIANA MOREIRA", "ELIZABETH CAMPUZANO", "ELIZABETH MORAN", "ELIZABETH NUEVO", "ELIZABETH ZAMBRANO", "ELSI GARCIA", "EMILY MORALES", "ENRIQUE KARLA", "ERIKA ARTEAGA", "ERIKA MIÑAN", "ERIKA MOREIRA", "ESTEFANIA CORONEL", "ESTEFANIA FRANCO", "ESTHER", "EVELYN", "EVELYN LEON", "EVELYN MEJIA", "EVELYN PARRALES", "FABIOLA MONSERRATE", "FANNY", "FATIMA FRANCO", "FERNANDA CHOEZ", "FORTY", "GABRIELA BAQUE", "GABRIELA CONTRERAS", "GABRIELA GUEVARA", "GABRIELA MENDOZA", "GABY CONTRERAS", "GEANELLA", "GEORGE", "GIOMARY FIGUEROA", "GISELLA HOLGUIN", "GISELLA PARRAGA", "GLORIA GARCIA", "GRACE", "GUISEL", "HELEN LINO", "IMELDA AREVALO", "INES", "IRENE", "IVANNA", "JANINA", "JEANET MARTINEZ", "JENIFER CARRANZA", "JENNY VERA", "JESSENIA", "JESSENIA ROXANA", "JESSI DELPA", "JESSICA OROZCO", "JESSY DELPA", "JESSY LINDAO", "JESSY NUEVO", "JESY DELPA", "JOEL", "JOHANA ESPINOZA", "JOHANA YELA", "JOSUE BENITEZ", "JUANA MUÑOZ", "JUDITH", "JULIANA", "JULISA DUARTE", "JULISSA DUARTE", "JULITSA JURADO", "JULY", "JUVIANA CEVALLOS", "KARELYS", "KARELYS BZ", "KAREN ESPINOZA", "KAREN FLORES", "KAREN MACIAS", "KAREN SACON", "KAREN VASQUEZ", "KARINA SANCHEZ", "KARITO DELGADO", "KARLA BAQUE", "KARLA SALINAS", "KARLA TAPIA", "KARLA ZAMORA", "KARLITA SUAREZ", "KATHERINE ORELLANA", "KATHERINE QUIMIS", "KATITO", "KATITO CHAVEZ", "KATIUSKA LOOR", "KATRINA", "KATTY CHOEZ", "KATTY ELIZA", "KATTY QUIMIS", "KATY ELISA", "KATY ISAMAR", "KATY NOEMI", "KATY SALTOS", "KATY YANE", "KENDRA", "KENYA", "KENYA MARIA", "KERLY FLORES", "KERLY GARCIA", "KERLY LISSETTE", "KEYLA", "KIARA", "KRIS", "KRISTEL LLERENA", "KRISTI DURAN", "LADY CLOSET", "LADY HERRERA", "LADY ROCA", "LAURA DURAN", "LEONELA CEPEDA", "LESLI ROBLES", "LESLI ROCA", "LESLIE", "LESLIE BENITEZ", "LESLIE ROCA", "LILI POZO", "LILI ROBLES", "LILIAN VALDIVIESO", "LISSETTE", "LISSETTE MERCHAN", "LIZ ALCIVAR", "LOLI", "LORDES VERA", "LORE", "LOURDES VERA", "LUCIA", "LULU", "MABEL HOLGUIN", "MAFER CELI", "MAGDALENA RIVERA", "MAJO FREIRE", "MALEH", "MALULI MIRANDA", "MAMA DE ANDRES GUERRERO", "MARCELA ORDOÑEZ", "MARCOS GONZALEZ", "MARIA ALEJANDRA", "MARIA ALVAREZ", "MARIA ESPINOZA", "MARIA FELIX", "MARIA JOSE", "MARIA MORA", "MARICELA CORDOVA", "MARIO MOREIRA", "MARIUXI MELENDRES", "MARIUXI ZHINDON", "MARJORIE CACERES", "MARLIN TOALA", "MARTHA CABANILLA", "MARY MERCHAN", "MAY GUZMAN", "MAYLI PINCAY", "MAYRA ALEJANDRA", "MAYRA GLENDA", "MAYRA GUAPI", "MAYRA LOPEZ", "MEGAN", "MEI GUZMAN", "MELANIE DENISS", "MELANIE MORALES", "MELANIE NIC", "MELFI TOVAR", "MELI", "MELISA ESPINOZA", "MELISA MARCO", "MERCY MIRABA", "MEY GUZMAN", "MICA", "MICHELLE BUITRON", "MICHELLE CONSTANTE", "MICHELLE MALDONADO", "MICHI", "MILI", "MIRELLA", "MIRKA BUSTILLOS", "MISHELL BUITRON", "MISHELL CONSTANTE", "MISS DIANA", "MISS ERICKA", "MISS ROSITA", "MONCHIS", "MONICA FALCONI", "MORAIMA", "NARDI", "NATALI INTRIAGO", "NATALY", "NATALY CAIZA", "NATALY CERVANTES", "NATALY INTRIAGO", "NATALY NUEVO", "NATALY VIVERO", "NEFERTARY", "NENA", "NENITA", "NIKI", "NILI", "NOEMI DAULE", "NOVIO MAYLIN", "ODALYS SALAZAR", "OJITOS SARITA", "OMY", "PAMELA", "PAMELA VARGAS", "PAOLA PILA", "PAOLA PRIMA", "PAOLA SANCHEZ", "PAOLA ZAMBRANO", "PATRICIA NOBOA", "PATY ZAMBRANO", "PRIMA DE SOL", "PRISCILA FLORES", "RAFAELA", "RAFFAELA", "RENATA", "RICKY", "RINA VANESSA", "ROCIO SANCHEZ", "ROCIO YEPEZ", "ROSA OLVERA", "ROSA VALENCIA", "ROXANA SERRANO", "RUBY", "SAIDA", "SAIRA", "SAMARA", "SAMBITA", "SANI SANCHEZ", "SEBAS GARCIA", "SHIRLEY PEÑAFIEL", "SILVI", "SILVIA ANCHUNDIA", "SILVIA BORJA", "SILVIA CARRASCO", "SILVIA SANCHEZ", "SOL KEVIN", "SOLANGE", "SONIA IBARRA", "SRA MARTHA", "STEFANIA CORONEL", "STEFY", "STEFY FRANCO", "STEFY VALLEJO", "TAMI", "TAMY", "TANYA MOREIRA", "TEFY", "TEVI", "TIA BERTHA", "TOÑO", "VALESKA RUIZ", "VANESSA PERALTA", "VERONICA", "VERONICA OLIVO", "VERONICA SALAZAR", "VERONICA VARGAS", "VICTORIA", "VIRGINA", "VIVIANA CABRERA", "VIVIANA REYES", "WENDY AYONA", "WENDY JIMENEZ", "WENDY LEO", "YADIRA OSORTO", "YANIRA BARZOLA", "YARELIS", "YESSY NUEVO", "YOKONDA MIRANDA", "YUCHIKO ZUMBA", "YULEXSI IZQUIERDO", "YULI", "YULIANA", "YULISA DUARTE", "YULISITA"];
 const K = {
@@ -587,6 +617,7 @@ function App({
     }
   });
   const [cobrarFiltro, setCobrarFiltro] = useState("pend");
+  const [cobrarLives, setCobrarLives] = useState([]);
   const [gastos, setGastos] = useState([]);
   const [estadosCuenta, setEstadosCuenta] = useState([]);
   const [resMes, setResMes] = useState("todos");
@@ -742,12 +773,15 @@ function App({
   useEffect(() => {
     load();
   }, []);
-  // (Guardado masivo en background eliminado: cada cambio ya persiste al instante
-  //  con lSet; el bulk save podía sobreescribir datos frescos con una copia vieja.)
   async function load() {
     const fromLocal = (key, K) => {
       const d = lGet(K);
-      return d && d.length > 0 ? d : [];
+      if (!(d && d.length > 0)) return [];
+      const fixed = ensureIds(d);
+      if (fixed.__changed) {
+        lSet(K, fixed);
+      }
+      return fixed;
     };
     const p = fromLocal("pedidos", K.pedidos);
     const tarj = fromLocal("tarjetas", K.tarjetas);
@@ -785,9 +819,6 @@ function App({
             sheetsSync("saveTombstones", lt);
           } catch (e) {}
         }
-        // FIX: fusionar contra el estado ACTUAL (prev), no contra la copia
-        // capturada al iniciar la carga. Evita que una respuesta lenta de la nube
-        // sobreescriba cambios (p.ej. un pago) hechos mientras cargaba.
         const mergeSet = (setter, rk) => setter(prev => {
           const m = mergeById(remote[rk] || [], prev, K[rk]);
           lSet(K[rk], m);
@@ -803,7 +834,10 @@ function App({
         mergeSet(setEstadosCuenta, "estadosCuenta");
         setClientes(prev => {
           const m = mergeById(remote.clientes || [], prev, K.clientes);
-          if (m.length > 0) { lSet(K.clientes, m); return m; }
+          if (m.length > 0) {
+            lSet(K.clientes, m);
+            return m;
+          }
           return prev;
         });
         if (remote.live) setLive(remote.live);
@@ -1152,7 +1186,10 @@ function App({
       mergeSet(setEstadosCuenta, "estadosCuenta");
       setClientes(prev => {
         const m = mergeById(remote.clientes || [], prev, K.clientes);
-        if (m.length > 0) { lSet(K.clientes, m); return m; }
+        if (m.length > 0) {
+          lSet(K.clientes, m);
+          return m;
+        }
         return prev;
       });
       if (remote.live) setLive(remote.live);
@@ -1260,7 +1297,7 @@ function App({
       return;
     }
     const lote = {
-      id: Date.now(),
+      id: nextId(),
       tipo: "consignacion",
       nombre: consigF.nombre.trim(),
       proveedor: consigF.proveedor.trim(),
@@ -1427,7 +1464,7 @@ function App({
         const alias = (ext.nombre || "").toUpperCase().trim();
         if (alias && !updCli.find(c => (c.alias || "").toUpperCase() === alias)) {
           updCli.push({
-            id: Date.now() + created,
+            id: nextId() + created,
             alias,
             nombre: ext.nombre || "",
             telefono: ext.telefono || "",
@@ -1511,7 +1548,7 @@ function App({
           actualizados++;
         } else {
           updCli.push({
-            id: Date.now() + nuevos,
+            id: nextId() + nuevos,
             alias,
             nombre: c.nombre || '',
             telefono: c.telefono || '',
@@ -1729,7 +1766,7 @@ function App({
       pvp = parseFloat(form.pvp);
     const clienteAlias = form.cliente.trim().toUpperCase();
     const item = {
-      id: Date.now(),
+      id: nextId(),
       fecha: hoy(),
       live,
       cliente: clienteAlias,
@@ -1750,7 +1787,7 @@ function App({
     const existe = clientes.find(c => (c.alias || "").toUpperCase() === clienteAlias);
     if (!existe) {
       const nuevo = {
-        id: Date.now() + 1,
+        id: nextId() + 1,
         alias: clienteAlias,
         nombre: "",
         telefono: "",
@@ -1874,7 +1911,7 @@ function App({
     const monto = montoOverride !== null ? montoOverride : parseFloat(pagoF.monto);
     if (!monto || monto <= 0) return;
     const a = {
-      id: Date.now(),
+      id: nextId(),
       fecha: hoy(),
       liveVinculado: liveVinculado || null,
       cliente: pagoF.cliente.trim().toUpperCase(),
@@ -1941,7 +1978,7 @@ function App({
       ...e
     } : c) : [...clientes, {
       ...e,
-      id: Date.now()
+      id: nextId()
     }];
     setClientes(upd);
     lSet(K.clientes, upd);
@@ -1971,7 +2008,7 @@ function App({
   async function guardarDeudaManual() {
     if (!deudaForm.cliente.trim() || !deudaForm.monto || parseFloat(deudaForm.monto) <= 0) return;
     const item = {
-      id: Date.now(),
+      id: nextId(),
       fecha: deudaForm.fecha || hoy(),
       live: deudaForm.live.trim() || "Manual",
       cliente: deudaForm.cliente.toUpperCase().trim(),
@@ -2000,9 +2037,10 @@ function App({
   async function eliminarPedido(pedidoId) {
     if (!window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")) return;
     const pedido = pedidos.find(p => p.id === pedidoId);
-    tomb(K.pedidos, [pedidoId]);
+    if (pedidos.filter(p => p.id === pedidoId).length <= 1) tomb(K.pedidos, [pedidoId]);
     setPedidos(prev => {
-      const upd = prev.filter(p => p.id !== pedidoId);
+      const idx = prev.findIndex(p => p.id === pedidoId);
+      const upd = idx >= 0 ? prev.slice(0, idx).concat(prev.slice(idx + 1)) : prev;
       lSet(K.pedidos, upd);
       sheetsSync("savePedidos", upd);
       return upd;
@@ -2590,7 +2628,7 @@ function App({
       const newCargos = [...cargosTarjeta];
       if (tarjetaId) {
         newCargos.push({
-          id: Date.now(),
+          id: nextId(),
           fecha: hoy(),
           tarjetaId,
           descripcion: imp.nombre + " (mercadería)",
@@ -2602,7 +2640,7 @@ function App({
         const fTarjId = fleteTarjeta || tarjetaId;
         if (fTarjId) {
           newCargos.push({
-            id: Date.now() + 1,
+            id: nextId() + 1,
             fecha: hoy(),
             tarjetaId: fTarjId,
             descripcion: imp.nombre + " (flete/traída)",
@@ -2703,7 +2741,7 @@ function App({
   async function guardarEstadoCuenta() {
     if (!ecTarjetaId || !ecMonto) return;
     const ec = {
-      id: Date.now(),
+      id: nextId(),
       tarjetaId: ecTarjetaId,
       mes: ecMes,
       ano: ecAno,
@@ -2770,7 +2808,7 @@ function App({
               duplicados.push(razon + " Fact.#" + seq);
             } else {
               nuevosGastos.push({
-                id: Date.now() + nuevosGastos.length,
+                id: nextId() + nuevosGastos.length,
                 tipo: "servientrega",
                 descripcion: desc,
                 monto: v,
@@ -2824,7 +2862,7 @@ function App({
     if (!gastoForm.monto) return;
     const g = {
       ...gastoForm,
-      id: Date.now(),
+      id: nextId(),
       monto: parseFloat(gastoForm.monto)
     };
     const upd = [...gastos, g];
@@ -2842,7 +2880,7 @@ function App({
   }
   function addImportItem() {
     setImportItems(p => [...p, {
-      id: Date.now(),
+      id: nextId(),
       categoria: "ropa",
       tipoRopa: "niña",
       talla: "",
@@ -2914,7 +2952,7 @@ function App({
     } else {
       upd = [...tarjetas, {
         ...tarjetaForm,
-        id: Date.now()
+        id: nextId()
       }];
     }
     setTarjetas(upd);
@@ -3018,7 +3056,7 @@ function App({
     if (!cargoForm.tarjetaId || !cargoForm.monto) return;
     const c = {
       ...cargoForm,
-      id: Date.now(),
+      id: nextId(),
       monto: parseFloat(cargoForm.monto)
     };
     const upd = [...cargosTarjeta, c];
@@ -3097,7 +3135,7 @@ function App({
     const costoUnit = ((parseFloat(importForm.costoTotal) + parseFloat(importForm.fleteEstimado || 0)) / totalPrendas).toFixed(2);
     const imp = {
       ...importForm,
-      id: Date.now(),
+      id: nextId(),
       nombre,
       fecha: hoy(),
       costoUnit,
@@ -3135,7 +3173,7 @@ function App({
       ...e
     } : i) : [...inventario, {
       ...e,
-      id: Date.now(),
+      id: nextId(),
       fecha: hoy()
     }];
     setInventario(upd);
@@ -3570,13 +3608,13 @@ function App({
         if (!cli.id) {
           const updC = clientes.map(c => (c.alias || "").toUpperCase() === al ? {
             ...c,
-            id: Date.now()
+            id: nextId()
           } : c);
           setClientes(updC);
           lSet(K.clientes, updC);
           abrirCliente({
             ...cli,
-            id: Date.now()
+            id: nextId()
           });
         } else abrirCliente(cli);
       } else {
@@ -3609,13 +3647,13 @@ function App({
         if (!cli.id) {
           const updC = clientes.map(c => (c.alias || "").toUpperCase() === al ? {
             ...c,
-            id: Date.now()
+            id: nextId()
           } : c);
           setClientes(updC);
           lSet(K.clientes, updC);
           abrirCliente({
             ...cli,
-            id: Date.now()
+            id: nextId()
           });
         } else abrirCliente(cli);
       } else {
@@ -3857,15 +3895,17 @@ function App({
     }, "Cerrar")));
   })(), showCobrarLive && (() => {
     try {
-      const pedLive = pedidos.filter(p => p.live === live);
+      const livesSel = cobrarLives && cobrarLives.length ? cobrarLives : [live];
+      const sentKey = "multi:" + [...livesSel].sort().join("|");
+      const pedLive = pedidos.filter(p => livesSel.includes(p.live));
       const clientesLive = [...new Set(pedLive.map(p => p.cliente))].filter(Boolean).sort();
-      const cobrarWASent = new Set(cobrarSentMap[live] || []);
+      const cobrarWASent = new Set(cobrarSentMap[sentKey] || []);
       const marcarSent = alias => setCobrarSentMap(prev => {
-        const cur = new Set(prev[live] || []);
+        const cur = new Set(prev[sentKey] || []);
         cur.add(alias);
         const n = {
           ...prev,
-          [live]: [...cur]
+          [sentKey]: [...cur]
         };
         try {
           localStorage.setItem("camely_cobrar_sent", JSON.stringify(n));
@@ -3898,7 +3938,7 @@ function App({
         }
       }, React.createElement("div", {
         style: S.shT
-      }, "📲 Cobrar — ", live), React.createElement("div", {
+      }, "📲 Cobrar"), React.createElement("div", {
         style: {
           fontSize: 11,
           color: "#888"
@@ -3909,7 +3949,33 @@ function App({
           color: "#888",
           marginBottom: 12
         }
-      }, "Toca el botón de cada cliente para enviar su cobro por WhatsApp. Solo muestra las prendas de este live."), diaEnvio && React.createElement("div", {
+      }, "Marca los lives a cobrar juntos (control interno). El monto es el saldo combinado."), React.createElement("div", {
+        style: {
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 6,
+          marginBottom: 10
+        }
+      }, allLivesAll.slice(0, 8).map(lv => {
+        const on = livesSel.includes(lv);
+        return React.createElement("button", {
+          key: lv,
+          onClick: () => setCobrarLives(prev => {
+            const base = prev && prev.length ? prev : [live];
+            return base.includes(lv) ? base.filter(x => x !== lv) : [...base, lv];
+          }),
+          style: {
+            border: "1.5px solid " + (on ? "#1BB6C8" : "#DDD"),
+            background: on ? "#1BB6C8" : "#fff",
+            color: on ? "#fff" : "#555",
+            borderRadius: 20,
+            padding: "5px 12px",
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: "pointer"
+          }
+        }, on ? "✓ " : "", lv);
+      })), diaEnvio && React.createElement("div", {
         style: {
           background: "#E8F9FB",
           borderRadius: 8,
@@ -3949,11 +4015,9 @@ function App({
       }, cobrarFiltro === "pend" ? "🎉 No quedan clientes por enviar" : cobrarFiltro === "sent" ? "Aún no has enviado a nadie" : "Sin clientes"), clientesView.map(alias => {
         const cliPeds = pedLive.filter(p => p.cliente === alias);
         const totalLive = cliPeds.reduce((s, p) => s + (p.total || 0), 0);
-        const abonosLive = abonos.filter(a => a.cliente === alias && a.liveVinculado === live).reduce((s, a) => s + (a.monto || 0), 0);
-        const abonosLibres = abonos.filter(a => a.cliente === alias && !a.liveVinculado).reduce((s, a) => s + (a.monto || 0), 0);
-        const balCli = balance(alias);
-        const otrosLives = (balCli.tc || 0) - totalLive;
-        const saldoEste = Math.max(0, totalLive - abonosLive - Math.max(0, abonosLibres - otrosLives));
+        const _bpl = balancePorLive(alias).filter(lv => livesSel.includes(lv.live));
+        const saldoEste = _bpl.reduce((s, lv) => s + lv.pendiente, 0);
+        const abonosLive = _bpl.reduce((s, lv) => s + lv.pagado, 0);
         const sent = cobrarWASent.has(alias);
         const cliP = perfil(alias);
         const tel = String(cliP?.whatsapp || cliP?.telefono || "").replace(/[^0-9]/g, "");
@@ -3999,7 +4063,7 @@ function App({
             fontSize: 9,
             color: "#AAA"
           }
-        }, "pendiente este live"))), React.createElement("div", {
+        }, "pendiente"))), React.createElement("div", {
           style: {
             fontSize: 10,
             color: "#AAA",
@@ -4008,8 +4072,7 @@ function App({
         }, cliPeds.slice(0, 3).map(p => p.prenda || "Prenda").join(" · "), cliPeds.length > 3 ? " · ..." : ""), React.createElement("button", {
           onClick: () => {
             try {
-              const fecha = cliPeds.map(p => p.fecha).filter(Boolean).sort()[0] || hoy();
-              const lineas = ["✨ *Camely Ropa Infantil* ✨", "━━━━━━━━━━━━━━━━━━", "👋 Hola *" + alias + "*!", "", "🛒 *Tu compra del " + fmtFecha(fecha) + ":*"];
+              const lineas = ["✨ *Camely Ropa Infantil* ✨", "━━━━━━━━━━━━━━━━━━", "👋 Hola *" + alias + "*!", "", "🛒 *Tus prendas pendientes:*"];
               cliPeds.forEach(p => {
                 lineas.push("  • " + (p.prenda || "Prenda") + ": $" + (p.total || 0).toFixed(2));
               });
@@ -5966,6 +6029,7 @@ function App({
   }, "TOTAL VENDIDO (sin descontar pagos)"))), React.createElement("button", {
     onClick: () => {
       setCobrarFiltro("pend");
+      setCobrarLives([live]);
       setShowCobrarLive(true);
     },
     style: {
@@ -6163,7 +6227,7 @@ function App({
         onClick: () => {
           const monto = bb.saldo;
           const a = {
-            id: Date.now(),
+            id: nextId(),
             fecha: hoy(),
             liveVinculado: null,
             cliente: cli,
@@ -6282,7 +6346,7 @@ function App({
             return;
           }
           const a = {
-            id: Date.now(),
+            id: nextId(),
             fecha: hoy(),
             liveVinculado: lv.live,
             cliente: cli,
@@ -6546,9 +6610,10 @@ function App({
   }, a.id === editAbonoId ? "✕" : "✏️ Live"), React.createElement("button", {
     onClick: () => {
       if (window.confirm("¿Eliminar este pago de $" + a.monto.toFixed(2) + " de " + a.cliente + "?")) {
-        tomb(K.abonos, [a.id]);
+        if (abonos.filter(x => x.id === a.id).length <= 1) tomb(K.abonos, [a.id]);
         setAbonos(prev => {
-          const upd = prev.filter(x => x.id !== a.id);
+          const idx = prev.findIndex(x => x.id === a.id);
+          const upd = idx >= 0 ? prev.slice(0, idx).concat(prev.slice(idx + 1)) : prev;
           lSet(K.abonos, upd);
           sheetsSync("saveAbonos", upd);
           return upd;
@@ -7600,7 +7665,7 @@ function App({
           e.stopPropagation();
           if (window.confirm("¿Registrar pago completo de $" + c.saldo.toFixed(2) + " de " + c.alias + "?")) {
             const a = {
-              id: Date.now(),
+              id: nextId(),
               fecha: hoy(),
               cliente: c.alias,
               monto: c.saldo,
@@ -9022,7 +9087,7 @@ function App({
           }
         }, React.createElement("button", {
           onClick: () => setLlegadaItems(p => [...p, {
-            id: Date.now(),
+            id: nextId(),
             categoria: "ropa",
             tipoRopa: "niña",
             talla: "",
@@ -11033,7 +11098,15 @@ function Root() {
     currentUser: currentUser
   });
 }
-console.log("CAMELY build v-2026-07-21-c");try{var _cv=document.createElement("div");_cv.textContent="v-2026-07-21-c";_cv.style.cssText="position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";addEventListener("load",function(){document.body&&document.body.appendChild(_cv);});}catch(e){}
+console.log("CAMELY build v-2026-07-21-e");
+try {
+  var _cv = document.createElement("div");
+  _cv.textContent = "v-2026-07-21-e";
+  _cv.style.cssText = "position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";
+  addEventListener("load", function () {
+    document.body && document.body.appendChild(_cv);
+  });
+} catch (e) {}
 ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(Root, null));
 </script>
 </body>
