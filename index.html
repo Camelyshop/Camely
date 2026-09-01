@@ -618,6 +618,7 @@ function App({
   });
   const [cobrarFiltro, setCobrarFiltro] = useState("pend");
   const [cobrarLives, setCobrarLives] = useState([]);
+  const [ventasPDFLive, setVentasPDFLive] = useState("");
   const [gastos, setGastos] = useState([]);
   const [estadosCuenta, setEstadosCuenta] = useState([]);
   const [resMes, setResMes] = useState("todos");
@@ -2306,6 +2307,27 @@ function App({
       CAMELY Ropa Infantil · Estado de cuenta al ${fecha}
     </div></body></html>`;
     const w = window.open("", "_blank", "width=800,height=700");
+    if (w) {
+      w.document.write(html);
+      w.document.close();
+    }
+  }
+  function generarVentasLivePDF(liveSel) {
+    if (!liveSel) {
+      toast_("Selecciona un live", "err");
+      return;
+    }
+    const peds = pedidos.filter(p => p.live === liveSel).slice().sort((a, b) => (a.cliente || "").localeCompare(b.cliente || "") || (a.prenda || "").localeCompare(b.prenda || ""));
+    if (peds.length === 0) {
+      toast_("Sin ventas en ese live", "warn");
+      return;
+    }
+    const totQty = peds.reduce((s, p) => s + (parseInt(p.qty) || 1), 0);
+    const totVal = peds.reduce((s, p) => s + (p.total || 0), 0);
+    const clientesN = new Set(peds.map(p => p.cliente)).size;
+    const filas = peds.map(p => `<tr><td>${esc(p.cliente || "")}</td><td class="c">${parseInt(p.qty) || 1}</td><td>${esc(p.prenda || "-")}</td><td class="r">${(p.total || 0).toFixed(2)}</td></tr>`).join("");
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ventas ${esc(liveSel)} - CAMELY</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:24px;color:#222;font-size:12px}.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;border-bottom:3px solid #1BB6C8;padding-bottom:12px}.brand{font-size:26px;font-weight:900;color:#1BB6C8;letter-spacing:-1px}.brand span{color:#C45C26}.meta{text-align:right;color:#888;font-size:11px;line-height:1.6}table{width:100%;border-collapse:collapse;margin-top:4px}th{background:#1BB6C8;color:#fff;padding:9px 10px;text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase}th.r,td.r{text-align:right}th.c,td.c{text-align:center}td{padding:8px 10px;border-bottom:1px solid #eee}tr:nth-child(even) td{background:#fafafa}.total-row td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26;padding:11px 10px}.grand{color:#C45C26;font-size:15px}.footer{margin-top:20px;font-size:10px;color:#AAA;text-align:center}@media print{body{padding:14px}button{display:none!important}}</style></head><body><div class="header"><div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Ventas por live — ${esc(liveSel)}</div></div><div class="meta">Generado: ${hoy()}<br>${clientesN} clientes &nbsp;·&nbsp; ${totQty} prendas</div></div><table><thead><tr><th>Cliente</th><th class="c">Cant.</th><th>Producto</th><th class="r">Valor</th></tr></thead><tbody>${filas}<tr class="total-row"><td><b>TOTAL</b></td><td class="c"><b>${totQty}</b></td><td></td><td class="r grand"><b>${totVal.toFixed(2)}</b></td></tr></tbody></table><div class="footer">CAMELY — Sistema de Gestión · ${hoy()}</div></body></html>`;
+    const w = window.open("", "_blank", "width=800,height=600");
     if (w) {
       w.document.write(html);
       w.document.close();
@@ -5613,6 +5635,38 @@ function App({
     style: S.sec
   }, React.createElement("div", {
     style: S.card
+  }, React.createElement("div", {
+    style: S.cT
+  }, "📄 PDF de ventas por live"), React.createElement("div", {
+    style: {
+      display: "flex",
+      gap: 8,
+      alignItems: "stretch"
+    }
+  }, React.createElement("select", {
+    value: ventasPDFLive,
+    onChange: e => setVentasPDFLive(e.target.value),
+    style: {
+      ...S.inp,
+      flex: 1,
+      marginBottom: 0
+    }
+  }, React.createElement("option", {
+    value: ""
+  }, "Selecciona un live..."), allLivesAll.map(l => React.createElement("option", {
+    key: l,
+    value: l
+  }, l))), React.createElement("button", {
+    onClick: () => generarVentasLivePDF(ventasPDFLive),
+    style: {
+      ...S.btnD,
+      width: "auto",
+      padding: "0 16px",
+      whiteSpace: "nowrap",
+      marginTop: 0
+    }
+  }, "📄 PDF"))), React.createElement("div", {
+    style: S.card
   }, pendingLabels.length > 0 && React.createElement("div", {
     style: {
       display: "flex",
@@ -7294,7 +7348,13 @@ function App({
     className: "app-section",
     style: S.sec
   }, (() => {
-    const allLives = [...new Set(pedidos.map(p => p.live))].sort();
+    const livesConSaldo = new Set();
+    clientesConSaldo.forEach(c => {
+      balancePorLive(c.alias).forEach(lv => {
+        if (lv.pendiente > 0.009) livesConSaldo.add(lv.live);
+      });
+    });
+    const allLives = [...new Set(pedidos.map(p => p.live))].filter(l => livesConSaldo.has(l) || l === saldoFiltroLive).sort();
     const filtrados = clientesConSaldo.filter(c => {
       const matchCli = !saldoFiltroCliente || c.alias.includes(saldoFiltroCliente.toUpperCase()) || (c.p?.nombre || "").toLowerCase().includes(saldoFiltroCliente.toLowerCase());
       const matchLive = !saldoFiltroLive || pedidos.some(p => p.cliente === c.alias && p.live === saldoFiltroLive);
@@ -11101,10 +11161,10 @@ function Root() {
     currentUser: currentUser
   });
 }
-console.log("CAMELY build v-2026-07-21-f");
+console.log("CAMELY build v-2026-07-21-h");
 try {
   var _cv = document.createElement("div");
-  _cv.textContent = "v-2026-07-21-f";
+  _cv.textContent = "v-2026-07-21-h";
   _cv.style.cssText = "position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";
   addEventListener("load", function () {
     document.body && document.body.appendChild(_cv);
