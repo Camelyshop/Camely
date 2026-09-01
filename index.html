@@ -700,6 +700,8 @@ function App({
   const [finSub, setFinSub] = useState("resumen");
   const [saldoFiltroCliente, setSaldoFiltroCliente] = useState("");
   const [saldoFiltroLive, setSaldoFiltroLive] = useState("");
+  const [verPagados, setVerPagados] = useState(false);
+  const [showInflados, setShowInflados] = useState(false);
   const [expandedCliente, setExpandedCliente] = useState(null);
   const [liveNum, setLiveNum] = useState(1);
   const [liveMes, setLiveMes] = useState(MESES[new Date().getMonth()]);
@@ -3913,6 +3915,175 @@ function App({
       style: {
         ...S.cancelBtn,
         marginTop: 12
+      }
+    }, "Cerrar")));
+  })(), showInflados && (() => {
+    const rows = allAliases.filter(a => a && a.trim()).map(a => {
+      const b = balance(a);
+      const nAb = abonos.filter(x => normCli(x.cliente) === normCli(a)).length;
+      return {
+        alias: a,
+        tc: b.tc,
+        ta: b.ta,
+        exceso: b.ta - b.tc,
+        nAb
+      };
+    }).filter(r => r.ta > 0.009 && r.exceso > 0.009).sort((x, y) => y.exceso - x.exceso);
+    const totalExceso = rows.reduce((s, r) => s + r.exceso, 0);
+    const dedupIds = Object.values(abonos.reduce((acc, a) => {
+      const k = normCli(a.cliente) + "|" + (a.monto || 0).toFixed(2) + "|" + (a.fecha || "") + "|" + (a.liveVinculado || "");
+      (acc[k] = acc[k] || []).push(a);
+      return acc;
+    }, {})).filter(g => g.length > 1).flatMap(g => [...g].sort((x, y) => (x.id || 0) - (y.id || 0)).slice(1).map(a => a.id));
+    const quitarDup = () => {
+      if (!dedupIds.length) {
+        toast_("No hay pagos duplicados exactos", "warn");
+        return;
+      }
+      if (!window.confirm("¿Eliminar " + dedupIds.length + " pagos duplicados en toda la app?")) return;
+      tomb(K.abonos, dedupIds);
+      setAbonos(prev => {
+        const upd = prev.filter(a => !dedupIds.includes(a.id));
+        lSet(K.abonos, upd);
+        sheetsSync("saveAbonos", upd);
+        return upd;
+      });
+      toast_("🧹 " + dedupIds.length + " pagos duplicados eliminados");
+    };
+    const borrarPagosCli = alias => {
+      if (!window.confirm("¿Borrar TODOS los pagos de " + alias + "? Úsalo solo si esta clienta NO ha pagado nada.")) return;
+      const ids = abonos.filter(x => normCli(x.cliente) === normCli(alias)).map(x => x.id);
+      tomb(K.abonos, ids);
+      setAbonos(prev => {
+        const upd = prev.filter(x => normCli(x.cliente) !== normCli(alias));
+        lSet(K.abonos, upd);
+        sheetsSync("saveAbonos", upd);
+        return upd;
+      });
+      toast_("🗑 " + ids.length + " pagos de " + alias + " eliminados");
+    };
+    return React.createElement("div", {
+      style: S.ov,
+      onClick: () => setShowInflados(false)
+    }, React.createElement("div", {
+      style: {
+        ...S.sh,
+        maxHeight: "90vh",
+        overflowY: "auto"
+      },
+      onClick: e => e.stopPropagation()
+    }, React.createElement("div", {
+      style: S.shT
+    }, "⚠ Posibles saldos inflados"), React.createElement("div", {
+      style: {
+        fontSize: 12,
+        color: "#888",
+        marginBottom: 10
+      }
+    }, "Clientes que ", React.createElement("b", null, "abonaron más de lo que compraron"), " (imposible — casi siempre pagos duplicados). Exceso total: ", React.createElement("b", {
+      style: {
+        color: "#D00"
+      }
+    }, "$", totalExceso.toFixed(2)), "."), React.createElement("button", {
+      onClick: quitarDup,
+      style: {
+        width: "100%",
+        background: "#F0057F",
+        color: "#fff",
+        border: "none",
+        borderRadius: 10,
+        padding: "11px",
+        fontSize: 13,
+        fontWeight: 700,
+        cursor: "pointer",
+        marginBottom: 12
+      }
+    }, "🧹 Eliminar pagos duplicados en toda la app (", dedupIds.length, ")"), rows.length === 0 ? React.createElement("div", {
+      style: {
+        textAlign: "center",
+        color: "#2D6A4F",
+        fontSize: 13,
+        padding: "20px 0",
+        fontWeight: 700
+      }
+    }, "✅ No se detectaron saldos inflados") : rows.map((r, i) => React.createElement("div", {
+      key: i,
+      onClick: () => {
+        setShowInflados(false);
+        setTab("pago");
+        setFiltroAbonoCli(r.alias);
+      },
+      style: {
+        background: "#FFF8F0",
+        border: "1.5px solid #F8C9AE",
+        borderRadius: 10,
+        padding: "10px 12px",
+        marginBottom: 8,
+        cursor: "pointer"
+      }
+    }, React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }
+    }, React.createElement("div", null, React.createElement("div", {
+      style: {
+        fontWeight: 700,
+        fontSize: 13
+      }
+    }, r.alias), React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: "#888"
+      }
+    }, "Compró $", r.tc.toFixed(2), " · Abonó ", React.createElement("b", {
+      style: {
+        color: "#D00"
+      }
+    }, "$", r.ta.toFixed(2)), " · ", r.nAb, " pagos")), React.createElement("div", {
+      style: {
+        textAlign: "right"
+      }
+    }, React.createElement("div", {
+      style: {
+        fontWeight: 900,
+        color: "#D00",
+        fontSize: 15
+      }
+    }, "+$", r.exceso.toFixed(2)), React.createElement("div", {
+      style: {
+        fontSize: 9,
+        color: "#AAA"
+      }
+    }, "de más")), React.createElement("button", {
+      onClick: e => {
+        e.stopPropagation();
+        borrarPagosCli(r.alias);
+      },
+      style: {
+        background: "#FEE2E2",
+        color: "#D00",
+        border: "none",
+        borderRadius: 8,
+        padding: "6px 8px",
+        fontSize: 11,
+        fontWeight: 700,
+        cursor: "pointer",
+        flexShrink: 0,
+        marginLeft: 6
+      }
+    }, "🗑")))), React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: "#888",
+        marginTop: 6
+      }
+    }, "Toca un cliente para ver su historial. El 🗑 de cada fila borra TODOS sus pagos (para quien no ha pagado nada)."), React.createElement("button", {
+      onClick: () => setShowInflados(false),
+      style: {
+        ...S.cancelBtn,
+        marginTop: 10
       }
     }, "Cerrar")));
   })(), showCobrarLive && (() => {
@@ -7355,7 +7526,12 @@ function App({
       });
     });
     const allLives = [...new Set(pedidos.map(p => p.live))].filter(l => livesConSaldo.has(l) || l === saldoFiltroLive).sort();
-    const filtrados = clientesConSaldo.filter(c => {
+    const baseSaldos = verPagados ? allAliases.filter(a => a && a.trim()).map(a => ({
+      alias: a,
+      p: perfil(a),
+      ...balance(a)
+    })).filter(c => c.tc > 0).sort((a, b) => b.saldo - a.saldo) : clientesConSaldo;
+    const filtrados = baseSaldos.filter(c => {
       const matchCli = !saldoFiltroCliente || c.alias.includes(saldoFiltroCliente.toUpperCase()) || (c.p?.nombre || "").toLowerCase().includes(saldoFiltroCliente.toLowerCase());
       const matchLive = !saldoFiltroLive || pedidos.some(p => p.cliente === c.alias && p.live === saldoFiltroLive);
       return matchCli && matchLive;
@@ -7369,7 +7545,7 @@ function App({
         tc: tcLive,
         saldo: pendLive
       };
-    }).filter(c => saldoFiltroLive ? c.saldo > 0.009 : c.tc > 0);
+    }).filter(c => saldoFiltroLive ? verPagados ? c.tc > 0 : c.saldo > 0.009 : c.tc > 0);
     const totalFiltrado = filtrados.reduce((s, c) => s + c.saldo, 0);
     return React.createElement(React.Fragment, null, React.createElement("div", {
       style: S.summCard
@@ -7454,7 +7630,20 @@ function App({
         cursor: "pointer",
         flexShrink: 0
       }
-    }, "+ Deuda")), React.createElement("div", {
+    }, "+ Deuda"), React.createElement("button", {
+      onClick: () => setShowInflados(true),
+      style: {
+        background: "#B45309",
+        color: "#fff",
+        border: "none",
+        borderRadius: 10,
+        padding: "6px 12px",
+        fontSize: 11,
+        fontWeight: 700,
+        cursor: "pointer",
+        flexShrink: 0
+      }
+    }, "⚠ Inflados")), React.createElement("div", {
       style: {
         marginTop: 10
       }
@@ -7554,7 +7743,25 @@ function App({
     }, "Todos los lives"), allLives.map(l => React.createElement("option", {
       key: l,
       value: l
-    }, l)))), filtrados.length === 0 ? React.createElement("div", {
+    }, l)))), React.createElement("div", {
+      style: {
+        display: "flex",
+        justifyContent: "flex-end",
+        marginBottom: 10
+      }
+    }, React.createElement("button", {
+      onClick: () => setVerPagados(v => !v),
+      style: {
+        background: verPagados ? "#1BB6C8" : "#F5FDFE",
+        color: verPagados ? "#fff" : "#888",
+        border: "1px solid " + (verPagados ? "#1BB6C8" : "#D8F4F8"),
+        borderRadius: 20,
+        padding: "5px 12px",
+        fontSize: 11,
+        fontWeight: 700,
+        cursor: "pointer"
+      }
+    }, verPagados ? "✓ Mostrando también pagados" : "Ver también pagados")), filtrados.length === 0 ? React.createElement("div", {
       style: {
         textAlign: "center",
         padding: "30px 0",
@@ -11161,10 +11368,10 @@ function Root() {
     currentUser: currentUser
   });
 }
-console.log("CAMELY build v-2026-07-21-h");
+console.log("CAMELY build v-2026-07-21-j");
 try {
   var _cv = document.createElement("div");
-  _cv.textContent = "v-2026-07-21-h";
+  _cv.textContent = "v-2026-07-21-j";
   _cv.style.cssText = "position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";
   addEventListener("load", function () {
     document.body && document.body.appendChild(_cv);
