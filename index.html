@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>CAMELY — Gestión de Pedidos</title>
+  <title>CAMELY &#8212; Gesti&#243;n de Pedidos</title>
   <link rel="manifest" href="manifest.json"/>
   <meta name="mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -22,7 +22,7 @@
     ::-webkit-scrollbar-thumb { background: #B8EDF2; border-radius: 4px; }
 
 
-    /* ── RESPONSIVE ── */
+    /* &#9472;&#9472; RESPONSIVE &#9472;&#9472; */
 
     @keyframes splashPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
     @keyframes splashDot{0%,80%,100%{opacity:.3;transform:scale(.7)}40%{opacity:1;transform:scale(1.3)}}
@@ -65,7 +65,7 @@
       .app-section { max-width:1200px; padding:28px 40px 0 !important; }
     }
 
-    /* ── CAMELY BRAND ── */
+    /* &#9472;&#9472; CAMELY BRAND &#9472;&#9472; */
     .login-root {
       min-height:100vh;
       background: linear-gradient(145deg,#E0F9FC 0%,#fff 50%,#FFE8F5 100%);
@@ -252,7 +252,7 @@ function LoginScreen({
         setSesion(user.trim());
         onLogin(user.trim());
       } else {
-        setError("Usuario o contraseña incorrectos");
+        setError("Usuario o contrase\u00f1a incorrectos");
       }
     } catch (err) {
       setError("No se pudo verificar. Intenta abrir la app por https.");
@@ -270,7 +270,7 @@ function LoginScreen({
     alt: "Camely"
   }), React.createElement("div", {
     className: "login-sub"
-  }, "SISTEMA DE GESTIÓN"), React.createElement("form", {
+  }, "SISTEMA DE GESTI\u00d3N"), React.createElement("form", {
     onSubmit: handleLogin
   }, React.createElement("div", {
     className: "login-field"
@@ -283,9 +283,9 @@ function LoginScreen({
     autoCorrect: "off"
   })), React.createElement("div", {
     className: "login-field"
-  }, React.createElement("label", null, "CONTRASEÑA"), React.createElement("input", {
+  }, React.createElement("label", null, "CONTRASE\u00d1A"), React.createElement("input", {
     type: "password",
-    placeholder: "••••••••",
+    placeholder: "\u2022\u2022\u2022\u2022\u2022\u2022\u2022\u2022",
     value: pass,
     onChange: e => setPass(e.target.value)
   })), error && React.createElement("div", {
@@ -294,9 +294,9 @@ function LoginScreen({
     className: "login-btn",
     type: "submit",
     disabled: loading
-  }, loading ? "Verificando..." : "Ingresar →")), React.createElement("div", {
+  }, loading ? "Verificando..." : "Ingresar \u2192")), React.createElement("div", {
     className: "login-footer"
-  }, "CAMELY ROPA INFANTIL © ", new Date().getFullYear())));
+  }, "CAMELY ROPA INFANTIL \u00a9 ", new Date().getFullYear())));
 }
 const SHEETS_URL = "https://script.google.com/macros/s/AKfycbweDlQ47XST6YezmFLu3E5ihs_GyurM6Q2Tm7JSa465h0n6fLIYYVhCU236TSCMehVg/exec";
 const SHEETS_TOKEN = "cam_72e556afcf4ebaf6d43a29aeac18370ff4607e9795540867";
@@ -493,7 +493,7 @@ function ensureIds(arr) {
   return out;
 }
 const CATS = ["Ropa", "Zapatos", "Carteras", "Accesorios", "Perfumes", "Otros"];
-const CLIENTES_SEED = ["ABIGAIL PANCHIS", "ABIGAIL SUAREZ", "ADRIANA AMEZAGA", "ADRIANA MOSQUERA", "ADRIANA SISALEMA", "ALE TIPICO", "ALEJANDRA 07", "ALEJANDRA TIPICO", "ALEJANDRO BURGOS", "ALEXANDRA AVILA", "ALEXANDRA BRAVO", "ALEXI MOREIRA", "ALEXIS MOREIRA", "ALIS ANTUÑEZ", "ALONDRA", "ALONDRITA", "AMANDA ORDOÑEZ", "AMCELY POSLIGUA", "AMELIA YAGUAL", "ANA VALERO", "ANA ZAMBRANO", "ANABEL CUNISCUMA", "ANAHI", "ANAHI LEON", "ANCELI POSLIGUA", "ANDREA MAJO", "ANDREA NOBOA", "ANDREA SISA", "ANDREA TITO", "ANDREA VARGAS", "ANDRES GUERRERO", "ANGELICA A", "ANGIE", "ANGIE SERRANO", "ANGIE VARGAS", "ANGRY BRAVO", "ANGY MORAN", "ANGY SERRANO", "ANGY VARGAS", "ANI ALCIVAR", "ANIKITA", "ARACELY", "ARELIS SANCAN", "ARELYS SACAN", "ASHLEY TORRES", "AZUCENA AVILA", "BARZOLA", "BEATRIZ RIVERA", "BELEN MORAN", "BELGICA", "BELLA SUAREZ", "BRIGITTE", "CABANILLA", "CANDIDA", "CANDY SHOP", "CARITO DELGADO", "CARLA TAPIA", "CARLOS REQUENA", "CARMEN ACOSTA", "CAROLA", "CECIBEL VIVAS", "CHIKI ZAMBRANO", "CINDY BODERO", "CINTHIA", "CINTHIA LUCERO", "CINTHIA RG", "CLAUDIA", "CRIS 46", "DAISY OLIVO", "DANIELA GUEVARA", "DARI PACHO", "DAYSI CALVA", "DAYSI OLIVO", "DENIS FAJARDO", "DENIS FERNANDEZ", "DENIS LINDAO", "DENISSE FERNANDEZ", "DIANA BARRAGAN", "DIANA CHACON", "DIANA ORTEGA", "DIANA PEREZ", "DIANA PILLAJO", "DIANA PINCAY", "DOLORES CEVALLOS", "DORIS GARCIA", "EDITH DELGADO", "ELI REA", "ELIANA CEDEÑO", "ELIANA MOREIRA", "ELIZABETH CAMPUZANO", "ELIZABETH MORAN", "ELIZABETH NUEVO", "ELIZABETH ZAMBRANO", "ELSI GARCIA", "EMILY MORALES", "ENRIQUE KARLA", "ERIKA ARTEAGA", "ERIKA MIÑAN", "ERIKA MOREIRA", "ESTEFANIA CORONEL", "ESTEFANIA FRANCO", "ESTHER", "EVELYN", "EVELYN LEON", "EVELYN MEJIA", "EVELYN PARRALES", "FABIOLA MONSERRATE", "FANNY", "FATIMA FRANCO", "FERNANDA CHOEZ", "FORTY", "GABRIELA BAQUE", "GABRIELA CONTRERAS", "GABRIELA GUEVARA", "GABRIELA MENDOZA", "GABY CONTRERAS", "GEANELLA", "GEORGE", "GIOMARY FIGUEROA", "GISELLA HOLGUIN", "GISELLA PARRAGA", "GLORIA GARCIA", "GRACE", "GUISEL", "HELEN LINO", "IMELDA AREVALO", "INES", "IRENE", "IVANNA", "JANINA", "JEANET MARTINEZ", "JENIFER CARRANZA", "JENNY VERA", "JESSENIA", "JESSENIA ROXANA", "JESSI DELPA", "JESSICA OROZCO", "JESSY DELPA", "JESSY LINDAO", "JESSY NUEVO", "JESY DELPA", "JOEL", "JOHANA ESPINOZA", "JOHANA YELA", "JOSUE BENITEZ", "JUANA MUÑOZ", "JUDITH", "JULIANA", "JULISA DUARTE", "JULISSA DUARTE", "JULITSA JURADO", "JULY", "JUVIANA CEVALLOS", "KARELYS", "KARELYS BZ", "KAREN ESPINOZA", "KAREN FLORES", "KAREN MACIAS", "KAREN SACON", "KAREN VASQUEZ", "KARINA SANCHEZ", "KARITO DELGADO", "KARLA BAQUE", "KARLA SALINAS", "KARLA TAPIA", "KARLA ZAMORA", "KARLITA SUAREZ", "KATHERINE ORELLANA", "KATHERINE QUIMIS", "KATITO", "KATITO CHAVEZ", "KATIUSKA LOOR", "KATRINA", "KATTY CHOEZ", "KATTY ELIZA", "KATTY QUIMIS", "KATY ELISA", "KATY ISAMAR", "KATY NOEMI", "KATY SALTOS", "KATY YANE", "KENDRA", "KENYA", "KENYA MARIA", "KERLY FLORES", "KERLY GARCIA", "KERLY LISSETTE", "KEYLA", "KIARA", "KRIS", "KRISTEL LLERENA", "KRISTI DURAN", "LADY CLOSET", "LADY HERRERA", "LADY ROCA", "LAURA DURAN", "LEONELA CEPEDA", "LESLI ROBLES", "LESLI ROCA", "LESLIE", "LESLIE BENITEZ", "LESLIE ROCA", "LILI POZO", "LILI ROBLES", "LILIAN VALDIVIESO", "LISSETTE", "LISSETTE MERCHAN", "LIZ ALCIVAR", "LOLI", "LORDES VERA", "LORE", "LOURDES VERA", "LUCIA", "LULU", "MABEL HOLGUIN", "MAFER CELI", "MAGDALENA RIVERA", "MAJO FREIRE", "MALEH", "MALULI MIRANDA", "MAMA DE ANDRES GUERRERO", "MARCELA ORDOÑEZ", "MARCOS GONZALEZ", "MARIA ALEJANDRA", "MARIA ALVAREZ", "MARIA ESPINOZA", "MARIA FELIX", "MARIA JOSE", "MARIA MORA", "MARICELA CORDOVA", "MARIO MOREIRA", "MARIUXI MELENDRES", "MARIUXI ZHINDON", "MARJORIE CACERES", "MARLIN TOALA", "MARTHA CABANILLA", "MARY MERCHAN", "MAY GUZMAN", "MAYLI PINCAY", "MAYRA ALEJANDRA", "MAYRA GLENDA", "MAYRA GUAPI", "MAYRA LOPEZ", "MEGAN", "MEI GUZMAN", "MELANIE DENISS", "MELANIE MORALES", "MELANIE NIC", "MELFI TOVAR", "MELI", "MELISA ESPINOZA", "MELISA MARCO", "MERCY MIRABA", "MEY GUZMAN", "MICA", "MICHELLE BUITRON", "MICHELLE CONSTANTE", "MICHELLE MALDONADO", "MICHI", "MILI", "MIRELLA", "MIRKA BUSTILLOS", "MISHELL BUITRON", "MISHELL CONSTANTE", "MISS DIANA", "MISS ERICKA", "MISS ROSITA", "MONCHIS", "MONICA FALCONI", "MORAIMA", "NARDI", "NATALI INTRIAGO", "NATALY", "NATALY CAIZA", "NATALY CERVANTES", "NATALY INTRIAGO", "NATALY NUEVO", "NATALY VIVERO", "NEFERTARY", "NENA", "NENITA", "NIKI", "NILI", "NOEMI DAULE", "NOVIO MAYLIN", "ODALYS SALAZAR", "OJITOS SARITA", "OMY", "PAMELA", "PAMELA VARGAS", "PAOLA PILA", "PAOLA PRIMA", "PAOLA SANCHEZ", "PAOLA ZAMBRANO", "PATRICIA NOBOA", "PATY ZAMBRANO", "PRIMA DE SOL", "PRISCILA FLORES", "RAFAELA", "RAFFAELA", "RENATA", "RICKY", "RINA VANESSA", "ROCIO SANCHEZ", "ROCIO YEPEZ", "ROSA OLVERA", "ROSA VALENCIA", "ROXANA SERRANO", "RUBY", "SAIDA", "SAIRA", "SAMARA", "SAMBITA", "SANI SANCHEZ", "SEBAS GARCIA", "SHIRLEY PEÑAFIEL", "SILVI", "SILVIA ANCHUNDIA", "SILVIA BORJA", "SILVIA CARRASCO", "SILVIA SANCHEZ", "SOL KEVIN", "SOLANGE", "SONIA IBARRA", "SRA MARTHA", "STEFANIA CORONEL", "STEFY", "STEFY FRANCO", "STEFY VALLEJO", "TAMI", "TAMY", "TANYA MOREIRA", "TEFY", "TEVI", "TIA BERTHA", "TOÑO", "VALESKA RUIZ", "VANESSA PERALTA", "VERONICA", "VERONICA OLIVO", "VERONICA SALAZAR", "VERONICA VARGAS", "VICTORIA", "VIRGINA", "VIVIANA CABRERA", "VIVIANA REYES", "WENDY AYONA", "WENDY JIMENEZ", "WENDY LEO", "YADIRA OSORTO", "YANIRA BARZOLA", "YARELIS", "YESSY NUEVO", "YOKONDA MIRANDA", "YUCHIKO ZUMBA", "YULEXSI IZQUIERDO", "YULI", "YULIANA", "YULISA DUARTE", "YULISITA"];
+const CLIENTES_SEED = ["ABIGAIL PANCHIS", "ABIGAIL SUAREZ", "ADRIANA AMEZAGA", "ADRIANA MOSQUERA", "ADRIANA SISALEMA", "ALE TIPICO", "ALEJANDRA 07", "ALEJANDRA TIPICO", "ALEJANDRO BURGOS", "ALEXANDRA AVILA", "ALEXANDRA BRAVO", "ALEXI MOREIRA", "ALEXIS MOREIRA", "ALIS ANTU\u00d1EZ", "ALONDRA", "ALONDRITA", "AMANDA ORDO\u00d1EZ", "AMCELY POSLIGUA", "AMELIA YAGUAL", "ANA VALERO", "ANA ZAMBRANO", "ANABEL CUNISCUMA", "ANAHI", "ANAHI LEON", "ANCELI POSLIGUA", "ANDREA MAJO", "ANDREA NOBOA", "ANDREA SISA", "ANDREA TITO", "ANDREA VARGAS", "ANDRES GUERRERO", "ANGELICA A", "ANGIE", "ANGIE SERRANO", "ANGIE VARGAS", "ANGRY BRAVO", "ANGY MORAN", "ANGY SERRANO", "ANGY VARGAS", "ANI ALCIVAR", "ANIKITA", "ARACELY", "ARELIS SANCAN", "ARELYS SACAN", "ASHLEY TORRES", "AZUCENA AVILA", "BARZOLA", "BEATRIZ RIVERA", "BELEN MORAN", "BELGICA", "BELLA SUAREZ", "BRIGITTE", "CABANILLA", "CANDIDA", "CANDY SHOP", "CARITO DELGADO", "CARLA TAPIA", "CARLOS REQUENA", "CARMEN ACOSTA", "CAROLA", "CECIBEL VIVAS", "CHIKI ZAMBRANO", "CINDY BODERO", "CINTHIA", "CINTHIA LUCERO", "CINTHIA RG", "CLAUDIA", "CRIS 46", "DAISY OLIVO", "DANIELA GUEVARA", "DARI PACHO", "DAYSI CALVA", "DAYSI OLIVO", "DENIS FAJARDO", "DENIS FERNANDEZ", "DENIS LINDAO", "DENISSE FERNANDEZ", "DIANA BARRAGAN", "DIANA CHACON", "DIANA ORTEGA", "DIANA PEREZ", "DIANA PILLAJO", "DIANA PINCAY", "DOLORES CEVALLOS", "DORIS GARCIA", "EDITH DELGADO", "ELI REA", "ELIANA CEDE\u00d1O", "ELIANA MOREIRA", "ELIZABETH CAMPUZANO", "ELIZABETH MORAN", "ELIZABETH NUEVO", "ELIZABETH ZAMBRANO", "ELSI GARCIA", "EMILY MORALES", "ENRIQUE KARLA", "ERIKA ARTEAGA", "ERIKA MI\u00d1AN", "ERIKA MOREIRA", "ESTEFANIA CORONEL", "ESTEFANIA FRANCO", "ESTHER", "EVELYN", "EVELYN LEON", "EVELYN MEJIA", "EVELYN PARRALES", "FABIOLA MONSERRATE", "FANNY", "FATIMA FRANCO", "FERNANDA CHOEZ", "FORTY", "GABRIELA BAQUE", "GABRIELA CONTRERAS", "GABRIELA GUEVARA", "GABRIELA MENDOZA", "GABY CONTRERAS", "GEANELLA", "GEORGE", "GIOMARY FIGUEROA", "GISELLA HOLGUIN", "GISELLA PARRAGA", "GLORIA GARCIA", "GRACE", "GUISEL", "HELEN LINO", "IMELDA AREVALO", "INES", "IRENE", "IVANNA", "JANINA", "JEANET MARTINEZ", "JENIFER CARRANZA", "JENNY VERA", "JESSENIA", "JESSENIA ROXANA", "JESSI DELPA", "JESSICA OROZCO", "JESSY DELPA", "JESSY LINDAO", "JESSY NUEVO", "JESY DELPA", "JOEL", "JOHANA ESPINOZA", "JOHANA YELA", "JOSUE BENITEZ", "JUANA MU\u00d1OZ", "JUDITH", "JULIANA", "JULISA DUARTE", "JULISSA DUARTE", "JULITSA JURADO", "JULY", "JUVIANA CEVALLOS", "KARELYS", "KARELYS BZ", "KAREN ESPINOZA", "KAREN FLORES", "KAREN MACIAS", "KAREN SACON", "KAREN VASQUEZ", "KARINA SANCHEZ", "KARITO DELGADO", "KARLA BAQUE", "KARLA SALINAS", "KARLA TAPIA", "KARLA ZAMORA", "KARLITA SUAREZ", "KATHERINE ORELLANA", "KATHERINE QUIMIS", "KATITO", "KATITO CHAVEZ", "KATIUSKA LOOR", "KATRINA", "KATTY CHOEZ", "KATTY ELIZA", "KATTY QUIMIS", "KATY ELISA", "KATY ISAMAR", "KATY NOEMI", "KATY SALTOS", "KATY YANE", "KENDRA", "KENYA", "KENYA MARIA", "KERLY FLORES", "KERLY GARCIA", "KERLY LISSETTE", "KEYLA", "KIARA", "KRIS", "KRISTEL LLERENA", "KRISTI DURAN", "LADY CLOSET", "LADY HERRERA", "LADY ROCA", "LAURA DURAN", "LEONELA CEPEDA", "LESLI ROBLES", "LESLI ROCA", "LESLIE", "LESLIE BENITEZ", "LESLIE ROCA", "LILI POZO", "LILI ROBLES", "LILIAN VALDIVIESO", "LISSETTE", "LISSETTE MERCHAN", "LIZ ALCIVAR", "LOLI", "LORDES VERA", "LORE", "LOURDES VERA", "LUCIA", "LULU", "MABEL HOLGUIN", "MAFER CELI", "MAGDALENA RIVERA", "MAJO FREIRE", "MALEH", "MALULI MIRANDA", "MAMA DE ANDRES GUERRERO", "MARCELA ORDO\u00d1EZ", "MARCOS GONZALEZ", "MARIA ALEJANDRA", "MARIA ALVAREZ", "MARIA ESPINOZA", "MARIA FELIX", "MARIA JOSE", "MARIA MORA", "MARICELA CORDOVA", "MARIO MOREIRA", "MARIUXI MELENDRES", "MARIUXI ZHINDON", "MARJORIE CACERES", "MARLIN TOALA", "MARTHA CABANILLA", "MARY MERCHAN", "MAY GUZMAN", "MAYLI PINCAY", "MAYRA ALEJANDRA", "MAYRA GLENDA", "MAYRA GUAPI", "MAYRA LOPEZ", "MEGAN", "MEI GUZMAN", "MELANIE DENISS", "MELANIE MORALES", "MELANIE NIC", "MELFI TOVAR", "MELI", "MELISA ESPINOZA", "MELISA MARCO", "MERCY MIRABA", "MEY GUZMAN", "MICA", "MICHELLE BUITRON", "MICHELLE CONSTANTE", "MICHELLE MALDONADO", "MICHI", "MILI", "MIRELLA", "MIRKA BUSTILLOS", "MISHELL BUITRON", "MISHELL CONSTANTE", "MISS DIANA", "MISS ERICKA", "MISS ROSITA", "MONCHIS", "MONICA FALCONI", "MORAIMA", "NARDI", "NATALI INTRIAGO", "NATALY", "NATALY CAIZA", "NATALY CERVANTES", "NATALY INTRIAGO", "NATALY NUEVO", "NATALY VIVERO", "NEFERTARY", "NENA", "NENITA", "NIKI", "NILI", "NOEMI DAULE", "NOVIO MAYLIN", "ODALYS SALAZAR", "OJITOS SARITA", "OMY", "PAMELA", "PAMELA VARGAS", "PAOLA PILA", "PAOLA PRIMA", "PAOLA SANCHEZ", "PAOLA ZAMBRANO", "PATRICIA NOBOA", "PATY ZAMBRANO", "PRIMA DE SOL", "PRISCILA FLORES", "RAFAELA", "RAFFAELA", "RENATA", "RICKY", "RINA VANESSA", "ROCIO SANCHEZ", "ROCIO YEPEZ", "ROSA OLVERA", "ROSA VALENCIA", "ROXANA SERRANO", "RUBY", "SAIDA", "SAIRA", "SAMARA", "SAMBITA", "SANI SANCHEZ", "SEBAS GARCIA", "SHIRLEY PE\u00d1AFIEL", "SILVI", "SILVIA ANCHUNDIA", "SILVIA BORJA", "SILVIA CARRASCO", "SILVIA SANCHEZ", "SOL KEVIN", "SOLANGE", "SONIA IBARRA", "SRA MARTHA", "STEFANIA CORONEL", "STEFY", "STEFY FRANCO", "STEFY VALLEJO", "TAMI", "TAMY", "TANYA MOREIRA", "TEFY", "TEVI", "TIA BERTHA", "TO\u00d1O", "VALESKA RUIZ", "VANESSA PERALTA", "VERONICA", "VERONICA OLIVO", "VERONICA SALAZAR", "VERONICA VARGAS", "VICTORIA", "VIRGINA", "VIVIANA CABRERA", "VIVIANA REYES", "WENDY AYONA", "WENDY JIMENEZ", "WENDY LEO", "YADIRA OSORTO", "YANIRA BARZOLA", "YARELIS", "YESSY NUEVO", "YOKONDA MIRANDA", "YUCHIKO ZUMBA", "YULEXSI IZQUIERDO", "YULI", "YULIANA", "YULISA DUARTE", "YULISITA"];
 const K = {
   pedidos: "c-pedidos",
   abonos: "c-abonos",
@@ -611,7 +611,20 @@ function App({
   const [showCobrarLive, setShowCobrarLive] = useState(false);
   const [cobrarSentMap, setCobrarSentMap] = useState(() => {
     try {
-      return JSON.parse(localStorage.getItem("camely_cobrar_sent") || "{}");
+      const raw = JSON.parse(localStorage.getItem("camely_cobrar_sent") || "{}");
+      // Migracion: unir historial viejo (claves por combinacion de lives) a la clave global.
+      if (raw && typeof raw === "object" && !localStorage.getItem("camely_cobrar_sent_migrated")) {
+        const union = new Set(Array.isArray(raw.cobrar_global) ? raw.cobrar_global : []);
+        Object.keys(raw).forEach(k => {
+          if (k !== "cobrar_global" && Array.isArray(raw[k])) raw[k].forEach(a => union.add(a));
+        });
+        raw.cobrar_global = [...union];
+        try {
+          localStorage.setItem("camely_cobrar_sent", JSON.stringify(raw));
+          localStorage.setItem("camely_cobrar_sent_migrated", "1");
+        } catch {}
+      }
+      return raw;
     } catch {
       return {};
     }
@@ -640,7 +653,7 @@ function App({
     };
     setCostosManuales(upd);
     localStorage.setItem("camely_costos_manuales", JSON.stringify(upd));
-    toast_("✓ Costo asignado: $" + costo + " para " + prenda);
+    toast_("\u2713 Costo asignado: $" + costo + " para " + prenda);
   }
   const [showEstadoCuentaModal, setShowEstadoCuentaModal] = useState(false);
   const [ecTarjetaId, setEcTarjetaId] = useState("");
@@ -844,7 +857,7 @@ function App({
           return prev;
         });
         if (remote.live) setLive(remote.live);
-        toast_("✓ Datos actualizados desde la nube");
+        toast_("\u2713 Datos actualizados desde la nube");
       }).catch(e => console.warn("Sync:", e));
     }
     const DR = {
@@ -1150,14 +1163,14 @@ function App({
   }
   async function resyncFromSheets() {
     if (!SHEETS_URL || SHEETS_URL.includes("PEGA")) {
-      toast_("⚠ Sheets no configurado", "err");
+      toast_("\u26a0 Sheets no configurado", "err");
       return;
     }
-    toast_("📡 Forzando sincronización...");
+    toast_("\ud83d\udce1 Forzando sincronizaci\u00f3n...");
     try {
       const remote = await sheetsLoad();
       if (!remote) {
-        toast_("⚠ No se pudo conectar", "err");
+        toast_("\u26a0 No se pudo conectar", "err");
         return;
       }
       if (remote.tombstones) {
@@ -1196,9 +1209,9 @@ function App({
         return prev;
       });
       if (remote.live) setLive(remote.live);
-      toast_("✓ Sincronizado con la nube");
+      toast_("\u2713 Sincronizado con la nube");
     } catch (e) {
-      toast_("⚠ Error: " + e.message, "err");
+      toast_("\u26a0 Error: " + e.message, "err");
     }
   }
   async function extraerDatosImagen(file) {
@@ -1212,7 +1225,7 @@ function App({
       });
       const apiKey = localStorage.getItem("camely_ak") || "";
       if (!apiKey) {
-        toast_("⚠ Ingresa tu API Key de Gemini en Configuración → API Key", "err");
+        toast_("\u26a0 Ingresa tu API Key de Gemini en Configuraci\u00f3n \u2192 API Key", "err");
         setCliImgLoading(false);
         return;
       }
@@ -1229,7 +1242,7 @@ function App({
                 data: b64
               }
             }, {
-              text: "Guía de envío Servientrega Ecuador. Extrae datos del DESTINATARIO. Responde SOLO este JSON sin texto adicional ni backticks:\n{\"nombre\":\"\",\"celular\":\"\",\"ciudad\":\"\",\"direccion\":\"\"}\nSi no encuentras un dato deja el campo vacío."
+              text: "Gu\u00eda de env\u00edo Servientrega Ecuador. Extrae datos del DESTINATARIO. Responde SOLO este JSON sin texto adicional ni backticks:\n{\"nombre\":\"\",\"celular\":\"\",\"ciudad\":\"\",\"direccion\":\"\"}\nSi no encuentras un dato deja el campo vac\u00edo."
             }]
           }]
         })
@@ -1249,15 +1262,15 @@ function App({
           ciudad: p.ciudad && !f.ciudad ? p.ciudad : f.ciudad,
           direccion: p.direccion && !f.direccion ? p.direccion : f.direccion
         }));
-        toast_("✓ Datos extraídos de la imagen");
+        toast_("\u2713 Datos extra\u00eddos de la imagen");
       }
     } catch (e) {
-      toast_("⚠ Error: " + e.message, "err");
+      toast_("\u26a0 Error: " + e.message, "err");
     }
     setCliImgLoading(false);
   }
   function similaridad(a, b) {
-    const norm = s => s.toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Z0-9]/g, " ").trim();
+    const norm = s => s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9]/g, " ").trim();
     const wa = norm(a).split(" ").filter(w => w.length > 1);
     const wb = norm(b).split(" ").filter(w => w.length > 1);
     if (!wa.length || !wb.length) return 0;
@@ -1321,7 +1334,7 @@ function App({
       }]
     });
     setShowConsigModal(false);
-    toast_("✓ Lote de consignación creado: " + lote.nombre);
+    toast_("\u2713 Lote de consignaci\u00f3n creado: " + lote.nombre);
   }
   function fusionarClientes(principal, secundario) {
     const updPed = pedidos.map(p => p.cliente === secundario.alias ? {
@@ -1355,7 +1368,7 @@ function App({
     setClientes(updCli);
     lSet(K.clientes, updCli);
     sheetsSync("saveClientes", updCli);
-    toast_("✓ Fusionado: " + secundario.alias + " → " + principal.alias);
+    toast_("\u2713 Fusionado: " + secundario.alias + " \u2192 " + principal.alias);
   }
   function matchScore(guiaNombre, cliente) {
     const norm = s => s.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Z0-9 ]/g, " ").trim().replace(/\s+/g, " ");
@@ -1370,7 +1383,7 @@ function App({
   async function procesarGuias(files) {
     const apiKey = localStorage.getItem("camely_ak") || "";
     if (!apiKey) {
-      toast_("⚠ Se necesita API Key de Gemini. Guárdala en Configuración → API Key", "err");
+      toast_("\u26a0 Se necesita API Key de Gemini. Gu\u00e1rdala en Configuraci\u00f3n \u2192 API Key", "err");
       return;
     }
     setGuiasProcesando(true);
@@ -1398,7 +1411,7 @@ function App({
                   data: b64
                 }
               }, {
-                text: "Guía Servientrega Ecuador. Extrae datos del DESTINATARIO únicamente. Responde SOLO este JSON sin texto extra ni backticks:\n{\"nombre\":\"\",\"telefono\":\"\",\"direccion\":\"\",\"ciudad\":\"\"}"
+                text: "Gu\u00eda Servientrega Ecuador. Extrae datos del DESTINATARIO \u00fanicamente. Responde SOLO este JSON sin texto extra ni backticks:\n{\"nombre\":\"\",\"telefono\":\"\",\"direccion\":\"\",\"ciudad\":\"\"}"
               }]
             }]
           })
@@ -1441,7 +1454,7 @@ function App({
     }
     setGuiasQueue(results);
     setGuiasProcesando(false);
-    toast_("✓ " + results.length + " guías procesadas");
+    toast_("\u2713 " + results.length + " gu\u00edas procesadas");
   }
   function aplicarGuias() {
     let updated = 0,
@@ -1484,7 +1497,7 @@ function App({
     setClientes(updCli);
     lSet(K.clientes, updCli);
     sheetsSync("saveClientes", updCli);
-    toast_("✓ " + updated + " actualizados · " + created + " creados");
+    toast_("\u2713 " + updated + " actualizados \u00b7 " + created + " creados");
     setShowGuiasModal(false);
     setGuiasQueue([]);
   }
@@ -1516,7 +1529,7 @@ function App({
     try {
       const arr = JSON.parse(jsonText);
       if (!Array.isArray(arr) || arr.length === 0) {
-        toast_("⚠ JSON vacío o inválido", "err");
+        toast_("\u26a0 JSON vac\u00edo o inv\u00e1lido", "err");
         return;
       }
       let nuevos = 0,
@@ -1567,9 +1580,9 @@ function App({
       setClientes(updCli);
       lSet(K.clientes, updCli);
       sheetsSync("saveClientes", updCli);
-      toast_(`✓ ${nuevos} nuevos · ${actualizados} actualizados de ${arr.length} registros`);
+      toast_(`\u2713 ${nuevos} nuevos \u00b7 ${actualizados} actualizados de ${arr.length} registros`);
     } catch (e) {
-      toast_("⚠ Error al leer JSON: " + e.message, "err");
+      toast_("\u26a0 Error al leer JSON: " + e.message, "err");
     }
   }
   function toast_(msg, type = "ok") {
@@ -1727,12 +1740,12 @@ function App({
       @media print{body{padding:14px}button{display:none!important}}
     </style></head><body>
     <div class="header">
-      <div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Inventario Valorado — Resumen agrupado</div></div>
-      <div class="meta">Generado: ${hoy()}<br>${grouped.length} productos distintos &nbsp;·&nbsp; ${totUnid} unidades disponibles<br>${totVend} unidades vendidas</div>
+      <div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Inventario Valorado \u2014 Resumen agrupado</div></div>
+      <div class="meta">Generado: ${hoy()}<br>${grouped.length} productos distintos &nbsp;\u00b7&nbsp; ${totUnid} unidades disponibles<br>${totVend} unidades vendidas</div>
     </div>
     <table>
       <thead><tr>
-        <th>Producto</th><th>Categoría</th><th>Talla</th>
+        <th>Producto</th><th>Categor\u00eda</th><th>Talla</th>
         <th class="r">Costo Unit.</th><th class="r">Ingresado</th>
         <th class="r">Vendido</th><th class="r">Disponible</th><th class="r">Valor Stock</th>
       </tr></thead>
@@ -1756,7 +1769,7 @@ function App({
         </tr>
       </tbody>
     </table>
-    <div class="footer">CAMELY — Sistema de Gestión · ${hoy()}</div>
+    <div class="footer">CAMELY \u2014 Sistema de Gesti\u00f3n \u00b7 ${hoy()}</div>
     </body></html>`;
     const w = window.open("", "_blank");
     w.document.write(html);
@@ -1804,7 +1817,7 @@ function App({
       setClientes(updCli);
       lSet(K.clientes, updCli);
       sheetsSync("saveClientes", updCli);
-      toast_("👤 " + clienteAlias + " guardado en Clientes");
+      toast_("\ud83d\udc64 " + clienteAlias + " guardado en Clientes");
     }
     if (form.invId && inventario.find(i => i.id === form.invId)) {
       const updInv = inventario.map(i => i.id === form.invId ? {
@@ -1829,7 +1842,7 @@ function App({
     setPendingLabels(newPending);
     localStorage.setItem("camely_pending_labels", JSON.stringify(newPending));
     if (newPending.length >= 5) {
-      toast_("🖨 6 etiquetas listas — abriendo para imprimir...");
+      toast_("\ud83d\udda8 6 etiquetas listas \u2014 abriendo para imprimir...");
       setLastPrintedLabels(newPending);
       localStorage.setItem("camely_last_printed", JSON.stringify(newPending));
       setTimeout(() => {
@@ -1838,7 +1851,7 @@ function App({
       setPendingLabels([]);
       localStorage.removeItem("camely_pending_labels");
     } else {
-      toast_("🏷 Etiqueta acumulada (" + newPending.length + "/5)");
+      toast_("\ud83c\udff7 Etiqueta acumulada (" + newPending.length + "/5)");
     }
     setForm(f => ({
       ...f,
@@ -1870,7 +1883,7 @@ function App({
       try {
         const apiKey = localStorage.getItem("camely_ak") || "";
         if (!apiKey) {
-          toast_("⚠ Ingresa tu API Key de Gemini en Configuración", "warn");
+          toast_("\u26a0 Ingresa tu API Key de Gemini en Configuraci\u00f3n", "warn");
           setReading(false);
           return;
         }
@@ -1887,7 +1900,7 @@ function App({
                   data: b64
                 }
               }, {
-                text: "Comprobante de pago bancario ecuatoriano. Responde SOLO con el monto numérico (ejemplo: 25.50). Sin texto, sin símbolo. Si no hay monto: 0"
+                text: "Comprobante de pago bancario ecuatoriano. Responde SOLO con el monto num\u00e9rico (ejemplo: 25.50). Sin texto, sin s\u00edmbolo. Si no hay monto: 0"
               }]
             }]
           })
@@ -1900,8 +1913,8 @@ function App({
             ...f,
             monto: amt.toFixed(2)
           }));
-          toast_("💡 Monto detectado: $" + amt.toFixed(2));
-        } else toast_("No pude leer el monto — ingrésalo tú", "warn");
+          toast_("\ud83d\udca1 Monto detectado: $" + amt.toFixed(2));
+        } else toast_("No pude leer el monto \u2014 ingr\u00e9salo t\u00fa", "warn");
       } catch {
         toast_("Error leyendo imagen", "warn");
       }
@@ -1923,7 +1936,7 @@ function App({
       conComp: !!imgPrev
     };
     if (dupAbono(a.cliente + "|" + (a.monto || 0).toFixed(2) + "|" + (a.liveVinculado || ""))) {
-      toast_("⚠ Pago idéntico recién registrado — evitado", "warn");
+      toast_("\u26a0 Pago id\u00e9ntico reci\u00e9n registrado \u2014 evitado", "warn");
       return;
     }
     setAbonos(prev => {
@@ -1941,7 +1954,7 @@ function App({
       setImgPrev(null);
       setShowPS(false);
     }
-    toast_("Pago de $" + a.monto.toFixed(2) + " registrado ✓");
+    toast_("Pago de $" + a.monto.toFixed(2) + " registrado \u2713");
   }
   function abrirCliente(c = null) {
     setCliImgPreview(null);
@@ -1987,7 +2000,7 @@ function App({
     lSet(K.clientes, upd);
     sheetsSync("saveClientes", upd);
     setShowClienteModal(false);
-    toast_("Cliente guardado ✓");
+    toast_("Cliente guardado \u2713");
   }
   function abrirInv(item = null) {
     setEditingInv(item?.id || null);
@@ -2035,10 +2048,10 @@ function App({
       fecha: "",
       live: ""
     });
-    toast_("✓ Deuda registrada para " + item.cliente);
+    toast_("\u2713 Deuda registrada para " + item.cliente);
   }
   async function eliminarPedido(pedidoId) {
-    if (!window.confirm("¿Eliminar este pedido? Esta acción no se puede deshacer.")) return;
+    if (!window.confirm("\u00bfEliminar este pedido? Esta acci\u00f3n no se puede deshacer.")) return;
     const pedido = pedidos.find(p => p.id === pedidoId);
     if (pedidos.filter(p => p.id === pedidoId).length <= 1) tomb(K.pedidos, [pedidoId]);
     setPedidos(prev => {
@@ -2061,10 +2074,10 @@ function App({
         return updInv;
       });
     }
-    toast_("✓ Pedido eliminado — código disponible nuevamente");
+    toast_("\u2713 Pedido eliminado \u2014 c\u00f3digo disponible nuevamente");
   }
   async function eliminarPedidosCliente(alias) {
-    if (!window.confirm("¿Eliminar TODOS los pedidos de " + alias + "? Esta acción no se puede deshacer.")) return;
+    if (!window.confirm("\u00bfEliminar TODOS los pedidos de " + alias + "? Esta acci\u00f3n no se puede deshacer.")) return;
     const pedidosCliente = pedidos.filter(p => p.cliente === alias);
     const invIds = new Set(pedidosCliente.map(p => p.invId).filter(Boolean));
     tomb(K.pedidos, pedidosCliente.map(p => p.id));
@@ -2206,14 +2219,14 @@ function App({
       while (cells.length < 6) cells.push(null);
       return '<div class="grid">' + cells.map(it => it ? `<div class="lbl">
             <div class="brand">* CAMELY *</div>
-            <div class="code">${esc(it.codigo || it.id || "—")}</div>
+            <div class="code">${esc(it.codigo || it.id || "\u2014")}</div>
             <div class="desc">${esc((it.descripcion || it.prenda || "").substring(0, 20))}${it.talla ? " T:" + esc(it.talla) : ""}</div>
-            <div class="sub">${it.cliente ? esc(it.cliente.substring(0, 14)) + (" $" + (it.total || 0).toFixed(0)) : (it.tipoRopa ? esc(it.tipoRopa) + " · " : "") + esc(it.categoria)}</div>
+            <div class="sub">${it.cliente ? esc(it.cliente.substring(0, 14)) + (" $" + (it.total || 0).toFixed(0)) : (it.tipoRopa ? esc(it.tipoRopa) + " \u00b7 " : "") + esc(it.categoria)}</div>
           </div>` : '<div class="lbl"></div>').join("") + '</div>';
     }).join('<div style="page-break-after:always"></div>');
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styleTag}</head><body>
-      <div class="topbar"><span><b>${items.length}</b> etiquetas — imprimir en A4, escala 100%</span>
-      <button onclick="window.print()">🖨 Imprimir</button></div>
+      <div class="topbar"><span><b>${items.length}</b> etiquetas \u2014 imprimir en A4, escala 100%</span>
+      <button onclick="window.print()">\ud83d\udda8 Imprimir</button></div>
       ${pagesHtml}</body></html>`;
     const w = window.open("", "_blank", "width=800,height=600");
     if (w) {
@@ -2261,7 +2274,7 @@ function App({
       @media print{button{display:none}body{padding:10px}}
     </style></head><body>
     <div class="hdr">
-      <div><div class="brand">★ CAMELY Ropa Infantil</div><div class="sub">Estado de Cuenta del Cliente</div></div>
+      <div><div class="brand">\u2605 CAMELY Ropa Infantil</div><div class="sub">Estado de Cuenta del Cliente</div></div>
       <div class="corte">Fecha de corte:<br><b>${fecha}</b></div>
     </div>
     <div class="cli-box">
@@ -2269,15 +2282,15 @@ function App({
         <div class="cli-name">${esc(alias)}</div>
         <div class="cli-data">
           ${cli.nombre && cli.nombre !== alias ? esc(cli.nombre) + "<br>" : ""}
-          ${cli.telefono ? "📞 " + esc(cli.telefono) + "<br>" : ""}
-          ${cli.ciudad ? "📍 " + esc(cli.ciudad) : ""}
+          ${cli.telefono ? "\ud83d\udcde " + esc(cli.telefono) + "<br>" : ""}
+          ${cli.ciudad ? "\ud83d\udccd " + esc(cli.ciudad) : ""}
         </div>
       </div>
       <div style="text-align:right;font-size:10px;color:#888">
         ${cps.length} compras<br>${abs.length} pagos
       </div>
     </div>
-    <button onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+    <button onclick="window.print()">\ud83d\udda8 Imprimir / Guardar PDF</button>
 
     <h3>Compras</h3>
     <table><thead><tr><th>Fecha</th><th>Live</th><th>Prenda</th><th class="r">Valor</th></tr></thead>
@@ -2294,19 +2307,19 @@ function App({
     </tbody></table>` : "<div style='color:#aaa;font-size:11px;padding:8px 0'>Sin pagos registrados</div>"}
 
     <div class="saldo-box">
-      <div class="saldo-lbl">${saldo > 0 ? "💳 Saldo pendiente" : "✅ Cuenta al día"}</div>
+      <div class="saldo-lbl">${saldo > 0 ? "\ud83d\udcb3 Saldo pendiente" : "\u2705 Cuenta al d\u00eda"}</div>
       <div class="saldo-val">${saldo.toFixed(2)}</div>
     </div>
 
     ${saldo > 0 ? `<div class="banco-box">
-      <div class="banco-tit">🏦 Datos para pago</div>
-      <div class="banco-row">🟡 Banco Pichincha · Ahorros · <b>2203554582</b></div>
-      <div class="banco-row">🔵 Banco Guayaquil · Ahorros · <b>0029388062</b></div>
-      <div class="banco-row">📋 Cédula: <b>0926345752</b> · Martha Rosado</div>
+      <div class="banco-tit">\ud83c\udfe6 Datos para pago</div>
+      <div class="banco-row">\ud83d\udfe1 Banco Pichincha \u00b7 Ahorros \u00b7 <b>2203554582</b></div>
+      <div class="banco-row">\ud83d\udd35 Banco Guayaquil \u00b7 Ahorros \u00b7 <b>0029388062</b></div>
+      <div class="banco-row">\ud83d\udccb C\u00e9dula: <b>0926345752</b> \u00b7 Martha Rosado</div>
     </div>` : ""}
 
     <div style="margin-top:14px;font-size:9px;color:#aaa;text-align:center">
-      CAMELY Ropa Infantil · Estado de cuenta al ${fecha}
+      CAMELY Ropa Infantil \u00b7 Estado de cuenta al ${fecha}
     </div></body></html>`;
     const w = window.open("", "_blank", "width=800,height=700");
     if (w) {
@@ -2328,7 +2341,7 @@ function App({
     const totVal = peds.reduce((s, p) => s + (p.total || 0), 0);
     const clientesN = new Set(peds.map(p => p.cliente)).size;
     const filas = peds.map(p => `<tr><td>${esc(p.cliente || "")}</td><td class="c">${parseInt(p.qty) || 1}</td><td>${esc(p.prenda || "-")}</td><td class="r">${(p.total || 0).toFixed(2)}</td></tr>`).join("");
-    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ventas ${esc(liveSel)} - CAMELY</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:24px;color:#222;font-size:12px}.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;border-bottom:3px solid #1BB6C8;padding-bottom:12px}.brand{font-size:26px;font-weight:900;color:#1BB6C8;letter-spacing:-1px}.brand span{color:#C45C26}.meta{text-align:right;color:#888;font-size:11px;line-height:1.6}table{width:100%;border-collapse:collapse;margin-top:4px}th{background:#1BB6C8;color:#fff;padding:9px 10px;text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase}th.r,td.r{text-align:right}th.c,td.c{text-align:center}td{padding:8px 10px;border-bottom:1px solid #eee}tr:nth-child(even) td{background:#fafafa}.total-row td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26;padding:11px 10px}.grand{color:#C45C26;font-size:15px}.footer{margin-top:20px;font-size:10px;color:#AAA;text-align:center}@media print{body{padding:14px}button{display:none!important}}</style></head><body><div class="header"><div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Ventas por live — ${esc(liveSel)}</div></div><div class="meta">Generado: ${hoy()}<br>${clientesN} clientes &nbsp;·&nbsp; ${totQty} prendas</div></div><table><thead><tr><th>Cliente</th><th class="c">Cant.</th><th>Producto</th><th class="r">Valor</th></tr></thead><tbody>${filas}<tr class="total-row"><td><b>TOTAL</b></td><td class="c"><b>${totQty}</b></td><td></td><td class="r grand"><b>${totVal.toFixed(2)}</b></td></tr></tbody></table><div class="footer">CAMELY — Sistema de Gestión · ${hoy()}</div></body></html>`;
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Ventas ${esc(liveSel)} - CAMELY</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;padding:24px;color:#222;font-size:12px}.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:20px;border-bottom:3px solid #1BB6C8;padding-bottom:12px}.brand{font-size:26px;font-weight:900;color:#1BB6C8;letter-spacing:-1px}.brand span{color:#C45C26}.meta{text-align:right;color:#888;font-size:11px;line-height:1.6}table{width:100%;border-collapse:collapse;margin-top:4px}th{background:#1BB6C8;color:#fff;padding:9px 10px;text-align:left;font-size:11px;letter-spacing:.5px;text-transform:uppercase}th.r,td.r{text-align:right}th.c,td.c{text-align:center}td{padding:8px 10px;border-bottom:1px solid #eee}tr:nth-child(even) td{background:#fafafa}.total-row td{background:#FFF3EC!important;font-weight:700;border-top:2px solid #C45C26;padding:11px 10px}.grand{color:#C45C26;font-size:15px}.footer{margin-top:20px;font-size:10px;color:#AAA;text-align:center}@media print{body{padding:14px}button{display:none!important}}</style></head><body><div class="header"><div><div class="brand">CAM<span>ELY</span></div><div style="font-size:11px;color:#888;margin-top:3px">Ventas por live \u2014 ${esc(liveSel)}</div></div><div class="meta">Generado: ${hoy()}<br>${clientesN} clientes &nbsp;\u00b7&nbsp; ${totQty} prendas</div></div><table><thead><tr><th>Cliente</th><th class="c">Cant.</th><th>Producto</th><th class="r">Valor</th></tr></thead><tbody>${filas}<tr class="total-row"><td><b>TOTAL</b></td><td class="c"><b>${totQty}</b></td><td></td><td class="r grand"><b>${totVal.toFixed(2)}</b></td></tr></tbody></table><div class="footer">CAMELY \u2014 Sistema de Gesti\u00f3n \u00b7 ${hoy()}</div></body></html>`;
     const w = window.open("", "_blank", "width=800,height=600");
     if (w) {
       w.document.write(html);
@@ -2351,20 +2364,21 @@ function App({
       clisData[p.cliente].lives[p.live].items.push(p);
       clisData[p.cliente].lives[p.live].compras += p.total;
     });
-    const abonosPorCli = {};
-    abonos.forEach(a => {
-      abonosPorCli[a.cliente] = (abonosPorCli[a.cliente] || 0) + a.monto;
-    });
     const clientes_list = Object.values(clisData).map(cl => {
+      // Usar balancePorLive para que abonos/saldo correspondan SOLO a los lives mostrados,
+      // no a todo el historial del cliente (evita mostrar abonos viejos de pedidos ya cerrados).
+      const bpl = balancePorLive(cl.alias);
+      const scoped = saldoFiltroLive ? bpl.filter(lv => lv.live === saldoFiltroLive) : bpl;
       const totComp = Object.values(cl.lives).reduce((s, l) => s + l.compras, 0);
-      const totPag = abonosPorCli[cl.alias] || 0;
+      const totPag = scoped.reduce((s, lv) => s + lv.pagado, 0);
+      const saldo = scoped.reduce((s, lv) => s + lv.pendiente, 0);
       return {
         ...cl,
         totComp,
         totPag,
-        saldo: totComp - totPag
+        saldo
       };
-    }).filter(cl => cl.saldo > 0 || cl.totComp > 0).sort((a, b) => b.saldo - a.saldo);
+    }).filter(cl => cl.saldo > 0.009).sort((a, b) => b.saldo - a.saldo);
     const totGenComp = clientes_list.reduce((s, c) => s + c.totComp, 0);
     const totGenPag = clientes_list.reduce((s, c) => s + c.totPag, 0);
     const totGenSaldo = clientes_list.reduce((s, c) => s + c.saldo, 0);
@@ -2373,7 +2387,7 @@ function App({
       month: "short",
       year: "numeric"
     });
-    const liveLabel = saldoFiltroLive ? " — " + saldoFiltroLive : "— Todos los lives";
+    const liveLabel = saldoFiltroLive ? " \u2014 " + saldoFiltroLive : "\u2014 Todos los lives";
     const rowsHtml = clientes_list.map(cl => {
       const liveRows = Object.values(cl.lives).sort((a, b) => a.live.localeCompare(b.live)).map((lv, li) => {
         const detalle = lv.items.map(p => (p.qty > 1 ? p.qty + "x " : "") + p.prenda).join(", ").substring(0, 60);
@@ -2425,9 +2439,9 @@ function App({
       @media print{button{display:none}body{padding:8px}}
     </style></head><body>
     <div class="hdr">
-      <div><div class="brand">★ CAMELY Ropa Infantil</div>
-        <div class="sub">Reporte CxC — Cuentas por Cobrar ${liveLabel}</div></div>
-      <div class="meta">${fecha}<br>${clientes_list.length} clientes · ${clientes_list.filter(c => c.saldo > 0).length} con saldo pendiente${saldoFiltroLive ? " · " + saldoFiltroLive : ""}</div>
+      <div><div class="brand">\u2605 CAMELY Ropa Infantil</div>
+        <div class="sub">Reporte CxC \u2014 Cuentas por Cobrar ${liveLabel}</div></div>
+      <div class="meta">${fecha}<br>${clientes_list.length} clientes \u00b7 ${clientes_list.filter(c => c.saldo > 0).length} con saldo pendiente${saldoFiltroLive ? " \u00b7 " + saldoFiltroLive : ""}</div>
     </div>
     <div class="kpis">
       <div class="kpi red"><div class="kpi-v">${totGenSaldo.toFixed(2)}</div><div class="kpi-l">Por cobrar</div></div>
@@ -2435,7 +2449,7 @@ function App({
       <div class="kpi"><div class="kpi-v">${totGenComp.toFixed(2)}</div><div class="kpi-l">Total vendido</div></div>
       <div class="kpi"><div class="kpi-v">${clientes_list.length}</div><div class="kpi-l">Clientes</div></div>
     </div>
-    <button onclick="window.print()">🖨 Imprimir / Guardar PDF</button>
+    <button onclick="window.print()">\ud83d\udda8 Imprimir / Guardar PDF</button>
     <table>
       <thead><tr>
         <th style="min-width:120px">CLIENTE</th><th style="min-width:110px">LIVE</th>
@@ -2456,7 +2470,7 @@ function App({
       </tr></tfoot>
     </table>
     <div style="margin-top:12px;font-size:9px;color:#aaa;text-align:center">
-      CAMELY Ropa Infantil · Generado ${fecha}
+      CAMELY Ropa Infantil \u00b7 Generado ${fecha}
     </div></body></html>`;
     const w = window.open("", "_blank", "width=1000,height=700");
     if (w) {
@@ -2502,7 +2516,7 @@ function App({
       @media print{button{display:none}}
     </style></head><body>
     <div class="h">
-      <div><div class="brand">CAMELY</div><div style="font-size:11px;color:#888;margin-top:2px">Inventario por Importación</div></div>
+      <div><div class="brand">CAMELY</div><div style="font-size:11px;color:#888;margin-top:2px">Inventario por Importaci\u00f3n</div></div>
       <div class="meta"><b>${impObj.nombre}</b><br>Estado: ${impObj.estado}<br>Costo unit: ${cu.toFixed(2)}<br>${new Date().toLocaleDateString("es-EC")}</div>
     </div>
     <div class="kpi">
@@ -2512,9 +2526,9 @@ function App({
       <div class="kpi-card"><div class="kpi-val">${totVal.toFixed(2)}</div><div class="kpi-lbl">Valor stock</div></div>
       <div class="kpi-card"><div class="kpi-val">${((impObj.costoTotal || 0) + (impObj.fleteEstimado || 0)).toFixed(2)}</div><div class="kpi-lbl">Costo total</div></div>
     </div>
-    <button onclick="window.print()">🖨 Imprimir</button>
+    <button onclick="window.print()">\ud83d\udda8 Imprimir</button>
     <table><thead><tr>
-      <th>Descripción</th><th>Tipo</th><th>Talla</th>
+      <th>Descripci\u00f3n</th><th>Tipo</th><th>Talla</th>
       <th class="r">Costo</th><th class="r">Ingresado</th><th class="r">Vendido</th><th class="r">Disponible</th><th class="r">Valor</th>
     </tr></thead><tbody>
     ${rows.sort((a, b) => a.desc.localeCompare(b.desc)).map(r => `<tr>
@@ -2572,11 +2586,11 @@ function App({
       return (pi > 0 ? '<div style="page-break-before:always"></div>' : '') + '<div class="grid">' + cells.map(it => it ? `<div class="lbl"><div class="brand">* CAMELY *</div>
             <div class="code">${esc(it.codigo || it.Codigo || it.code || it.id || "?")}</div>
             <div class="desc">${esc((it.descripcion || it.Descripcion || "").substring(0, 20))}${fixTalla(it.talla || it.Talla) ? " " + "T:" + esc(fixTalla(it.talla || it.Talla)) : ""}</div>
-            <div class="sub">${it.tipoRopa || it.TipoRopa || "" ? esc(it.tipoRopa || it.TipoRopa) + " · " : ""}${esc(it.categoria || it.Categoria || "")}</div></div>` : '<div class="lbl"></div>').join("") + '</div>';
+            <div class="sub">${it.tipoRopa || it.TipoRopa || "" ? esc(it.tipoRopa || it.TipoRopa) + " \u00b7 " : ""}${esc(it.categoria || it.Categoria || "")}</div></div>` : '<div class="lbl"></div>').join("") + '</div>';
     }).join("");
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styleTag}</head><body>
-      <div class="topbar"><span><b>${items.length}</b> etiquetas — imprimir A4 · escala 100%</span>
-      <button onclick="window.print()">🖨 Imprimir</button></div>
+      <div class="topbar"><span><b>${items.length}</b> etiquetas \u2014 imprimir A4 \u00b7 escala 100%</span>
+      <button onclick="window.print()">\ud83d\udda8 Imprimir</button></div>
       ${pagesHtml}</body></html>`;
     const w = window.open("", "_blank", "width=800,height=600");
     if (w) {
@@ -2613,8 +2627,8 @@ function App({
     while (cells.length < 5) cells.push(null);
     const rowHtml = `<div class="grid">` + cells.map(l => l ? `<div class="lbl">
           <div class="lbl-head">
-            <span class="lbl-brand">★ CAMELY</span>
-            <span class="lbl-live">${esc(l.live || "")} · ${esc(l.fecha || "")}</span>
+            <span class="lbl-brand">\u2605 CAMELY</span>
+            <span class="lbl-live">${esc(l.live || "")} \u00b7 ${esc(l.fecha || "")}</span>
           </div>
           <div class="lbl-cliente" style="font-size:${Math.max(6, (l.cliente || "").length > 12 ? 8 : 10)}pt">
             ${esc((l.cliente || "").substring(0, 18))}
@@ -2625,8 +2639,8 @@ function App({
         </div>` : `<div class="lbl"></div>`).join("") + `</div>`;
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">${styleTag}</head><body>
       <div class="topbar">
-        <span><b>${labels.length}</b> etiquetas · recortar por línea punteada</span>
-        <button onclick="window.print()">🖨 Imprimir</button>
+        <span><b>${labels.length}</b> etiquetas \u00b7 recortar por l\u00ednea punteada</span>
+        <button onclick="window.print()">\ud83d\udda8 Imprimir</button>
       </div>
       ${rowHtml}</body></html>`;
     const w = window.open("", "_blank", "width=860,height=500");
@@ -2655,7 +2669,7 @@ function App({
           id: nextId(),
           fecha: hoy(),
           tarjetaId,
-          descripcion: imp.nombre + " (mercadería)",
+          descripcion: imp.nombre + " (mercader\u00eda)",
           monto: imp.costoTotal,
           tipo: "cargo"
         });
@@ -2667,7 +2681,7 @@ function App({
             id: nextId() + 1,
             fecha: hoy(),
             tarjetaId: fTarjId,
-            descripcion: imp.nombre + " (flete/traída)",
+            descripcion: imp.nombre + " (flete/tra\u00edda)",
             monto: parseFloat(fleteM),
             tipo: "cargo"
           });
@@ -2678,7 +2692,7 @@ function App({
         lSet(K.cargos, newCargos);
         sheetsSync("saveCargos", newCargos);
         const totalCargo = (tarjetaId ? imp.costoTotal : 0) + (fleteM && fleteTarjeta !== "efectivo" ? parseFloat(fleteM) : 0);
-        toast_("Cargo de $" + totalCargo.toFixed(2) + " registrado en tarjeta ✓");
+        toast_("Cargo de $" + totalCargo.toFixed(2) + " registrado en tarjeta \u2713");
       }
       setStatusFleteM("");
       setStatusFleteTarjeta("");
@@ -2710,7 +2724,7 @@ function App({
       setLabelsToPrint(nuevos);
       setExpandedLlegada(null);
       setLlegadaItems([]);
-      toast_("✓ " + nuevos.length + " códigos · Costo unitario: $" + costoUnitReal);
+      toast_("\u2713 " + nuevos.length + " c\u00f3digos \u00b7 Costo unitario: $" + costoUnitReal);
       setTimeout(() => imprimirEtiquetasImportacion(nuevos), 500);
     }
     setShowStatusModal(false);
@@ -2757,8 +2771,8 @@ function App({
       if (result) {
         setEcDriveUrl(result.url);
         setEcDriveId(result.id);
-        toast_("✓ PDF guardado en Google Drive");
-      } else toast_("PDF guardado localmente (sin conexión a Drive)");
+        toast_("\u2713 PDF guardado en Google Drive");
+      } else toast_("PDF guardado localmente (sin conexi\u00f3n a Drive)");
     };
     reader.readAsDataURL(file);
   }
@@ -2789,7 +2803,7 @@ function App({
     setEcFilePrev(null);
     setEcDriveUrl(null);
     setEcDriveId(null);
-    toast_("Estado de cuenta guardado ✓");
+    toast_("Estado de cuenta guardado \u2713");
   }
   async function procesarXMLServientrega(files) {
     const nuevosGastos = [];
@@ -2851,15 +2865,15 @@ function App({
       }
     }
     if (duplicados.length > 0 && nuevosGastos.length === 0) {
-      toast_("⚠️ " + duplicados.length + " factura(s) ya registrada(s): " + duplicados.join(", "));
+      toast_("\u26a0\ufe0f " + duplicados.length + " factura(s) ya registrada(s): " + duplicados.join(", "));
       return;
     }
     if (nuevosGastos.length === 0) {
-      toast_("No se encontró importeTotal — verifica que sean facturas SRI válidas");
+      toast_("No se encontr\u00f3 importeTotal \u2014 verifica que sean facturas SRI v\u00e1lidas");
       return;
     }
     if (duplicados.length > 0) {
-      toast_("⚠️ Omitidas " + duplicados.length + " duplicadas: " + duplicados.slice(0, 3).join(", ") + (duplicados.length > 3 ? "..." : ""));
+      toast_("\u26a0\ufe0f Omitidas " + duplicados.length + " duplicadas: " + duplicados.slice(0, 3).join(", ") + (duplicados.length > 3 ? "..." : ""));
       await new Promise(r => setTimeout(r, 2000));
     }
     if (nuevosGastos.length === 1) {
@@ -2871,7 +2885,7 @@ function App({
         descripcion: g.descripcion,
         fecha: g.fecha
       }));
-      toast_("✓ 1 XML cargado — $" + g.monto.toFixed(2) + " · " + g.fecha + " · revisa y guarda");
+      toast_("\u2713 1 XML cargado \u2014 $" + g.monto.toFixed(2) + " \u00b7 " + g.fecha + " \u00b7 revisa y guarda");
     } else {
       const total = nuevosGastos.reduce((s, g) => s + g.monto, 0);
       const upd = [...gastos, ...nuevosGastos];
@@ -2879,7 +2893,7 @@ function App({
       lSet(K.gastos, upd);
       sheetsSync("saveGastos", upd);
       setShowGastoModal(false);
-      toast_("✓ " + nuevosGastos.length + " facturas nuevas guardadas — $" + total.toFixed(2));
+      toast_("\u2713 " + nuevosGastos.length + " facturas nuevas guardadas \u2014 $" + total.toFixed(2));
     }
   }
   async function guardarGasto() {
@@ -2900,13 +2914,13 @@ function App({
       monto: "",
       fecha: hoy()
     });
-    toast_("Gasto registrado ✓");
+    toast_("Gasto registrado \u2713");
   }
   function addImportItem() {
     setImportItems(p => [...p, {
       id: nextId(),
       categoria: "ropa",
-      tipoRopa: "niña",
+      tipoRopa: "ni\u00f1a",
       talla: "",
       cantidad: 1,
       descripcion: ""
@@ -2992,7 +3006,7 @@ function App({
     });
   }
   async function eliminarTarjeta(id) {
-    if (!window.confirm("¿Eliminar esta tarjeta y todos sus movimientos?")) return;
+    if (!window.confirm("\u00bfEliminar esta tarjeta y todos sus movimientos?")) return;
     tomb(K.tarjetas, [id]);
     tomb(K.cargos, cargosTarjeta.filter(c => c.tarjetaId === id).map(c => c.id));
     tomb(K.estadosCuenta, estadosCuenta.filter(e => e.tarjetaId === id).map(e => e.id));
@@ -3045,17 +3059,17 @@ function App({
       }
     });
     if (aDuplicados.length === 0) {
-      toast_("✓ No hay facturas duplicadas");
+      toast_("\u2713 No hay facturas duplicadas");
       return;
     }
-    if (!window.confirm("Se encontraron " + aDuplicados.length + " factura(s) duplicada(s).\n\nEjemplos: " + aDuplicados.slice(0, 3).map(g => g.descripcion).join(", ") + (aDuplicados.length > 3 ? "..." : "") + ".\n\n¿Eliminar los duplicados y conservar solo la primera copia de cada factura?")) return;
+    if (!window.confirm("Se encontraron " + aDuplicados.length + " factura(s) duplicada(s).\n\nEjemplos: " + aDuplicados.slice(0, 3).map(g => g.descripcion).join(", ") + (aDuplicados.length > 3 ? "..." : "") + ".\n\n\u00bfEliminar los duplicados y conservar solo la primera copia de cada factura?")) return;
     setGastos(aConservar);
     lSet(K.gastos, aConservar);
     sheetsSync("saveGastos", aConservar);
-    toast_("✓ " + aDuplicados.length + " duplicado(s) eliminado(s) — quedan " + aConservar.length + " gastos");
+    toast_("\u2713 " + aDuplicados.length + " duplicado(s) eliminado(s) \u2014 quedan " + aConservar.length + " gastos");
   }
   async function eliminarGasto(id) {
-    if (!window.confirm("¿Eliminar este gasto?")) return;
+    if (!window.confirm("\u00bfEliminar este gasto?")) return;
     tomb(K.gastos, [id]);
     setGastos(prev => {
       const upd = prev.filter(g => g.id !== id);
@@ -3066,7 +3080,7 @@ function App({
     toast_("Gasto eliminado");
   }
   async function eliminarImportacion(id) {
-    if (!window.confirm("¿Eliminar esta importación?")) return;
+    if (!window.confirm("\u00bfEliminar esta importaci\u00f3n?")) return;
     tomb(K.imports, [id]);
     setImportaciones(prev => {
       const upd = prev.filter(i => i.id !== id);
@@ -3074,7 +3088,7 @@ function App({
       sheetsSync("saveImports", upd);
       return upd;
     });
-    toast_("Importación eliminada");
+    toast_("Importaci\u00f3n eliminada");
   }
   async function guardarCargo() {
     if (!cargoForm.tarjetaId || !cargoForm.monto) return;
@@ -3113,7 +3127,7 @@ function App({
       try {
         const apiKey = localStorage.getItem("camely_ak") || "";
         if (!apiKey) {
-          toast_("⚠ Ingresa tu API Key de Gemini en Configuración", "warn");
+          toast_("\u26a0 Ingresa tu API Key de Gemini en Configuraci\u00f3n", "warn");
           setReadingImport(false);
           return;
         }
@@ -3130,7 +3144,7 @@ function App({
                   data: b64
                 }
               }, {
-                text: "Esta es una factura de compra de ropa. Extrae el número total de prendas/items y el costo total en USD. Responde SOLO en JSON sin texto ni backticks: {\"prendas\":NUMBER,\"costoUSD\":NUMBER}"
+                text: "Esta es una factura de compra de ropa. Extrae el n\u00famero total de prendas/items y el costo total en USD. Responde SOLO en JSON sin texto ni backticks: {\"prendas\":NUMBER,\"costoUSD\":NUMBER}"
               }]
             }]
           })
@@ -3204,7 +3218,7 @@ function App({
     lSet(K.inventario, upd);
     sheetsSync("saveInventario", upd);
     setShowInvModal(false);
-    toast_("Guardado ✓");
+    toast_("Guardado \u2713");
   }
   if (loading) return React.createElement("div", {
     style: {
@@ -3323,9 +3337,9 @@ function App({
       textOverflow: "ellipsis",
       display: "block"
     }
-  }, live, " ▾")), React.createElement("button", {
+  }, live, " \u25be")), React.createElement("button", {
     onClick: onLogout,
-    title: "Cerrar sesión",
+    title: "Cerrar sesi\u00f3n",
     style: {
       background: "#E53935",
       border: "none",
@@ -3337,7 +3351,7 @@ function App({
       flexShrink: 0,
       fontWeight: 700
     }
-  }, "⏻")), showLiveModal && React.createElement("div", {
+  }, "\u23fb")), showLiveModal && React.createElement("div", {
     style: S.ov,
     onClick: () => setShowLiveModal(false)
   }, React.createElement("div", {
@@ -3468,7 +3482,7 @@ function App({
       ...S.inp,
       marginBottom: 10
     },
-    placeholder: "🔍 Buscar por nombre o talla...",
+    placeholder: "\ud83d\udd0d Buscar por nombre o talla...",
     value: searchInv,
     onChange: e => setSearchInv(e.target.value)
   }), invDisp.length === 0 ? React.createElement("div", {
@@ -3560,7 +3574,7 @@ function App({
       color: "#F0057F",
       textTransform: "uppercase"
     }
-  }, "Datos para envío"), React.createElement("div", {
+  }, "Datos para env\u00edo"), React.createElement("div", {
     style: {
       fontSize: 21,
       fontWeight: 900,
@@ -3574,7 +3588,7 @@ function App({
       padding: 16,
       marginTop: 10
     }
-  }, [["Nombre completo", showPerfilModal.perfil.nombre], ["Cédula", showPerfilModal.perfil.cedula], ["Teléfono", showPerfilModal.perfil.telefono], ["WhatsApp", showPerfilModal.perfil.whatsapp], ["TikTok", showPerfilModal.perfil.tiktok], ["Ciudad", showPerfilModal.perfil.ciudad], ["Dirección", showPerfilModal.perfil.direccion]].map(([k, v]) => v ? React.createElement("div", {
+  }, [["Nombre completo", showPerfilModal.perfil.nombre], ["C\u00e9dula", showPerfilModal.perfil.cedula], ["Tel\u00e9fono", showPerfilModal.perfil.telefono], ["WhatsApp", showPerfilModal.perfil.whatsapp], ["TikTok", showPerfilModal.perfil.tiktok], ["Ciudad", showPerfilModal.perfil.ciudad], ["Direcci\u00f3n", showPerfilModal.perfil.direccion]].map(([k, v]) => v ? React.createElement("div", {
     key: k,
     style: {
       marginBottom: 10
@@ -3600,7 +3614,7 @@ function App({
       const tel = p.whatsapp || p.telefono || "";
       const dir = p.direccion || "";
       const ciudad = p.ciudad || "";
-      const lineas = ["📦 *Datos de envío*", "━━━━━━━━━━━━━━━━━━", "👤 *Destinatario:* " + nombre, "📞 *Teléfono:* " + (tel || "—"), "📍 *Dirección:* " + (dir || "—"), "🏙 *Ciudad:* " + (ciudad || "—")];
+      const lineas = ["\ud83d\udce6 *Datos de env\u00edo*", "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501", "\ud83d\udc64 *Destinatario:* " + nombre, "\ud83d\udcde *Tel\u00e9fono:* " + (tel || "\u2014"), "\ud83d\udccd *Direcci\u00f3n:* " + (dir || "\u2014"), "\ud83c\udfd9 *Ciudad:* " + (ciudad || "\u2014")];
       const msg = encodeURIComponent(lineas.join("\n"));
       const num = tel.replace(/[^0-9]/g, "");
       const url = num ? "https://wa.me/593" + num.replace(/^0/, "") + "?text=" + msg : "https://wa.me/?text=" + msg;
@@ -3623,7 +3637,7 @@ function App({
       marginTop: 10,
       marginBottom: 6
     }
-  }, React.createElement("span", null, "📲"), React.createElement("span", null, "Enviar datos de envío por WhatsApp")), React.createElement("button", {
+  }, React.createElement("span", null, "\ud83d\udcf2"), React.createElement("span", null, "Enviar datos de env\u00edo por WhatsApp")), React.createElement("button", {
     onClick: () => {
       const al = (showPerfilModal.alias || "").toUpperCase();
       const cli = clientes.find(c => (c.alias || "").toUpperCase() === al);
@@ -3655,14 +3669,14 @@ function App({
       marginTop: 10,
       fontSize: 13
     }
-  }, "✏️ Editar datos")) : React.createElement("div", {
+  }, "\u270f\ufe0f Editar datos")) : React.createElement("div", {
     style: {
       textAlign: "center",
       color: "#aaa",
       padding: "16px 0",
       fontSize: 13
     }
-  }, "Sin datos de envío aún.", React.createElement("br", null), React.createElement("br", null), React.createElement("button", {
+  }, "Sin datos de env\u00edo a\u00fan.", React.createElement("br", null), React.createElement("br", null), React.createElement("button", {
     onClick: () => {
       const al = (showPerfilModal.alias || "").toUpperCase();
       const cli = clientes.find(c => (c.alias || "").toUpperCase() === al);
@@ -3694,7 +3708,7 @@ function App({
       padding: "10px 20px",
       fontSize: 13
     }
-  }, "+ Agregar datos de envío")), React.createElement("button", {
+  }, "+ Agregar datos de env\u00edo")), React.createElement("button", {
     onClick: () => setShowPerfilModal(null),
     style: {
       ...S.cancelBtn,
@@ -3702,7 +3716,7 @@ function App({
     }
   }, "Cerrar"))), showProductoDetail && (() => {
     const item = showProductoDetail;
-    const cod = String(item.codigo || item.id || "—");
+    const cod = String(item.codigo || item.id || "\u2014");
     const ventasProd = pedidos.filter(p => String(p.invId || "") === String(item.id || item.codigo || ""));
     const totalVendido = ventasProd.reduce((s, p) => s + p.total, 0);
     const rest = qtyR(item);
@@ -3742,7 +3756,7 @@ function App({
         color: "#888",
         marginTop: 2
       }
-    }, item.categoria || "", item.tipoRopa ? " · " + item.tipoRopa : "", item.talla ? "  T:" + item.talla : "")), React.createElement("div", {
+    }, item.categoria || "", item.tipoRopa ? " \u00b7 " + item.tipoRopa : "", item.talla ? "  T:" + item.talla : "")), React.createElement("div", {
       style: {
         textAlign: "right"
       }
@@ -3756,7 +3770,7 @@ function App({
         fontWeight: 700,
         color: item.estado === "ajuste" ? "#B45309" : rest <= 0 ? "#D00" : "#2D6A4F"
       }
-    }, item.estado === "ajuste" ? "⚠ Baja" : rest <= 0 ? "Agotado" : "Disponible"))), React.createElement("div", {
+    }, item.estado === "ajuste" ? "\u26a0 Baja" : rest <= 0 ? "Agotado" : "Disponible"))), React.createElement("div", {
       style: {
         display: "grid",
         gridTemplateColumns: "1fr 1fr 1fr",
@@ -3835,7 +3849,7 @@ function App({
         color: "#1A1A1A",
         marginBottom: 6
       }
-    }, "📦 INGRESO"), React.createElement("div", {
+    }, "\ud83d\udce6 INGRESO"), React.createElement("div", {
       style: {
         background: "#E8F9FB",
         borderRadius: 10,
@@ -3852,7 +3866,7 @@ function App({
       style: {
         color: "#555"
       }
-    }, item.importacionNombre || "Importación"), React.createElement("span", {
+    }, item.importacionNombre || "Importaci\u00f3n"), React.createElement("span", {
       style: {
         fontWeight: 700
       }
@@ -3868,14 +3882,14 @@ function App({
         color: "#B45309",
         marginTop: 3
       }
-    }, "⚠ Dado de baja el ", fmtFecha(item.ajusteFecha))), React.createElement("div", {
+    }, "\u26a0 Dado de baja el ", fmtFecha(item.ajusteFecha))), React.createElement("div", {
       style: {
         fontWeight: 700,
         fontSize: 12,
         color: "#1A1A1A",
         marginBottom: 6
       }
-    }, "🛍️ VENTAS (", ventasProd.length, ")"), ventasProd.length === 0 ? React.createElement("div", {
+    }, "\ud83d\udecd\ufe0f VENTAS (", ventasProd.length, ")"), ventasProd.length === 0 ? React.createElement("div", {
       style: {
         color: "#AAA",
         fontSize: 12,
@@ -3906,7 +3920,7 @@ function App({
         fontSize: 10,
         color: "#888"
       }
-    }, fmtFecha(p.fecha), " · ", p.live)), React.createElement("div", {
+    }, fmtFecha(p.fecha), " \u00b7 ", p.live)), React.createElement("div", {
       style: {
         fontWeight: 700
       }
@@ -3940,7 +3954,7 @@ function App({
         toast_("No hay pagos duplicados exactos", "warn");
         return;
       }
-      if (!window.confirm("¿Eliminar " + dedupIds.length + " pagos duplicados en toda la app?")) return;
+      if (!window.confirm("\u00bfEliminar " + dedupIds.length + " pagos duplicados en toda la app?")) return;
       tomb(K.abonos, dedupIds);
       setAbonos(prev => {
         const upd = prev.filter(a => !dedupIds.includes(a.id));
@@ -3948,10 +3962,10 @@ function App({
         sheetsSync("saveAbonos", upd);
         return upd;
       });
-      toast_("🧹 " + dedupIds.length + " pagos duplicados eliminados");
+      toast_("\ud83e\uddf9 " + dedupIds.length + " pagos duplicados eliminados");
     };
     const borrarPagosCli = alias => {
-      if (!window.confirm("¿Borrar TODOS los pagos de " + alias + "? Úsalo solo si esta clienta NO ha pagado nada.")) return;
+      if (!window.confirm("\u00bfBorrar TODOS los pagos de " + alias + "? \u00dasalo solo si esta clienta NO ha pagado nada.")) return;
       const ids = abonos.filter(x => normCli(x.cliente) === normCli(alias)).map(x => x.id);
       tomb(K.abonos, ids);
       setAbonos(prev => {
@@ -3960,7 +3974,7 @@ function App({
         sheetsSync("saveAbonos", upd);
         return upd;
       });
-      toast_("🗑 " + ids.length + " pagos de " + alias + " eliminados");
+      toast_("\ud83d\uddd1 " + ids.length + " pagos de " + alias + " eliminados");
     };
     return React.createElement("div", {
       style: S.ov,
@@ -3974,13 +3988,13 @@ function App({
       onClick: e => e.stopPropagation()
     }, React.createElement("div", {
       style: S.shT
-    }, "⚠ Posibles saldos inflados"), React.createElement("div", {
+    }, "\u26a0 Posibles saldos inflados"), React.createElement("div", {
       style: {
         fontSize: 12,
         color: "#888",
         marginBottom: 10
       }
-    }, "Clientes que ", React.createElement("b", null, "abonaron más de lo que compraron"), " (imposible — casi siempre pagos duplicados). Exceso total: ", React.createElement("b", {
+    }, "Clientes que ", React.createElement("b", null, "abonaron m\u00e1s de lo que compraron"), " (imposible \u2014 casi siempre pagos duplicados). Exceso total: ", React.createElement("b", {
       style: {
         color: "#D00"
       }
@@ -3998,7 +4012,7 @@ function App({
         cursor: "pointer",
         marginBottom: 12
       }
-    }, "🧹 Eliminar pagos duplicados en toda la app (", dedupIds.length, ")"), rows.length === 0 ? React.createElement("div", {
+    }, "\ud83e\uddf9 Eliminar pagos duplicados en toda la app (", dedupIds.length, ")"), rows.length === 0 ? React.createElement("div", {
       style: {
         textAlign: "center",
         color: "#2D6A4F",
@@ -4006,7 +4020,7 @@ function App({
         padding: "20px 0",
         fontWeight: 700
       }
-    }, "✅ No se detectaron saldos inflados") : rows.map((r, i) => React.createElement("div", {
+    }, "\u2705 No se detectaron saldos inflados") : rows.map((r, i) => React.createElement("div", {
       key: i,
       onClick: () => {
         setShowInflados(false);
@@ -4037,11 +4051,11 @@ function App({
         fontSize: 11,
         color: "#888"
       }
-    }, "Compró $", r.tc.toFixed(2), " · Abonó ", React.createElement("b", {
+    }, "Compr\u00f3 $", r.tc.toFixed(2), " \u00b7 Abon\u00f3 ", React.createElement("b", {
       style: {
         color: "#D00"
       }
-    }, "$", r.ta.toFixed(2)), " · ", r.nAb, " pagos")), React.createElement("div", {
+    }, "$", r.ta.toFixed(2)), " \u00b7 ", r.nAb, " pagos")), React.createElement("div", {
       style: {
         textAlign: "right"
       }
@@ -4056,7 +4070,7 @@ function App({
         fontSize: 9,
         color: "#AAA"
       }
-    }, "de más")), React.createElement("button", {
+    }, "de m\u00e1s")), React.createElement("button", {
       onClick: e => {
         e.stopPropagation();
         borrarPagosCli(r.alias);
@@ -4073,13 +4087,13 @@ function App({
         flexShrink: 0,
         marginLeft: 6
       }
-    }, "🗑")))), React.createElement("div", {
+    }, "\ud83d\uddd1")))), React.createElement("div", {
       style: {
         fontSize: 11,
         color: "#888",
         marginTop: 6
       }
-    }, "Toca un cliente para ver su historial. El 🗑 de cada fila borra TODOS sus pagos (para quien no ha pagado nada)."), React.createElement("button", {
+    }, "Toca un cliente para ver su historial. El \ud83d\uddd1 de cada fila borra TODOS sus pagos (para quien no ha pagado nada)."), React.createElement("button", {
       onClick: () => setShowInflados(false),
       style: {
         ...S.cancelBtn,
@@ -4089,9 +4103,9 @@ function App({
   })(), showCobrarLive && (() => {
     try {
       const livesSel = cobrarLives && cobrarLives.length ? cobrarLives : [live];
-      const sentKey = "multi:" + [...livesSel].sort().join("|");
+      const sentKey = "cobrar_global";
       const pedLive = pedidos.filter(p => livesSel.includes(p.live));
-      const clientesLive = [...new Set(pedLive.map(p => p.cliente))].filter(Boolean).sort();
+      const clientesLive = [...new Set(pedLive.map(p => p.cliente))].filter(Boolean).filter(alias => balancePorLive(alias).filter(lv => livesSel.includes(lv.live)).reduce((s, lv) => s + lv.pendiente, 0) > 0.009).sort();
       const cobrarWASent = new Set(cobrarSentMap[sentKey] || []);
       const marcarSent = alias => setCobrarSentMap(prev => {
         const cur = new Set(prev[sentKey] || []);
@@ -4131,12 +4145,42 @@ function App({
         }
       }, React.createElement("div", {
         style: S.shT
-      }, "📲 Cobrar"), React.createElement("div", {
+      }, "\ud83d\udcf2 Cobrar"), React.createElement("div", {
+        style: {
+          display: "flex",
+          alignItems: "center",
+          gap: 8
+        }
+      }, React.createElement("div", {
         style: {
           fontSize: 11,
           color: "#888"
         }
-      }, clientesLive.filter(a => !cobrarWASent.has(a)).length, " pendientes")), React.createElement("div", {
+      }, clientesLive.filter(a => !cobrarWASent.has(a)).length, " pendientes"), React.createElement("button", {
+        onClick: () => {
+          if (window.confirm("\u00bfReiniciar la lista de enviados? Todas volver\u00e1n a aparecer como por enviar.")) {
+            setCobrarSentMap(prev => {
+              const n = {
+                ...prev
+              };
+              delete n[sentKey];
+              try {
+                localStorage.setItem("camely_cobrar_sent", JSON.stringify(n));
+              } catch {}
+              return n;
+            });
+          }
+        },
+        style: {
+          background: "#F5EDE4",
+          border: "none",
+          borderRadius: 8,
+          padding: "4px 8px",
+          fontSize: 10,
+          color: "#888",
+          cursor: "pointer"
+        }
+      }, "\u21ba Reiniciar"))), React.createElement("div", {
         style: {
           fontSize: 11,
           color: "#888",
@@ -4167,7 +4211,7 @@ function App({
             fontWeight: 700,
             cursor: "pointer"
           }
-        }, on ? "✓ " : "", lv);
+        }, on ? "\u2713 " : "", lv);
       })), diaEnvio && React.createElement("div", {
         style: {
           background: "#E8F9FB",
@@ -4178,7 +4222,7 @@ function App({
           color: "#1BB6C8",
           fontWeight: 700
         }
-      }, "📅 Se incluirá el día de envío seleccionado en Saldos"), React.createElement("div", {
+      }, "\ud83d\udcc5 Se incluir\u00e1 el d\u00eda de env\u00edo seleccionado en Saldos"), React.createElement("div", {
         style: {
           display: "flex",
           gap: 6,
@@ -4205,7 +4249,7 @@ function App({
           fontSize: 12,
           padding: "18px 0"
         }
-      }, cobrarFiltro === "pend" ? "🎉 No quedan clientes por enviar" : cobrarFiltro === "sent" ? "Aún no has enviado a nadie" : "Sin clientes"), clientesView.map(alias => {
+      }, cobrarFiltro === "pend" ? "\ud83c\udf89 No quedan clientes por enviar" : cobrarFiltro === "sent" ? "A\u00fan no has enviado a nadie" : "Sin clientes"), clientesView.map(alias => {
         const cliPeds = pedLive.filter(p => p.cliente === alias);
         const totalLive = cliPeds.reduce((s, p) => s + (p.total || 0), 0);
         const _bpl = balancePorLive(alias).filter(lv => livesSel.includes(lv.live));
@@ -4236,12 +4280,12 @@ function App({
             fontSize: 13,
             color: sent ? "#2D6A4F" : "#1A1A1A"
           }
-        }, sent ? "✓✓ " : "", alias), React.createElement("div", {
+        }, sent ? "\u2713\u2713 " : "", alias), React.createElement("div", {
           style: {
             fontSize: 10,
             color: "#888"
           }
-        }, cliPeds.length, " prenda", cliPeds.length !== 1 ? "s" : "", " · Total: ", React.createElement("b", null, "$", totalLive.toFixed(2)))), React.createElement("div", {
+        }, cliPeds.length, " prenda", cliPeds.length !== 1 ? "s" : "", " \u00b7 Total: ", React.createElement("b", null, "$", totalLive.toFixed(2)))), React.createElement("div", {
           style: {
             textAlign: "right"
           }
@@ -4262,37 +4306,37 @@ function App({
             color: "#AAA",
             marginBottom: 8
           }
-        }, cliPeds.slice(0, 3).map(p => p.prenda || "Prenda").join(" · "), cliPeds.length > 3 ? " · ..." : ""), React.createElement("button", {
+        }, cliPeds.slice(0, 3).map(p => p.prenda || "Prenda").join(" \u00b7 "), cliPeds.length > 3 ? " \u00b7 ..." : ""), React.createElement("button", {
           onClick: () => {
             try {
-              const lineas = ["✨ *Camely Ropa Infantil* ✨", "━━━━━━━━━━━━━━━━━━", "👋 Hola *" + alias + "*!", "", "🛒 *Tus prendas pendientes:*"];
+              const lineas = ["\u2728 *Camely Ropa Infantil* \u2728", "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501", "\ud83d\udc4b Hola *" + alias + "*!", "", "\ud83d\uded2 *Tus prendas pendientes:*"];
               cliPeds.forEach(p => {
-                lineas.push("  • " + (p.prenda || "Prenda") + ": $" + (p.total || 0).toFixed(2));
+                lineas.push("  \u2022 " + (p.prenda || "Prenda") + ": $" + (p.total || 0).toFixed(2));
               });
               lineas.push("");
-              lineas.push("💰 Total: $" + totalLive.toFixed(2));
-              if (abonosLive > 0) lineas.push("✅ Abonado: $" + abonosLive.toFixed(2));
+              lineas.push("\ud83d\udcb0 Total: $" + totalLive.toFixed(2));
+              if (abonosLive > 0) lineas.push("\u2705 Abonado: $" + abonosLive.toFixed(2));
               if (saldoEste > 0.01) {
-                lineas.push("🔴 *Pendiente: $" + saldoEste.toFixed(2) + "*");
+                lineas.push("\ud83d\udd34 *Pendiente: $" + saldoEste.toFixed(2) + "*");
                 lineas.push("");
-                lineas.push("─────────────────");
-                lineas.push("🏦 Banco Pichincha Ahorros *2203554582*");
-                lineas.push("🏦 Banco Guayaquil Ahorros *0029388062*");
-                lineas.push("📋 Cédula *0926345752* Martha Rosado");
+                lineas.push("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+                lineas.push("\ud83c\udfe6 Banco Pichincha Ahorros *2203554582*");
+                lineas.push("\ud83c\udfe6 Banco Guayaquil Ahorros *0029388062*");
+                lineas.push("\ud83d\udccb C\u00e9dula *0926345752* Martha Rosado");
               } else {
-                lineas.push("✅ *¡Gracias! Tu cuenta está al día* 🌸");
+                lineas.push("\u2705 *\u00a1Gracias! Tu cuenta est\u00e1 al d\u00eda* \ud83c\udf38");
               }
               if (diaEnvio) {
                 const d = new Date(diaEnvio + "T12:00:00");
-                const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+                const dias = ["domingo", "lunes", "martes", "mi\u00e9rcoles", "jueves", "viernes", "s\u00e1bado"];
                 const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
                 if (!isNaN(d)) {
                   lineas.push("");
-                  lineas.push("📅 *Día de envío: " + dias[d.getDay()] + " " + d.getDate() + " de " + meses[d.getMonth()] + "*");
+                  lineas.push("\ud83d\udcc5 *D\u00eda de env\u00edo: " + dias[d.getDay()] + " " + d.getDate() + " de " + meses[d.getMonth()] + "*");
                 }
               }
               lineas.push("");
-              lineas.push("💕 ¡Gracias por tu compra en Camely!");
+              lineas.push("\ud83d\udc95 \u00a1Gracias por tu compra en Camely!");
               const msg = encodeURIComponent(lineas.join("\n"));
               const url = tel ? "https://wa.me/593" + tel.replace(/^0/, "") + "?text=" + msg : "https://wa.me/?text=" + msg;
               openUrl(url);
@@ -4316,7 +4360,7 @@ function App({
             fontWeight: 700,
             cursor: "pointer"
           }
-        }, React.createElement("span", null, "📲"), React.createElement("span", null, sent ? "Reenviar" : "Enviar cobro por WhatsApp")));
+        }, React.createElement("span", null, "\ud83d\udcf2"), React.createElement("span", null, sent ? "Reenviar" : "Enviar cobro por WhatsApp")));
       }), React.createElement("div", {
         style: {
           marginTop: 6,
@@ -4380,7 +4424,7 @@ function App({
           fontSize: 10,
           color: "#888"
         }
-      }, "enviados ✓✓"))), React.createElement("button", {
+      }, "enviados \u2713\u2713"))), React.createElement("button", {
         onClick: () => setShowCobrarLive(false),
         style: {
           ...S.cancelBtn,
@@ -4396,7 +4440,7 @@ function App({
         onClick: e => e.stopPropagation()
       }, React.createElement("div", {
         style: S.shT
-      }, "⚠ Error al cargar"), React.createElement("div", {
+      }, "\u26a0 Error al cargar"), React.createElement("div", {
         style: {
           fontSize: 12,
           color: "#888",
@@ -4419,7 +4463,7 @@ function App({
     onClick: e => e.stopPropagation()
   }, React.createElement("div", {
     style: S.shT
-  }, "📦 Nuevo Lote de Consignación"), React.createElement("div", {
+  }, "\ud83d\udce6 Nuevo Lote de Consignaci\u00f3n"), React.createElement("div", {
     style: S.fg
   }, React.createElement("label", {
     style: S.lbl
@@ -4463,7 +4507,7 @@ function App({
       flex: 2,
       marginBottom: 0
     },
-    placeholder: "Descripción",
+    placeholder: "Descripci\u00f3n",
     value: item.desc,
     onChange: e => setConsigF(f => ({
       ...f,
@@ -4520,7 +4564,7 @@ function App({
       cursor: "pointer",
       flexShrink: 0
     }
-  }, "✕"))), React.createElement("button", {
+  }, "\u2715"))), React.createElement("button", {
     onClick: () => setConsigF(f => ({
       ...f,
       items: [...f.items, {
@@ -4549,7 +4593,7 @@ function App({
         color: "#888",
         textAlign: "right"
       }
-    }, consigF.items.filter(i => i.desc).length, " prendas · Costo total si se vende todo: ", React.createElement("b", null, "$", tot.toFixed(2)));
+    }, consigF.items.filter(i => i.desc).length, " prendas \u00b7 Costo total si se vende todo: ", React.createElement("b", null, "$", tot.toFixed(2)));
   })()), React.createElement("button", {
     onClick: guardarConsig,
     style: {
@@ -4557,7 +4601,7 @@ function App({
       background: "#8B5CF6",
       marginBottom: 6
     }
-  }, "✓ Crear lote"), React.createElement("button", {
+  }, "\u2713 Crear lote"), React.createElement("button", {
     onClick: () => setShowConsigModal(false),
     style: S.cancelBtn
   }, "Cancelar"))), showFusionModal && fusionPares.length > 0 && (() => {
@@ -4584,7 +4628,7 @@ function App({
       }
     }, React.createElement("div", {
       style: S.shT
-    }, "🔀 Posible duplicado"), React.createElement("div", {
+    }, "\ud83d\udd00 Posible duplicado"), React.createElement("div", {
       style: {
         fontSize: 11,
         color: "#888"
@@ -4596,7 +4640,7 @@ function App({
         marginBottom: 14,
         textAlign: "center"
       }
-    }, "Similitud: ", Math.round(par.score * 100), "% — ¿Son la misma persona?"), React.createElement("div", {
+    }, "Similitud: ", Math.round(par.score * 100), "% \u2014 \u00bfSon la misma persona?"), React.createElement("div", {
       style: {
         display: "grid",
         gridTemplateColumns: "1fr 1fr",
@@ -4641,12 +4685,12 @@ function App({
         fontSize: 11,
         color: "#888"
       }
-    }, "📞 ", cli.telefono), cli.ciudad && React.createElement("div", {
+    }, "\ud83d\udcde ", cli.telefono), cli.ciudad && React.createElement("div", {
       style: {
         fontSize: 11,
         color: "#888"
       }
-    }, "📍 ", cli.ciudad), cli.direccion && React.createElement("div", {
+    }, "\ud83d\udccd ", cli.ciudad), cli.direccion && React.createElement("div", {
       style: {
         fontSize: 10,
         color: "#AAA",
@@ -4704,7 +4748,7 @@ function App({
         background: "#1BB6C8",
         fontSize: 12
       }
-    }, "← Conservar ", React.createElement("b", null, par.a.alias), " (eliminar ", par.b.alias, ")"), React.createElement("button", {
+    }, "\u2190 Conservar ", React.createElement("b", null, par.a.alias), " (eliminar ", par.b.alias, ")"), React.createElement("button", {
       onClick: () => {
         fusionarClientes(par.b, par.a);
         const np = fusionPares.filter((_, i) => i !== fusionIdx);
@@ -4720,7 +4764,7 @@ function App({
         background: "#8B5CF6",
         fontSize: 12
       }
-    }, "Conservar ", React.createElement("b", null, par.b.alias), " (eliminar ", par.a.alias, ") →"), React.createElement("button", {
+    }, "Conservar ", React.createElement("b", null, par.b.alias), " (eliminar ", par.a.alias, ") \u2192"), React.createElement("button", {
       onClick: () => {
         const np = fusionPares.filter((_, i) => i !== fusionIdx);
         setFusionPares(np);
@@ -4740,7 +4784,7 @@ function App({
         cursor: "pointer",
         fontWeight: 600
       }
-    }, "✗ No son la misma persona — saltar")), React.createElement("button", {
+    }, "\u2717 No son la misma persona \u2014 saltar")), React.createElement("button", {
       onClick: () => setShowFusionModal(false),
       style: {
         ...S.cancelBtn,
@@ -4759,14 +4803,14 @@ function App({
     onClick: e => e.stopPropagation()
   }, React.createElement("div", {
     style: S.shT
-  }, "📷 Importar desde guías Servientrega"), guiasQueue.length === 0 && !guiasProcesando && React.createElement("div", null, React.createElement("div", {
+  }, "\ud83d\udcf7 Importar desde gu\u00edas Servientrega"), guiasQueue.length === 0 && !guiasProcesando && React.createElement("div", null, React.createElement("div", {
     style: {
       fontSize: 12,
       color: "#888",
       marginBottom: 14,
       lineHeight: 1.5
     }
-  }, "Sube fotos de guías Servientrega. La app extrae nombre, teléfono y dirección, y los actualiza en tus clientes existentes."), React.createElement("label", {
+  }, "Sube fotos de gu\u00edas Servientrega. La app extrae nombre, tel\u00e9fono y direcci\u00f3n, y los actualiza en tus clientes existentes."), React.createElement("label", {
     style: {
       display: "flex",
       flexDirection: "column",
@@ -4783,13 +4827,13 @@ function App({
       fontSize: 14,
       textAlign: "center"
     }
-  }, "📷 Seleccionar fotos de guías", React.createElement("span", {
+  }, "\ud83d\udcf7 Seleccionar fotos de gu\u00edas", React.createElement("span", {
     style: {
       fontSize: 11,
       fontWeight: 400,
       color: "#888"
     }
-  }, "JPG, PNG — puedes seleccionar varias a la vez"), React.createElement("input", {
+  }, "JPG, PNG \u2014 puedes seleccionar varias a la vez"), React.createElement("input", {
     type: "file",
     accept: "image/*",
     multiple: true,
@@ -4811,13 +4855,13 @@ function App({
       fontSize: 32,
       marginBottom: 12
     }
-  }, "⏳"), React.createElement("div", {
+  }, "\u23f3"), React.createElement("div", {
     style: {
       fontSize: 14,
       fontWeight: 700,
       color: "#1BB6C8"
     }
-  }, "Procesando guía ", guiasCurrent, "..."), React.createElement("div", {
+  }, "Procesando gu\u00eda ", guiasCurrent, "..."), React.createElement("div", {
     style: {
       fontSize: 11,
       color: "#888",
@@ -4829,7 +4873,7 @@ function App({
       color: "#888",
       marginBottom: 10
     }
-  }, guiasQueue.length, " guías procesadas · Revisa y confirma cada acción"), guiasQueue.map((g, gi) => React.createElement("div", {
+  }, guiasQueue.length, " gu\u00edas procesadas \u00b7 Revisa y confirma cada acci\u00f3n"), guiasQueue.map((g, gi) => React.createElement("div", {
     key: gi,
     style: {
       background: g.action === "skip" ? "#F5F5F5" : g.matched ? "#E6F4EC" : "#FFF8E0",
@@ -4865,22 +4909,22 @@ function App({
       color: "#1A1A1A",
       marginBottom: 2
     }
-  }, g.extracted.nombre || "⚠ Sin nombre"), g.extracted.telefono && React.createElement("div", {
+  }, g.extracted.nombre || "\u26a0 Sin nombre"), g.extracted.telefono && React.createElement("div", {
     style: {
       fontSize: 10,
       color: "#555"
     }
-  }, "📞 ", g.extracted.telefono), g.extracted.ciudad && React.createElement("div", {
+  }, "\ud83d\udcde ", g.extracted.telefono), g.extracted.ciudad && React.createElement("div", {
     style: {
       fontSize: 10,
       color: "#555"
     }
-  }, "📍 ", g.extracted.ciudad), g.error && React.createElement("div", {
+  }, "\ud83d\udccd ", g.extracted.ciudad), g.error && React.createElement("div", {
     style: {
       fontSize: 10,
       color: "#D00"
     }
-  }, "⚠ Error: ", g.error)), React.createElement("div", {
+  }, "\u26a0 Error: ", g.error)), React.createElement("div", {
     style: {
       flexShrink: 0,
       textAlign: "right"
@@ -4891,7 +4935,7 @@ function App({
       color: "#2D6A4F",
       fontWeight: 700
     }
-  }, "✓ ", g.matched.alias) : React.createElement("div", {
+  }, "\u2713 ", g.matched.alias) : React.createElement("div", {
     style: {
       fontSize: 10,
       color: "#B45309",
@@ -4902,7 +4946,7 @@ function App({
       fontSize: 9,
       color: "#888"
     }
-  }, Math.round(g.score * 100), "% · ", g.extracted.nombre || ""))), !g.error && React.createElement("div", {
+  }, Math.round(g.score * 100), "% \u00b7 ", g.extracted.nombre || ""))), !g.error && React.createElement("div", {
     style: {
       display: "flex",
       gap: 4,
@@ -4924,7 +4968,7 @@ function App({
       background: g.action === "update" ? "#10B981" : "#E5E7EB",
       color: g.action === "update" ? "#fff" : "#555"
     }
-  }, "✓ Actualizar ", g.matched.alias.split(" ")[0]), React.createElement("button", {
+  }, "\u2713 Actualizar ", g.matched.alias.split(" ")[0]), React.createElement("button", {
     onClick: () => setGuiasQueue(q => q.map((x, i) => i === gi ? {
       ...x,
       action: "create"
@@ -4956,14 +5000,14 @@ function App({
       background: g.action === "skip" ? "#EF4444" : "#E5E7EB",
       color: g.action === "skip" ? "#fff" : "#555"
     }
-  }, "✗ Saltar")))), React.createElement("button", {
+  }, "\u2717 Saltar")))), React.createElement("button", {
     onClick: aplicarGuias,
     style: {
       ...S.btnD,
       width: "100%",
       marginTop: 4
     }
-  }, "✓ Aplicar cambios (", guiasQueue.filter(g => g.action !== "skip").length, " guías)")), React.createElement("button", {
+  }, "\u2713 Aplicar cambios (", guiasQueue.filter(g => g.action !== "skip").length, " gu\u00edas)")), React.createElement("button", {
     onClick: () => setShowGuiasModal(false),
     style: {
       ...S.cancelBtn,
@@ -4997,7 +5041,7 @@ function App({
       fontWeight: 700,
       fontSize: 13
     }
-  }, cliImgLoading ? "⏳ Leyendo imagen..." : "📷 Cargar guía Servientrega (extrae datos)", React.createElement("input", {
+  }, cliImgLoading ? "\u23f3 Leyendo imagen..." : "\ud83d\udcf7 Cargar gu\u00eda Servientrega (extrae datos)", React.createElement("input", {
     type: "file",
     accept: "image/*",
     style: {
@@ -5036,7 +5080,7 @@ function App({
       fontSize: 11,
       cursor: "pointer"
     }
-  }, "✕ quitar imagen")), [{
+  }, "\u2715 quitar imagen")), [{
     k: "alias",
     l: "ALIAS / APODO",
     ph: "GABY GALAPAGOS",
@@ -5048,12 +5092,12 @@ function App({
     cap: "characters"
   }, {
     k: "cedula",
-    l: "CÉDULA",
+    l: "C\u00c9DULA",
     ph: "0912345678",
     cap: "none"
   }, {
     k: "telefono",
-    l: "TELÉFONO",
+    l: "TEL\u00c9FONO",
     ph: "0991234567",
     cap: "none"
   }, {
@@ -5069,12 +5113,12 @@ function App({
   }, {
     k: "ciudad",
     l: "CIUDAD",
-    ph: "Guayaquil, Durán, Samborondón...",
+    ph: "Guayaquil, Dur\u00e1n, Samborond\u00f3n...",
     cap: "characters"
   }, {
     k: "direccion",
-    l: "DIRECCIÓN DE ENVÍO",
-    ph: "Urb. Las Orquídeas MZ 3 V 14",
+    l: "DIRECCI\u00d3N DE ENV\u00cdO",
+    ph: "Urb. Las Orqu\u00eddeas MZ 3 V 14",
     cap: "characters"
   }].map(({
     k,
@@ -5130,7 +5174,7 @@ function App({
     ph: "Banco Pichincha"
   }, {
     k: "limite",
-    l: "LÍMITE ($)",
+    l: "L\u00cdMITE ($)",
     ph: "5000"
   }].map(({
     k,
@@ -5214,15 +5258,15 @@ function App({
   }, "Selecciona tarjeta..."), tarjetas.map(t => React.createElement("option", {
     key: t.id,
     value: t.id
-  }, t.nombre, " — $", saldoTarjeta(t.id).toFixed(2))))), React.createElement("div", {
+  }, t.nombre, " \u2014 $", saldoTarjeta(t.id).toFixed(2))))), React.createElement("div", {
     style: {
       marginBottom: 10
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "DESCRIPCIÓN"), React.createElement("input", {
+  }, "DESCRIPCI\u00d3N"), React.createElement("input", {
     style: S.inp,
-    placeholder: "Ej: Compra mercadería mayo",
+    placeholder: "Ej: Compra mercader\u00eda mayo",
     value: cargoForm.descripcion,
     onChange: e => setCargoForm(f => ({
       ...f,
@@ -5288,13 +5332,13 @@ function App({
     onClick: e => e.stopPropagation()
   }, React.createElement("div", {
     style: S.shT
-  }, "Nueva Importación"), React.createElement("div", {
+  }, "Nueva Importaci\u00f3n"), React.createElement("div", {
     style: {
       marginBottom: 10
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "FACTURA (foto o PDF — la IA lee los datos)"), React.createElement("input", {
+  }, "FACTURA (foto o PDF \u2014 la IA lee los datos)"), React.createElement("input", {
     ref: importFileRef,
     type: "file",
     accept: "image/*,application/pdf",
@@ -5305,7 +5349,7 @@ function App({
   }), React.createElement("button", {
     onClick: () => importFileRef.current.click(),
     style: S.btnComp
-  }, readingImport ? "⏳ Leyendo factura..." : importImgPrev ? "📎 Factura cargada — toca para cambiar" : "📷 Subir factura (imagen o PDF)"), importImgPrev && !readingImport && React.createElement("div", {
+  }, readingImport ? "\u23f3 Leyendo factura..." : importImgPrev ? "\ud83d\udcce Factura cargada \u2014 toca para cambiar" : "\ud83d\udcf7 Subir factura (imagen o PDF)"), importImgPrev && !readingImport && React.createElement("div", {
     style: {
       marginTop: 8,
       borderRadius: 12,
@@ -5330,7 +5374,7 @@ function App({
       borderRadius: 12,
       marginTop: 8
     }
-  }, "🤖 Leyendo factura con IA...")), React.createElement("div", {
+  }, "\ud83e\udd16 Leyendo factura con IA...")), React.createElement("div", {
     style: {
       display: "flex",
       gap: 10,
@@ -5360,7 +5404,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "COSTO MERCADERÍA ($)"), React.createElement("input", {
+  }, "COSTO MERCADER\u00cdA ($)"), React.createElement("input", {
     type: "number",
     style: {
       ...S.inp,
@@ -5384,7 +5428,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "FLETE / TRAÍDA ($) ", React.createElement("span", {
+  }, "FLETE / TRA\u00cdDA ($) ", React.createElement("span", {
     style: {
       color: "#AAA",
       fontWeight: 400
@@ -5417,7 +5461,7 @@ function App({
       color: "#B45309",
       fontWeight: 700
     }
-  }, "Costo total importación: $", (parseFloat(importForm.costoTotal || 0) + parseFloat(importForm.fleteEstimado || 0)).toFixed(2)))), importForm.numPrendas && importForm.costoTotal && React.createElement("div", {
+  }, "Costo total importaci\u00f3n: $", (parseFloat(importForm.costoTotal || 0) + parseFloat(importForm.fleteEstimado || 0)).toFixed(2)))), importForm.numPrendas && importForm.costoTotal && React.createElement("div", {
     style: {
       background: "#E8F9FB",
       borderRadius: 10,
@@ -5434,7 +5478,7 @@ function App({
       color: "#888",
       fontWeight: 400
     }
-  }, "(mercadería + flete)")) : React.createElement("span", null, "Costo por prenda: $", (parseFloat(importForm.costoTotal) / parseInt(importForm.numPrendas)).toFixed(2))), React.createElement("div", {
+  }, "(mercader\u00eda + flete)")) : React.createElement("span", null, "Costo por prenda: $", (parseFloat(importForm.costoTotal) / parseInt(importForm.numPrendas)).toFixed(2))), React.createElement("div", {
     style: {
       marginBottom: 10
     }
@@ -5498,7 +5542,7 @@ function App({
       textAlign: "center",
       padding: "8px 0"
     }
-  }, "Sin items — agrega uno o usa # prendas directo") : importItems.map((it, idx) => React.createElement("div", {
+  }, "Sin items \u2014 agrega uno o usa # prendas directo") : importItems.map((it, idx) => React.createElement("div", {
     key: it.id,
     style: {
       background: "#F5FDFE",
@@ -5540,16 +5584,16 @@ function App({
     value: it.tipoRopa,
     onChange: e => updateImportItem(it.id, "tipoRopa", e.target.value)
   }, React.createElement("option", {
-    value: "niña"
-  }, "Niña"), React.createElement("option", {
-    value: "niño"
-  }, "Niño"), React.createElement("option", {
+    value: "ni\u00f1a"
+  }, "Ni\u00f1a"), React.createElement("option", {
+    value: "ni\u00f1o"
+  }, "Ni\u00f1o"), React.createElement("option", {
     value: "hombre"
   }, "Hombre"), React.createElement("option", {
     value: "mujer"
   }, "Mujer"), React.createElement("option", {
     value: "bebe"
-  }, "Bebé"), React.createElement("option", {
+  }, "Beb\u00e9"), React.createElement("option", {
     value: "dama"
   }, "Dama")), React.createElement("button", {
     onClick: () => removeImportItem(it.id),
@@ -5563,7 +5607,7 @@ function App({
       cursor: "pointer",
       flexShrink: 0
     }
-  }, "✕")), React.createElement("div", {
+  }, "\u2715")), React.createElement("div", {
     style: {
       display: "flex",
       gap: 6
@@ -5610,7 +5654,7 @@ function App({
       fontSize: 11,
       padding: "5px 8px"
     },
-    placeholder: "Descripción...",
+    placeholder: "Descripci\u00f3n...",
     value: it.descripcion,
     onChange: e => updateImportItem(it.id, "descripcion", e.target.value)
   })), it.pvp && it.cantidad && React.createElement("div", {
@@ -5651,7 +5695,7 @@ function App({
       opacity: !importForm.numPrendas || !importForm.costoTotal ? 0.4 : 1,
       marginBottom: 8
     }
-  }, "Guardar Importación"), React.createElement("button", {
+  }, "Guardar Importaci\u00f3n"), React.createElement("button", {
     onClick: () => setShowImportModal(false),
     style: S.cancelBtn
   }, "Cancelar"))), showInvModal && React.createElement("div", {
@@ -5672,7 +5716,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "DESCRIPCIÓN"), React.createElement("input", {
+  }, "DESCRIPCI\u00d3N"), React.createElement("input", {
     style: S.inp,
     placeholder: "Ej: Blusa floreada",
     value: invF.descripcion,
@@ -5686,7 +5730,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "CATEGORÍA"), React.createElement("div", {
+  }, "CATEGOR\u00cdA"), React.createElement("div", {
     style: {
       display: "flex",
       flexWrap: "wrap",
@@ -5713,7 +5757,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "TALLA (ej: S, M, L, 36, 38, Única)"), React.createElement("input", {
+  }, "TALLA (ej: S, M, L, 36, 38, \u00danica)"), React.createElement("input", {
     style: S.inp,
     placeholder: "M",
     value: invF.talla,
@@ -5779,7 +5823,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "IMPORTACIÓN / LOTE"), React.createElement("input", {
+  }, "IMPORTACI\u00d3N / LOTE"), React.createElement("input", {
     style: S.inp,
     placeholder: "Ej: Imp. Mayo 2026",
     value: invF.importacion,
@@ -5808,7 +5852,7 @@ function App({
     style: S.card
   }, React.createElement("div", {
     style: S.cT
-  }, "📄 PDF de ventas por live"), React.createElement("div", {
+  }, "\ud83d\udcc4 PDF de ventas por live"), React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
@@ -5836,7 +5880,7 @@ function App({
       whiteSpace: "nowrap",
       marginTop: 0
     }
-  }, "📄 PDF"))), React.createElement("div", {
+  }, "\ud83d\udcc4 PDF"))), React.createElement("div", {
     style: S.card
   }, pendingLabels.length > 0 && React.createElement("div", {
     style: {
@@ -5855,7 +5899,7 @@ function App({
       fontWeight: 700,
       color: "#B45309"
     }
-  }, "🏷 " + pendingLabels.length + " etiqueta" + (pendingLabels.length > 1 ? "s" : "") + " pendiente" + (pendingLabels.length > 1 ? "s" : "") + " (" + pendingLabels.length + "/5)"), React.createElement("div", {
+  }, "\ud83c\udff7 " + pendingLabels.length + " etiqueta" + (pendingLabels.length > 1 ? "s" : "") + " pendiente" + (pendingLabels.length > 1 ? "s" : "") + " (" + pendingLabels.length + "/5)"), React.createElement("div", {
     style: {
       display: "flex",
       gap: 6
@@ -5878,7 +5922,7 @@ function App({
       fontWeight: 700,
       cursor: "pointer"
     }
-  }, "🖨 Imprimir"), React.createElement("button", {
+  }, "\ud83d\udda8 Imprimir"), React.createElement("button", {
     onClick: () => {
       if (window.confirm("Descartar etiquetas pendientes?")) {
         setPendingLabels([]);
@@ -5894,7 +5938,7 @@ function App({
       fontSize: 12,
       cursor: "pointer"
     }
-  }, "✕"))), lastPrintedLabels.length > 0 && pendingLabels.length === 0 && React.createElement("div", {
+  }, "\u2715"))), lastPrintedLabels.length > 0 && pendingLabels.length === 0 && React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
@@ -5909,7 +5953,7 @@ function App({
       fontSize: 12,
       color: "#888"
     }
-  }, "Último lote: ", lastPrintedLabels.length, " etiq · ", lastPrintedLabels[0]?.fecha || ""), React.createElement("div", {
+  }, "\u00daltimo lote: ", lastPrintedLabels.length, " etiq \u00b7 ", lastPrintedLabels[0]?.fecha || ""), React.createElement("div", {
     style: {
       display: "flex",
       gap: 6
@@ -5954,7 +5998,7 @@ function App({
       ...S.lbl,
       color: "#1BB6C8"
     }
-  }, "🔍 BUSCAR POR CÓDIGO DE PRENDA"), React.createElement("div", {
+  }, "\ud83d\udd0d BUSCAR POR C\u00d3DIGO DE PRENDA"), React.createElement("div", {
     style: {
       display: "flex",
       gap: 8
@@ -5990,10 +6034,10 @@ function App({
           }));
           setCodigoBusqueda("");
           setCodigoEncontrado(null);
-          toast_("✓ " + codigoEncontrado.codigo + " → " + nombre);
+          toast_("\u2713 " + codigoEncontrado.codigo + " \u2192 " + nombre);
           setTimeout(() => document.getElementById("pvp-input")?.focus(), 50);
         } else if (codigoBusqueda.trim()) {
-          toast_("⚠ Código no encontrado o no disponible", "err");
+          toast_("\u26a0 C\u00f3digo no encontrado o no disponible", "err");
         }
       }
     }
@@ -6008,7 +6052,7 @@ function App({
         }));
         setCodigoBusqueda("");
         setCodigoEncontrado(null);
-        toast_("✓ " + codigoEncontrado.codigo + " → " + nombre);
+        toast_("\u2713 " + codigoEncontrado.codigo + " \u2192 " + nombre);
         setTimeout(() => document.getElementById("pvp-input")?.focus(), 50);
       }
     },
@@ -6035,7 +6079,7 @@ function App({
       fontWeight: 700,
       color: codigoEncontrado.estado === "disponible" || !codigoEncontrado.estado ? "#2D6A4F" : "#D00"
     }
-  }, codigoEncontrado.estado === "disponible" || !codigoEncontrado.estado ? "✓" : "⚠", " ", codigoEncontrado.codigo, " — ", codigoEncontrado.descripcion, codigoEncontrado.talla ? "  ·  T:  " + codigoEncontrado.talla : "", codigoEncontrado.estado && codigoEncontrado.estado !== "disponible" && React.createElement("span", {
+  }, codigoEncontrado.estado === "disponible" || !codigoEncontrado.estado ? "\u2713" : "\u26a0", " ", codigoEncontrado.codigo, " \u2014 ", codigoEncontrado.descripcion, codigoEncontrado.talla ? "  \u00b7  T:  " + codigoEncontrado.talla : "", codigoEncontrado.estado && codigoEncontrado.estado !== "disponible" && React.createElement("span", {
     style: {
       fontSize: 10,
       marginLeft: 4
@@ -6045,7 +6089,7 @@ function App({
       fontSize: 10,
       color: "#888"
     }
-  }, codigoEncontrado.categoria, codigoEncontrado.tipoRopa ? " · " + codigoEncontrado.tipoRopa : "", " · ", codigoEncontrado.importacionNombre)) : React.createElement("div", {
+  }, codigoEncontrado.categoria, codigoEncontrado.tipoRopa ? " \u00b7 " + codigoEncontrado.tipoRopa : "", " \u00b7 ", codigoEncontrado.importacionNombre)) : React.createElement("div", {
     style: {
       marginTop: 6,
       background: "#FFF0F8",
@@ -6054,11 +6098,11 @@ function App({
       fontSize: 11,
       color: "#F0057F"
     }
-  }, "Código no encontrado o ya vendido"))), React.createElement("div", {
+  }, "C\u00f3digo no encontrado o ya vendido"))), React.createElement("div", {
     style: S.fg
   }, React.createElement("label", {
     style: S.lbl
-  }, "CLIENTE — escribe para buscar en tu lista"), React.createElement("input", {
+  }, "CLIENTE \u2014 escribe para buscar en tu lista"), React.createElement("input", {
     style: S.inp,
     placeholder: "Alias o apodo del cliente",
     value: form.cliente,
@@ -6095,7 +6139,7 @@ function App({
         fontSize: 11,
         marginLeft: 8
       }
-    }, "→ ", p.nombre), p?.tiktok && React.createElement("span", {
+    }, "\u2192 ", p.nombre), p?.tiktok && React.createElement("span", {
       style: {
         color: "#F0057F",
         fontSize: 11,
@@ -6118,7 +6162,7 @@ function App({
       ...S.inp,
       flex: 1
     },
-    placeholder: "Descripción de la prenda",
+    placeholder: "Descripci\u00f3n de la prenda",
     value: form.prenda,
     onChange: e => setForm(f => ({
       ...f,
@@ -6158,16 +6202,16 @@ function App({
     }
   }, React.createElement("option", {
     value: ""
-  }, "📦 Elegir de lote consignación (opcional)"), consignaciones.filter(c => c.estado === "activo").map(lote => lote.items.map(item => React.createElement("option", {
+  }, "\ud83d\udce6 Elegir de lote consignaci\u00f3n (opcional)"), consignaciones.filter(c => c.estado === "activo").map(lote => lote.items.map(item => React.createElement("option", {
     key: item.id,
     value: lote.id + ":::" + item.id
-  }, lote.nombre, " · ", item.descripcion, " ($", item.costoUnit, "/u)")))))), form.invId && React.createElement("div", {
+  }, lote.nombre, " \u00b7 ", item.descripcion, " ($", item.costoUnit, "/u)")))))), form.invId && React.createElement("div", {
     style: {
       fontSize: 11,
       color: "#2D6A4F",
       marginTop: 3
     }
-  }, "✓ Se descontará del inventario al registrar")), React.createElement("div", {
+  }, "\u2713 Se descontar\u00e1 del inventario al registrar")), React.createElement("div", {
     style: {
       display: "flex",
       gap: 10
@@ -6273,7 +6317,7 @@ function App({
       cursor: "pointer",
       marginBottom: 10
     }
-  }, React.createElement("span", null, "📲"), React.createElement("span", null, "Cobrar este live")), React.createElement("div", {
+  }, React.createElement("span", null, "\ud83d\udcf2"), React.createElement("span", null, "Cobrar este live")), React.createElement("div", {
     style: {
       maxHeight: 200,
       overflowY: "auto"
@@ -6285,9 +6329,27 @@ function App({
     style: S.liN
   }, p.cliente), React.createElement("div", {
     style: S.liS
-  }, p.prenda !== "-" ? p.prenda : "—")), React.createElement("div", {
+  }, p.prenda !== "-" ? p.prenda : "\u2014")), React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "center",
+      gap: 8
+    }
+  }, React.createElement("div", {
     style: S.liA
-  }, "$", p.total.toFixed(2))))))), tab === "pago" && React.createElement("div", {
+  }, "$", p.total.toFixed(2)), React.createElement("button", {
+    onClick: () => eliminarPedido(p.id),
+    style: {
+      background: "#FFE4E4",
+      color: "#D00",
+      border: "none",
+      borderRadius: 6,
+      padding: "3px 8px",
+      fontSize: 12,
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, "\u2715"))))))), tab === "pago" && React.createElement("div", {
     className: "app-section",
     style: S.sec
   }, React.createElement("div", {
@@ -6300,7 +6362,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "COMPROBANTE — la IA lee el monto automáticamente"), React.createElement("input", {
+  }, "COMPROBANTE \u2014 la IA lee el monto autom\u00e1ticamente"), React.createElement("input", {
     ref: fileRef,
     type: "file",
     accept: "image/*",
@@ -6312,7 +6374,7 @@ function App({
   }), React.createElement("button", {
     onClick: () => fileRef.current.click(),
     style: S.btnComp
-  }, reading ? "⏳ Leyendo monto..." : imgPrev ? "📎 Comprobante cargado — toca para cambiar" : "📷 Subir foto del comprobante"), imgPrev && !reading && React.createElement("div", {
+  }, reading ? "\u23f3 Leyendo monto..." : imgPrev ? "\ud83d\udcce Comprobante cargado \u2014 toca para cambiar" : "\ud83d\udcf7 Subir foto del comprobante"), imgPrev && !reading && React.createElement("div", {
     style: {
       marginTop: 8,
       borderRadius: 12,
@@ -6337,7 +6399,7 @@ function App({
       borderRadius: 12,
       marginTop: 8
     }
-  }, "🤖 Leyendo monto del comprobante...")), React.createElement("div", {
+  }, "\ud83e\udd16 Leyendo monto del comprobante...")), React.createElement("div", {
     style: S.fg
   }, React.createElement("label", {
     style: S.lbl
@@ -6399,7 +6461,7 @@ function App({
       style: {
         color: "#888"
       }
-    }, "Compró: ", React.createElement("b", {
+    }, "Compr\u00f3: ", React.createElement("b", {
       style: {
         color: "#333"
       }
@@ -6407,7 +6469,7 @@ function App({
       style: {
         color: "#888"
       }
-    }, "Abonó: ", React.createElement("b", {
+    }, "Abon\u00f3: ", React.createElement("b", {
       style: {
         color: "#2D6A4F"
       }
@@ -6461,7 +6523,7 @@ function App({
             conComp: !!imgPrev
           };
           if (dupAbono(a.cliente + "|" + (a.monto || 0).toFixed(2) + "|" + (a.liveVinculado || ""))) {
-            toast_("⚠ Pago idéntico recién registrado — evitado", "warn");
+            toast_("\u26a0 Pago id\u00e9ntico reci\u00e9n registrado \u2014 evitado", "warn");
             return;
           }
           setAbonos(prev => {
@@ -6470,7 +6532,7 @@ function App({
             sheetsSync("saveAbonos", upd);
             return upd;
           });
-          toast_("✓ $" + monto.toFixed(2) + " registrado para " + cli);
+          toast_("\u2713 $" + monto.toFixed(2) + " registrado para " + cli);
         },
         style: {
           width: "100%",
@@ -6483,7 +6545,7 @@ function App({
           fontWeight: 700,
           cursor: "pointer"
         }
-      }, "💰 Pagar saldo pendiente: $", bb.saldo.toFixed(2))));
+      }, "\ud83d\udcb0 Pagar saldo pendiente: $", bb.saldo.toFixed(2))));
       return React.createElement("div", {
         style: {
           background: "#E6F4EC",
@@ -6494,7 +6556,7 @@ function App({
           color: "#2D6A4F",
           fontWeight: 700
         }
-      }, "✅ Esta cliente no tiene saldo pendiente");
+      }, "\u2705 Esta cliente no tiene saldo pendiente");
     }
     return React.createElement("div", {
       style: {
@@ -6528,12 +6590,12 @@ function App({
           fontSize: 12,
           color: "#1A1A1A"
         }
-      }, "📅 ", fmtFecha(fecha)), React.createElement("div", {
+      }, "\ud83d\udcc5 ", fmtFecha(fecha)), React.createElement("div", {
         style: {
           fontSize: 10,
           color: "#888"
         }
-      }, lv.prendas.length, " prenda", lv.prendas.length !== 1 ? "s" : "", " · Debe: ", React.createElement("b", {
+      }, lv.prendas.length, " prenda", lv.prendas.length !== 1 ? "s" : "", " \u00b7 Debe: ", React.createElement("b", {
         style: {
           color: "#D00"
         }
@@ -6580,7 +6642,7 @@ function App({
             conComp: !!imgPrev
           };
           if (dupAbono(a.cliente + "|" + (a.monto || 0).toFixed(2) + "|" + (a.liveVinculado || ""))) {
-            toast_("⚠ Pago idéntico recién registrado — evitado", "warn");
+            toast_("\u26a0 Pago id\u00e9ntico reci\u00e9n registrado \u2014 evitado", "warn");
             return;
           }
           setAbonos(prev => {
@@ -6596,7 +6658,7 @@ function App({
             delete n[key];
             return n;
           });
-          toast_("✓ $" + monto.toFixed(2) + " registrado para " + fmtFecha(fecha));
+          toast_("\u2713 $" + monto.toFixed(2) + " registrado para " + fmtFecha(fecha));
         },
         style: {
           background: "#1BB6C8",
@@ -6609,12 +6671,12 @@ function App({
           cursor: "pointer",
           flexShrink: 0
         }
-      }, "💰 Pagar"))), React.createElement("div", {
+      }, "\ud83d\udcb0 Pagar"))), React.createElement("div", {
         style: {
           fontSize: 10,
           color: "#AAA"
         }
-      }, lv.prendas.slice(0, 3).map(p => p.prenda || "Prenda").join(" · "), lv.prendas.length > 3 ? " · ..." : ""));
+      }, lv.prendas.slice(0, 3).map(p => p.prenda || "Prenda").join(" \u00b7 "), lv.prendas.length > 3 ? " \u00b7 ..." : ""));
     }));
   })(), React.createElement("div", {
     style: S.fg
@@ -6645,7 +6707,7 @@ function App({
         sheetsSync("saveAbonos", upd);
         return upd;
       });
-      toast_("✓ " + ids.length + " duplicado(s) eliminado(s)");
+      toast_("\u2713 " + ids.length + " duplicado(s) eliminado(s)");
     };
     return React.createElement("div", {
       style: S.ov,
@@ -6659,7 +6721,7 @@ function App({
       onClick: e => e.stopPropagation()
     }, React.createElement("div", {
       style: S.shT
-    }, "🔍 Abonos duplicados"), groups.length === 0 ? React.createElement("div", {
+    }, "\ud83d\udd0d Abonos duplicados"), groups.length === 0 ? React.createElement("div", {
       style: {
         textAlign: "center",
         color: "#2D6A4F",
@@ -6667,7 +6729,7 @@ function App({
         padding: "20px 0",
         fontWeight: 700
       }
-    }, "✅ No se encontraron duplicados") : React.createElement("div", null, React.createElement("div", {
+    }, "\u2705 No se encontraron duplicados") : React.createElement("div", null, React.createElement("div", {
       style: {
         fontSize: 12,
         color: "#888",
@@ -6691,7 +6753,7 @@ function App({
         cursor: "pointer",
         marginBottom: 12
       }
-    }, "🧹 Quitar TODOS los extras (", totalExtras, ")"), groups.map((g, gi) => {
+    }, "\ud83e\uddf9 Quitar TODOS los extras (", totalExtras, ")"), groups.map((g, gi) => {
       const a0 = g[0];
       return React.createElement("div", {
         key: gi,
@@ -6715,11 +6777,11 @@ function App({
           fontSize: 11,
           color: "#888"
         }
-      }, "$", (a0.monto || 0).toFixed(2), " · ", a0.fecha || "-", a0.liveVinculado ? " · " + a0.liveVinculado : "", " · ", React.createElement("b", {
+      }, "$", (a0.monto || 0).toFixed(2), " \u00b7 ", a0.fecha || "-", a0.liveVinculado ? " \u00b7 " + a0.liveVinculado : "", " \u00b7 ", React.createElement("b", {
         style: {
           color: "#D00"
         }
-      }, g.length, "×"))), React.createElement("button", {
+      }, g.length, "\u00d7"))), React.createElement("button", {
         onClick: () => quitar(extrasDe(g)),
         style: {
           background: "#D00",
@@ -6763,7 +6825,7 @@ function App({
       fontWeight: 700,
       cursor: "pointer"
     }
-  }, "🔍 Duplicados"), filtroAbonoCli && React.createElement("span", {
+  }, "\ud83d\udd0d Duplicados"), filtroAbonoCli && React.createElement("span", {
     style: {
       fontSize: 11,
       color: "#1BB6C8",
@@ -6774,7 +6836,7 @@ function App({
       ...S.inp,
       marginBottom: 10
     },
-    placeholder: "🔍 Filtrar por cliente...",
+    placeholder: "\ud83d\udd0d Filtrar por cliente...",
     value: filtroAbonoCli,
     onChange: e => setFiltroAbonoCli(e.target.value)
   }), React.createElement("div", {
@@ -6800,7 +6862,7 @@ function App({
     style: S.liN
   }, a.cliente), React.createElement("div", {
     style: S.liS
-  }, fmtFecha(a.fecha), a.nota ? " · " + a.nota : "", a.conComp ? " 📎" : "", a.liveVinculado && React.createElement("span", {
+  }, fmtFecha(a.fecha), a.nota ? " \u00b7 " + a.nota : "", a.conComp ? " \ud83d\udcce" : "", a.liveVinculado && React.createElement("span", {
     style: {
       fontSize: 9,
       background: "#E8F9FB",
@@ -6832,9 +6894,9 @@ function App({
       color: "#888",
       cursor: "pointer"
     }
-  }, a.id === editAbonoId ? "✕" : "✏️ Live"), React.createElement("button", {
+  }, a.id === editAbonoId ? "\u2715" : "\u270f\ufe0f Live"), React.createElement("button", {
     onClick: () => {
-      if (window.confirm("¿Eliminar este pago de $" + a.monto.toFixed(2) + " de " + a.cliente + "?")) {
+      if (window.confirm("\u00bfEliminar este pago de $" + a.monto.toFixed(2) + " de " + a.cliente + "?")) {
         if (abonos.filter(x => x.id === a.id).length <= 1) tomb(K.abonos, [a.id]);
         setAbonos(prev => {
           const idx = prev.findIndex(x => x.id === a.id);
@@ -6843,7 +6905,7 @@ function App({
           sheetsSync("saveAbonos", upd);
           return upd;
         });
-        toast_("🗑 Pago eliminado");
+        toast_("\ud83d\uddd1 Pago eliminado");
       }
     },
     style: {
@@ -6855,7 +6917,7 @@ function App({
       fontSize: 10,
       cursor: "pointer"
     }
-  }, "🗑"))), editAbonoId === a.id && (() => {
+  }, "\ud83d\uddd1"))), editAbonoId === a.id && (() => {
     const clienteLives = [...new Set(pedidos.filter(p => p.cliente === a.cliente).map(p => p.live))].sort();
     return React.createElement("div", {
       style: {
@@ -6888,7 +6950,7 @@ function App({
           return upd;
         });
         setEditAbonoId(null);
-        toast_("✓ Abono vinculado a " + lv);
+        toast_("\u2713 Abono vinculado a " + lv);
       },
       style: {
         background: "#E8F9FB",
@@ -6962,7 +7024,7 @@ function App({
       marginBottom: 0,
       fontSize: 13
     },
-    placeholder: "🔍  Buscar por nombre, categoría o talla...",
+    placeholder: "\ud83d\udd0d  Buscar por nombre, categor\u00eda o talla...",
     value: searchInv,
     onChange: e => setSearchInv(e.target.value)
   })), React.createElement("div", {
@@ -6989,7 +7051,7 @@ function App({
       fontSize: 13,
       background: inventario.length === 0 ? "#CCC" : "#F0057F"
     }
-  }, "📄 Exportar PDF")), React.createElement("div", {
+  }, "\ud83d\udcc4 Exportar PDF")), React.createElement("div", {
     style: {
       display: "flex",
       gap: 8,
@@ -7011,39 +7073,39 @@ function App({
     onChange: e => setSelImpPDF(e.target.value)
   }, React.createElement("option", {
     value: ""
-  }, "📊 PDF por importación..."), importaciones.map(i => React.createElement("option", {
+  }, "\ud83d\udcca PDF por importaci\u00f3n..."), importaciones.map(i => React.createElement("option", {
     key: i.id,
     value: String(i.id)
-  }, i.nombre, " [", i.estado, "] · ", i.numPrendasReales || i.numPrendas || 0, " prendas · $", parseFloat(i.costoUnit || 0).toFixed(2), "/u"))), React.createElement("button", {
+  }, i.nombre, " [", i.estado, "] \u00b7 ", i.numPrendasReales || i.numPrendas || 0, " prendas \u00b7 $", parseFloat(i.costoUnit || 0).toFixed(2), "/u"))), React.createElement("button", {
     onClick: async () => {
       if (!selImpPDF) {
-        toast_("Selecciona una importación", "err");
+        toast_("Selecciona una importaci\u00f3n", "err");
         return;
       }
       const impObj = importaciones.find(i => String(i.id) === selImpPDF);
       if (!impObj) {
-        toast_("Importación no encontrada", "err");
+        toast_("Importaci\u00f3n no encontrada", "err");
         return;
       }
-      toast_("⏳ Cargando desde Sheets...");
+      toast_("\u23f3 Cargando desde Sheets...");
       try {
         const res = await fetch(SHEETS_URL + "?action=getAll&token=" + encodeURIComponent(SHEETS_TOKEN) + "&t=" + Date.now());
         const data = await res.json();
         const allInv = data?.inventario || [];
         if (allInv.length === 0) {
-          toast_("Sheets devolvió inventario vacío", "err");
+          toast_("Sheets devolvi\u00f3 inventario vac\u00edo", "err");
           return;
         }
         const sample = allInv[0];
         const sampleKeys = Object.keys(sample).join(", ");
         const sampleImpId = sample.importacionId || sample.importacion || sample.importId || "(no field)";
-        toast_("📋 " + allInv.length + " ítems en Sheets. Primer ítem importacionId: '" + sampleImpId + "' | Campos: " + sampleKeys.substring(0, 80));
+        toast_("\ud83d\udccb " + allInv.length + " \u00edtems en Sheets. Primer \u00edtem importacionId: '" + sampleImpId + "' | Campos: " + sampleKeys.substring(0, 80));
         const items = allInv.filter(i => {
           const v = i.importacionId || i.importacion || i.importId || i.importacionNombre || "";
           return v === impObj.nombre || v === selImpPDF || String(v) === String(impObj.id);
         });
         if (items.length === 0) {
-          toast_("Buscando por: '" + impObj.nombre + "' en campo importacionId. Valores únicos: " + [...new Set(allInv.slice(0, 10).map(i => String(i.importacionId || i.importacion || "null")))].join(" | "), "err");
+          toast_("Buscando por: '" + impObj.nombre + "' en campo importacionId. Valores \u00fanicos: " + [...new Set(allInv.slice(0, 10).map(i => String(i.importacionId || i.importacion || "null")))].join(" | "), "err");
           return;
         }
         generarPDFPorImportacion(impObj, items);
@@ -7058,24 +7120,24 @@ function App({
       fontSize: 12,
       background: "#F0057F"
     }
-  }, "📄 PDF"), React.createElement("button", {
+  }, "\ud83d\udcc4 PDF"), React.createElement("button", {
     onClick: async () => {
       if (!selImpPDF) {
-        toast_("Selecciona una importación", "err");
+        toast_("Selecciona una importaci\u00f3n", "err");
         return;
       }
       const impObj = importaciones.find(i => String(i.id) === selImpPDF);
       if (!impObj) {
-        toast_("Selecciona una importación válida", "err");
+        toast_("Selecciona una importaci\u00f3n v\u00e1lida", "err");
         return;
       }
-      toast_("⏳ Cargando desde Sheets...");
+      toast_("\u23f3 Cargando desde Sheets...");
       try {
         const res = await fetch(SHEETS_URL + "?action=getAll&token=" + encodeURIComponent(SHEETS_TOKEN) + "&t=" + Date.now());
         const data = await res.json();
         const allInv = data?.inventario || [];
         if (allInv.length === 0) {
-          toast_("Sheets devolvió inventario vacío", "err");
+          toast_("Sheets devolvi\u00f3 inventario vac\u00edo", "err");
           return;
         }
         const items = allInv.filter(i => {
@@ -7087,7 +7149,7 @@ function App({
           toast_("No encontrado. Campo en Sheets: '" + Object.keys(sample).filter(k => k.toLowerCase().includes("import")).join(",") || "ninguno" + "' Valor: '" + String(sample.importacionId || sample.importacion || "?") + "'", "err");
           return;
         }
-        toast_("✓ " + items.length + " etiquetas listas");
+        toast_("\u2713 " + items.length + " etiquetas listas");
         imprimirEtiquetasImportacion(items);
       } catch (e) {
         toast_("Error: " + e.message, "err");
@@ -7100,7 +7162,7 @@ function App({
       fontSize: 12,
       background: "#1BB6C8"
     }
-  }, "🖨 Etiquetas"))), invFiltrado.length === 0 ? React.createElement("div", {
+  }, "\ud83d\udda8 Etiquetas"))), invFiltrado.length === 0 ? React.createElement("div", {
     style: {
       textAlign: "center",
       padding: "36px 0",
@@ -7111,12 +7173,12 @@ function App({
       fontSize: 32,
       marginBottom: 8
     }
-  }, "📦"), React.createElement("div", {
+  }, "\ud83d\udce6"), React.createElement("div", {
     style: {
       fontSize: 14,
       marginBottom: 16
     }
-  }, searchInv ? "Sin resultados para esa búsqueda" : "Sin mercadería registrada"), !searchInv && React.createElement("button", {
+  }, searchInv ? "Sin resultados para esa b\u00fasqueda" : "Sin mercader\u00eda registrada"), !searchInv && React.createElement("button", {
     onClick: () => abrirInv(),
     style: {
       ...S.btnD,
@@ -7145,7 +7207,7 @@ function App({
       fontWeight: 700,
       fontSize: 11
     }
-  }, "Código"), React.createElement("th", {
+  }, "C\u00f3digo"), React.createElement("th", {
     style: {
       padding: "8px 10px",
       textAlign: "left",
@@ -7159,7 +7221,7 @@ function App({
       fontWeight: 700,
       fontSize: 11
     }
-  }, "Categoría"), React.createElement("th", {
+  }, "Categor\u00eda"), React.createElement("th", {
     style: {
       padding: "8px 6px",
       textAlign: "center",
@@ -7197,7 +7259,7 @@ function App({
   }))), React.createElement("tbody", null, invFiltrado.map((item, idx) => {
     if (item.estado === "vendido") return null;
     const rest = qtyR(item);
-    const cod = item.codigo || item.id || "—";
+    const cod = item.codigo || item.id || "\u2014";
     const rowBg = item.estado === "ajuste" ? "#FFF8E0" : idx % 2 === 0 ? "#fff" : "#FAFAFA";
     return React.createElement("tr", {
       key: item.id,
@@ -7228,14 +7290,14 @@ function App({
         color: "#888",
         fontSize: 11
       }
-    }, item.categoria || "", item.tipoRopa ? " · " + item.tipoRopa : ""), React.createElement("td", {
+    }, item.categoria || "", item.tipoRopa ? " \u00b7 " + item.tipoRopa : ""), React.createElement("td", {
       style: {
         padding: "7px 6px",
         textAlign: "center",
         color: "#555",
         fontSize: 11
       }
-    }, item.talla || "—"), React.createElement("td", {
+    }, item.talla || "\u2014"), React.createElement("td", {
       style: {
         padding: "7px 6px",
         textAlign: "center",
@@ -7262,11 +7324,11 @@ function App({
         color: "#B45309",
         fontWeight: 700
       }
-    }, "⚠ Baja") : React.createElement("span", {
+    }, "\u26a0 Baja") : React.createElement("span", {
       style: {
         color: "#2D6A4F"
       }
-    }, "✓")), React.createElement("td", {
+    }, "\u2713")), React.createElement("td", {
       style: {
         padding: "7px 6px",
         textAlign: "center"
@@ -7288,9 +7350,9 @@ function App({
         color: "#888",
         cursor: "pointer"
       }
-    }, "✏️"), item.estado !== "ajuste" && rest > 0 && React.createElement("button", {
+    }, "\u270f\ufe0f"), item.estado !== "ajuste" && rest > 0 && React.createElement("button", {
       onClick: () => {
-        if (window.confirm("¿Dar de baja " + cod + " como ajuste?")) {
+        if (window.confirm("\u00bfDar de baja " + cod + " como ajuste?")) {
           const upd = inventario.map(i => i.id === item.id ? {
             ...i,
             estado: "ajuste",
@@ -7300,7 +7362,7 @@ function App({
           setInventario(upd);
           lSet(K.inventario, upd);
           sheetsSync("saveInventario", upd);
-          toast_("🗑 Dado de baja");
+          toast_("\ud83d\uddd1 Dado de baja");
         }
       },
       style: {
@@ -7312,7 +7374,7 @@ function App({
         color: "#B45309",
         cursor: "pointer"
       }
-    }, "↓"))));
+    }, "\u2193"))));
   }))))), tab === "clientes" && React.createElement("div", {
     className: "app-section",
     style: S.sec
@@ -7329,7 +7391,7 @@ function App({
       flex: 1,
       marginBottom: 0
     },
-    placeholder: "🔍 Alias, nombre, TikTok...",
+    placeholder: "\ud83d\udd0d Alias, nombre, TikTok...",
     value: searchCli,
     onChange: e => setSearchCli(e.target.value)
   }), React.createElement("button", {
@@ -7354,11 +7416,11 @@ function App({
       flexShrink: 0,
       background: "#10B981"
     }
-  }, "📷 Guías"), React.createElement("button", {
+  }, "\ud83d\udcf7 Gu\u00edas"), React.createElement("button", {
     onClick: () => {
       const p = detectarDuplicados();
       if (p.length === 0) {
-        toast_("✓ Sin duplicados detectados");
+        toast_("\u2713 Sin duplicados detectados");
         return;
       }
       setFusionPares(p);
@@ -7373,7 +7435,7 @@ function App({
       flexShrink: 0,
       background: "#8B5CF6"
     }
-  }, "🔀 Fusionar"), React.createElement("label", {
+  }, "\ud83d\udd00 Fusionar"), React.createElement("label", {
     title: "Importar clientes desde JSON (Servientrega)",
     style: {
       ...S.btnD,
@@ -7391,7 +7453,7 @@ function App({
       alignItems: "center",
       gap: 4
     }
-  }, "📥", React.createElement("input", {
+  }, "\ud83d\udce5", React.createElement("input", {
     type: "file",
     accept: ".json",
     style: {
@@ -7416,7 +7478,7 @@ function App({
       fontSize: 32,
       marginBottom: 8
     }
-  }, "👥"), React.createElement("div", {
+  }, "\ud83d\udc65"), React.createElement("div", {
     style: {
       fontSize: 14
     }
@@ -7466,9 +7528,9 @@ function App({
       }
     }, c.tiktok && React.createElement("span", {
       style: S.chip
-    }, "🎵 ", c.tiktok), c.telefono && React.createElement("span", {
+    }, "\ud83c\udfb5 ", c.tiktok), c.telefono && React.createElement("span", {
       style: S.chip
-    }, "📞 ", c.telefono), b.saldo > 0 && React.createElement("span", {
+    }, "\ud83d\udcde ", c.telefono), b.saldo > 0 && React.createElement("span", {
       style: {
         ...S.chip,
         background: "#FFF0F8",
@@ -7492,9 +7554,9 @@ function App({
         color: "#888",
         cursor: "pointer"
       }
-    }, "✏️"), React.createElement("button", {
+    }, "\u270f\ufe0f"), React.createElement("button", {
       onClick: () => {
-        if (window.confirm("¿Eliminar cliente " + c.alias + "? Esta acción no se puede deshacer.")) {
+        if (window.confirm("\u00bfEliminar cliente " + c.alias + "? Esta acci\u00f3n no se puede deshacer.")) {
           tomb(K.clientes, [c.id]);
           setClientes(prev => {
             const upd = prev.filter(x => x.id !== c.id);
@@ -7502,7 +7564,7 @@ function App({
             sheetsSync("saveClientes", upd);
             return upd;
           });
-          toast_("🗑 Cliente eliminado");
+          toast_("\ud83d\uddd1 Cliente eliminado");
         }
       },
       style: {
@@ -7514,7 +7576,7 @@ function App({
         color: "#EF4444",
         cursor: "pointer"
       }
-    }, "🗑")));
+    }, "\ud83d\uddd1")));
   }))), tab === "saldos" && React.createElement("div", {
     className: "app-section",
     style: S.sec
@@ -7570,7 +7632,7 @@ function App({
       }
     }, React.createElement("button", {
       onClick: () => {
-        if (waSent.size > 0 && window.confirm("¿Borrar los ✓✓ de todos los clientes?")) {
+        if (waSent.size > 0 && window.confirm("\u00bfBorrar los \u2713\u2713 de todos los clientes?")) {
           setWaSent(new Set());
           localStorage.removeItem("camely_wa_sent");
         }
@@ -7587,7 +7649,7 @@ function App({
         display: waSent.size > 0 ? "flex" : "none",
         alignItems: "center"
       }
-    }, "✓✓ ", waSent.size), React.createElement("button", {
+    }, "\u2713\u2713 ", waSent.size), React.createElement("button", {
       onClick: () => generarPDFCxC(),
       style: {
         background: "rgba(255,255,255,0.2)",
@@ -7600,7 +7662,7 @@ function App({
         cursor: "pointer",
         flexShrink: 0
       }
-    }, "📄 CxC"), React.createElement("button", {
+    }, "\ud83d\udcc4 CxC"), React.createElement("button", {
       onClick: () => {
         setEnvioLive(saldoFiltroLive || "");
         setEnvioIdx(0);
@@ -7617,7 +7679,7 @@ function App({
         cursor: "pointer",
         flexShrink: 0
       }
-    }, "📲 Envío masivo"), React.createElement("button", {
+    }, "\ud83d\udcf2 Env\u00edo masivo"), React.createElement("button", {
       onClick: () => setShowDeudaModal(true),
       style: {
         background: "#1BB6C8",
@@ -7643,7 +7705,7 @@ function App({
         cursor: "pointer",
         flexShrink: 0
       }
-    }, "⚠ Inflados")), React.createElement("div", {
+    }, "\u26a0 Inflados")), React.createElement("div", {
       style: {
         marginTop: 10
       }
@@ -7655,7 +7717,7 @@ function App({
         marginBottom: 4,
         letterSpacing: 0.5
       }
-    }, "🚚 DÍA DE ENVÍO"), React.createElement("div", {
+    }, "\ud83d\ude9a D\u00cdA DE ENV\u00cdO"), React.createElement("div", {
       style: {
         display: "flex",
         alignItems: "center",
@@ -7690,7 +7752,7 @@ function App({
         cursor: "pointer",
         flexShrink: 0
       }
-    }, "✕")), diaEnvio && React.createElement("div", {
+    }, "\u2715")), diaEnvio && React.createElement("div", {
       style: {
         fontSize: 11,
         color: "rgba(255,255,255,0.9)",
@@ -7699,7 +7761,7 @@ function App({
       }
     }, (() => {
       const d = new Date(diaEnvio + "T12:00:00");
-      const dias = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+      const dias = ["Dom", "Lun", "Mar", "Mi\u00e9", "Jue", "Vie", "S\u00e1b"];
       const mo = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
       return isNaN(d) ? "" : dias[d.getDay()] + " " + d.getDate() + " " + mo[d.getMonth()];
     })()))), React.createElement("div", {
@@ -7715,7 +7777,7 @@ function App({
         fontSize: 12,
         marginTop: 4
       }
-    }, filtrados.length, " clientes", saldoFiltroLive ? ` · ${saldoFiltroLive}` : "")), React.createElement("div", {
+    }, filtrados.length, " clientes", saldoFiltroLive ? ` \u00b7 ${saldoFiltroLive}` : "")), React.createElement("div", {
       style: {
         display: "flex",
         gap: 8,
@@ -7727,7 +7789,7 @@ function App({
         flex: 1,
         fontSize: 13
       },
-      placeholder: "🔍 Buscar cliente...",
+      placeholder: "\ud83d\udd0d Buscar cliente...",
       value: saldoFiltroCliente,
       onChange: e => setSaldoFiltroCliente(e.target.value)
     }), React.createElement("select", {
@@ -7761,14 +7823,14 @@ function App({
         fontWeight: 700,
         cursor: "pointer"
       }
-    }, verPagados ? "✓ Mostrando también pagados" : "Ver también pagados")), filtrados.length === 0 ? React.createElement("div", {
+    }, verPagados ? "\u2713 Mostrando tambi\u00e9n pagados" : "Ver tambi\u00e9n pagados")), filtrados.length === 0 ? React.createElement("div", {
       style: {
         textAlign: "center",
         padding: "30px 0",
         color: "#aaa",
         fontSize: 14
       }
-    }, "🎉 Sin saldos") : React.createElement("div", null, filtrados.map((c, i) => {
+    }, "\ud83c\udf89 Sin saldos") : React.createElement("div", null, filtrados.map((c, i) => {
       const isExp = expandedCliente === c.alias;
       const compras = pedidos.filter(p => p.cliente === c.alias && (!saldoFiltroLive || p.live === saldoFiltroLive));
       return React.createElement("div", {
@@ -7812,11 +7874,11 @@ function App({
           fontSize: 11,
           color: "#AAA"
         }
-      }, React.createElement("span", null, "Compró ", React.createElement("b", {
+      }, React.createElement("span", null, "Compr\u00f3 ", React.createElement("b", {
         style: {
           color: "#555"
         }
-      }, "$", c.tc.toFixed(2))), React.createElement("span", null, "Abonó ", React.createElement("b", {
+      }, "$", c.tc.toFixed(2))), React.createElement("span", null, "Abon\u00f3 ", React.createElement("b", {
         style: {
           color: "#2D6A4F"
         }
@@ -7837,20 +7899,20 @@ function App({
           marginTop: 2,
           color: saldoFiltroLive ? "#1BB6C8" : c.ta >= 10 ? "#2D6A4F" : "#E07040"
         }
-      }, saldoFiltroLive ? "pendiente este live" : c.ta >= 10 ? "✓ abono" : "sin abono"), React.createElement("div", {
+      }, saldoFiltroLive ? "pendiente este live" : c.ta >= 10 ? "\u2713 abono" : "sin abono"), React.createElement("div", {
         style: {
           fontSize: 11,
           color: "#1BB6C8",
           marginTop: 2
         }
-      }, isExp ? "▲ cerrar" : "▼ ver compras", waSent.has(c.alias) && React.createElement("span", {
+      }, isExp ? "\u25b2 cerrar" : "\u25bc ver compras", waSent.has(c.alias) && React.createElement("span", {
         style: {
           fontSize: 11,
           color: "#25D366",
           fontWeight: 700,
           marginLeft: 4
         }
-      }, "✓✓"))), React.createElement("button", {
+      }, "\u2713\u2713"))), React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           const todosLosPedidos = pedidos.filter(p => p.cliente === c.alias);
@@ -7863,15 +7925,15 @@ function App({
           const cps = saldoFiltroLive ? todosLosPedidos.filter(p => p.live === saldoFiltroLive) : livesPendientes.flatMap(lv => lv.prendas);
           const tc = cps.reduce((s, p) => s + p.total, 0);
           const saldo = saldoTotal;
-          let msg = "✨ *Camely Ropa Infantil* ✨\n";
-          msg += "━━━━━━━━━━━━━━━━━━\n";
-          msg += "👋 Hola *" + c.alias + "*!\n\n";
-          msg += "💰 *Resumen de tu cuenta:*\n";
-          msg += "🛒 Total compras:\t $" + tcTotal.toFixed(2) + "\n";
-          msg += "✅ Abonado:\t $" + ta.toFixed(2) + "\n";
-          msg += "🔴 *Pendiente: $" + saldo.toFixed(2) + "*\n";
+          let msg = "\u2728 *Camely Ropa Infantil* \u2728\n";
+          msg += "\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n";
+          msg += "\ud83d\udc4b Hola *" + c.alias + "*!\n\n";
+          msg += "\ud83d\udcb0 *Resumen de tu cuenta:*\n";
+          msg += "\ud83d\uded2 Total compras:\t $" + tcTotal.toFixed(2) + "\n";
+          msg += "\u2705 Abonado:\t $" + ta.toFixed(2) + "\n";
+          msg += "\ud83d\udd34 *Pendiente: $" + saldo.toFixed(2) + "*\n";
           if (cps.length > 0) {
-            msg += "\n📋 *Prendas pendientes de pago:*\n";
+            msg += "\n\ud83d\udccb *Prendas pendientes de pago:*\n";
             const byLive = {};
             cps.forEach(p => {
               if (!byLive[p.live]) byLive[p.live] = [];
@@ -7883,33 +7945,33 @@ function App({
             }] : livesPendientes).forEach(lv => {
               const fechaLive = lv.prendas.map(p => p.fecha).sort()[0] || "";
               const fechaLabel = fechaLive ? fmtFecha(fechaLive) : lv.live;
-              msg += "\n📅 " + fechaLabel + " — $" + lv.pendiente.toFixed(2) + " pendiente\n";
+              msg += "\n\ud83d\udcc5 " + fechaLabel + " \u2014 $" + lv.pendiente.toFixed(2) + " pendiente\n";
               lv.prendas.slice(0, 6).forEach(p => {
-                msg += "  • " + (p.prenda || "Prenda") + ": $" + p.total.toFixed(2) + "\n";
+                msg += "  \u2022 " + (p.prenda || "Prenda") + ": $" + p.total.toFixed(2) + "\n";
               });
-              if (lv.prendas.length > 6) msg += "  ... y " + (lv.prendas.length - 6) + " más\n";
+              if (lv.prendas.length > 6) msg += "  ... y " + (lv.prendas.length - 6) + " m\u00e1s\n";
             });
           }
-          msg += "\n─────────────────\n";
-          msg += "🏦 *Cuentas bancarias:*\n";
-          msg += "  🟡 Pichincha Ahorros *2203554582*\n";
-          msg += "  🔵 Guayaquil Ahorros *0029388062*\n";
-          msg += "  📋 Cédula: *0926345752* Martha Rosado\n";
-          msg += "\n─────────────────\n";
-          msg += "🚚 *Envío:*\n";
-          msg += "  Guayaquil *$3.60* · Provincia *$6.50*\n";
+          msg += "\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n";
+          msg += "\ud83c\udfe6 *Cuentas bancarias:*\n";
+          msg += "  \ud83d\udfe1 Pichincha Ahorros *2203554582*\n";
+          msg += "  \ud83d\udd35 Guayaquil Ahorros *0029388062*\n";
+          msg += "  \ud83d\udccb C\u00e9dula: *0926345752* Martha Rosado\n";
+          msg += "\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n";
+          msg += "\ud83d\ude9a *Env\u00edo:*\n";
+          msg += "  Guayaquil *$3.60* \u00b7 Provincia *$6.50*\n";
           if (diaEnvio) {
             const d = new Date(diaEnvio + "T12:00:00");
             if (!isNaN(d)) {
-              const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+              const dias = ["domingo", "lunes", "martes", "mi\u00e9rcoles", "jueves", "viernes", "s\u00e1bado"];
               const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-              msg += "📅 *Día de envío: " + dias[d.getDay()] + " " + d.getDate() + " de " + meses[d.getMonth()] + "*\n";
+              msg += "\ud83d\udcc5 *D\u00eda de env\u00edo: " + dias[d.getDay()] + " " + d.getDate() + " de " + meses[d.getMonth()] + "*\n";
             }
           }
-          msg += "\n💕 ¡Gracias por tu compra en Camely!";
+          msg += "\n\ud83d\udc95 \u00a1Gracias por tu compra en Camely!";
           const cliP = perfil(c.alias);
           const telP = (cliP?.whatsapp || cliP?.telefono || "").replace(/[^0-9]/g, "");
-          if (!telP) toast_("⚠ Esta cliente no tiene teléfono guardado — se abrirá WhatsApp sin destinatario", "warn");
+          if (!telP) toast_("\u26a0 Esta cliente no tiene tel\u00e9fono guardado \u2014 se abrir\u00e1 WhatsApp sin destinatario", "warn");
           const waUrl = telP ? "https://wa.me/593" + telP.replace(/^0/, "") + "?text=" + encodeURIComponent(msg) : "https://wa.me/?text=" + encodeURIComponent(msg);
           openUrl(waUrl);
           marcarWASent(c.alias);
@@ -7929,10 +7991,10 @@ function App({
           marginTop: 4,
           flexShrink: 0
         }
-      }, React.createElement("span", null, "📲"), React.createElement("span", null, "WhatsApp")), c.saldo > 0 && React.createElement("button", {
+      }, React.createElement("span", null, "\ud83d\udcf2"), React.createElement("span", null, "WhatsApp")), c.saldo > 0 && React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
-          if (window.confirm("¿Registrar pago completo de $" + c.saldo.toFixed(2) + " de " + c.alias + "?")) {
+          if (window.confirm("\u00bfRegistrar pago completo de $" + c.saldo.toFixed(2) + " de " + c.alias + "?")) {
             const a = {
               id: nextId(),
               fecha: hoy(),
@@ -7943,7 +8005,7 @@ function App({
               conComp: false
             };
             if (dupAbono(a.cliente + "|" + (a.monto || 0).toFixed(2) + "|" + (a.liveVinculado || ""))) {
-              toast_("⚠ Pago idéntico recién registrado — evitado", "warn");
+              toast_("\u26a0 Pago id\u00e9ntico reci\u00e9n registrado \u2014 evitado", "warn");
               return;
             }
             setAbonos(prev => {
@@ -7952,7 +8014,7 @@ function App({
               sheetsSync("saveAbonos", upd);
               return upd;
             });
-            toast_("✓ Pago de $" + c.saldo.toFixed(2) + " registrado para " + c.alias);
+            toast_("\u2713 Pago de $" + c.saldo.toFixed(2) + " registrado para " + c.alias);
           }
         },
         style: {
@@ -7970,7 +8032,7 @@ function App({
           marginTop: 4,
           flexShrink: 0
         }
-      }, React.createElement("span", null, "💰"), React.createElement("span", null, "Pagar todo")), React.createElement("button", {
+      }, React.createElement("span", null, "\ud83d\udcb0"), React.createElement("span", null, "Pagar todo")), React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
           generarEstadoCuenta(c.alias);
@@ -7990,7 +8052,7 @@ function App({
           marginTop: 4,
           flexShrink: 0
         }
-      }, React.createElement("span", null, "📄"), React.createElement("span", null, "Estado"))), isExp && React.createElement("div", {
+      }, React.createElement("span", null, "\ud83d\udcc4"), React.createElement("span", null, "Estado"))), isExp && React.createElement("div", {
         style: {
           borderTop: "1px solid #E8F9FB",
           padding: "10px 14px",
@@ -8029,7 +8091,7 @@ function App({
           color: "#AAA",
           fontSize: 10
         }
-      }, p.live, " · ", fmtFecha(p.fecha)), React.createElement("br", null), React.createElement("span", {
+      }, p.live, " \u00b7 ", fmtFecha(p.fecha)), React.createElement("br", null), React.createElement("span", {
         style: {
           fontWeight: 600
         }
@@ -8040,7 +8102,7 @@ function App({
           marginLeft: 6,
           fontWeight: 700
         }
-      }, p.invId || "—")), React.createElement("div", {
+      }, p.invId || "\u2014")), React.createElement("div", {
         style: {
           textAlign: "right",
           fontWeight: 700,
@@ -8049,7 +8111,7 @@ function App({
         }
       }, "$", p.total.toFixed(2)), React.createElement("button", {
         onClick: () => {
-          if (canAdmin || window.confirm("¿Segura que deseas eliminar esta compra?")) eliminarPedido(p.id);
+          if (canAdmin || window.confirm("\u00bfSegura que deseas eliminar esta compra?")) eliminarPedido(p.id);
         },
         style: {
           background: "#FFE4E4",
@@ -8061,7 +8123,7 @@ function App({
           cursor: "pointer",
           flexShrink: 0
         }
-      }, "✕"))), React.createElement("div", {
+      }, "\u2715"))), React.createElement("div", {
         style: {
           display: "flex",
           gap: 8,
@@ -8081,9 +8143,9 @@ function App({
           padding: "8px",
           fontSize: 12
         }
-      }, "📋 Datos envío"), React.createElement("button", {
+      }, "\ud83d\udccb Datos env\u00edo"), React.createElement("button", {
         onClick: () => {
-          if (canAdmin || window.confirm("¿Segura que deseas eliminar TODOS los pedidos de " + c.alias + "?")) eliminarPedidosCliente(c.alias);
+          if (canAdmin || window.confirm("\u00bfSegura que deseas eliminar TODOS los pedidos de " + c.alias + "?")) eliminarPedidosCliente(c.alias);
         },
         style: {
           flex: 1,
@@ -8096,7 +8158,7 @@ function App({
           fontWeight: 700,
           cursor: "pointer"
         }
-      }, "🗑 Borrar todos"))));
+      }, "\ud83d\uddd1 Borrar todos"))));
     })));
   })(), " "), tab === "financiero" && React.createElement("div", {
     className: "app-section",
@@ -8112,7 +8174,7 @@ function App({
       fontSize: 40,
       marginBottom: 12
     }
-  }, "🔒"), React.createElement("div", {
+  }, "\ud83d\udd12"), React.createElement("div", {
     style: {
       fontSize: 16
     }
@@ -8128,16 +8190,16 @@ function App({
       }
     }, [{
       id: "resumen",
-      l: "📊 Resumen"
+      l: "\ud83d\udcca Resumen"
     }, {
       id: "cxp",
-      l: "💰 CxP"
+      l: "\ud83d\udcb0 CxP"
     }, {
       id: "compras",
-      l: "🚢 Compras"
+      l: "\ud83d\udea2 Compras"
     }, {
       id: "resultados",
-      l: "📈 Resultados"
+      l: "\ud83d\udcc8 Resultados"
     }].map(s => React.createElement("button", {
       key: s.id,
       onClick: () => setFinSub(s.id),
@@ -8207,7 +8269,7 @@ function App({
           fontWeight: 700,
           flexShrink: 0
         }
-      }, "📅 PERÍODO"), React.createElement("select", {
+      }, "\ud83d\udcc5 PER\u00cdODO"), React.createElement("select", {
         style: {
           ...S.inp,
           flex: 1,
@@ -8247,25 +8309,25 @@ function App({
         v: "$" + tv.toFixed(2),
         c: "#1BB6C8",
         bg: "#E8F9FB",
-        i: "🛍"
+        i: "\ud83d\udecd"
       }, {
         l: "Total Cobrado",
         v: "$" + tc.toFixed(2),
         c: "#2D6A4F",
         bg: "#E6F4EC",
-        i: "💵"
+        i: "\ud83d\udcb5"
       }, {
         l: "Por Cobrar",
         v: "$" + tp.toFixed(2),
         c: "#F0057F",
         bg: "#FFF0F8",
-        i: "⏳"
+        i: "\u23f3"
       }, {
         l: "% Cobrado",
         v: pct + "%",
         c: pct >= 80 ? "#2D6A4F" : pct >= 50 ? "#B7570A" : "#F0057F",
         bg: pct >= 80 ? "#E6F4EC" : pct >= 50 ? "#FFF5E0" : "#FFF0F8",
-        i: "📈"
+        i: "\ud83d\udcc8"
       }].map(k => React.createElement("div", {
         key: k.l,
         style: {
@@ -8327,12 +8389,12 @@ function App({
           color: "#1BB6C8",
           fontWeight: 700
         }
-      }, "💰 Vendido"), React.createElement("span", {
+      }, "\ud83d\udcb0 Vendido"), React.createElement("span", {
         style: {
           color: "#F0057F",
           fontWeight: 700
         }
-      }, "📌 Pendiente"))), livesD.slice(0, 10).map(d => React.createElement("div", {
+      }, "\ud83d\udccc Pendiente"))), livesD.slice(0, 10).map(d => React.createElement("div", {
         key: d.live,
         style: {
           marginBottom: 10
@@ -8372,13 +8434,13 @@ function App({
           fontWeight: 700,
           fontSize: 12
         }
-      }, "📌 $", (d.v - d.abonado).toFixed(2)), d.v - d.abonado <= 0 && d.v > 0 && React.createElement("span", {
+      }, "\ud83d\udccc $", (d.v - d.abonado).toFixed(2)), d.v - d.abonado <= 0 && d.v > 0 && React.createElement("span", {
         style: {
           color: "#10B981",
           fontWeight: 700,
           fontSize: 11
         }
-      }, "✓ Cobrado"))), React.createElement("div", {
+      }, "\u2713 Cobrado"))), React.createElement("div", {
         style: {
           background: "#F0FBFD",
           borderRadius: 6,
@@ -8532,7 +8594,7 @@ function App({
           color: "#888",
           letterSpacing: 1
         }
-      }, "POSICIÓN NETA"), React.createElement("div", {
+      }, "POSICI\u00d3N NETA"), React.createElement("div", {
         style: {
           fontSize: 22,
           fontWeight: 900,
@@ -8617,7 +8679,7 @@ function App({
             fontSize: 11,
             color: "#AAA"
           }
-        }, t.banco, t.limite ? " · Límite: $" + t.limite : "")), React.createElement("div", {
+        }, t.banco, t.limite ? " \u00b7 L\u00edmite: $" + t.limite : "")), React.createElement("div", {
           style: {
             textAlign: "right",
             display: "flex",
@@ -8662,7 +8724,7 @@ function App({
             cursor: "pointer",
             fontWeight: 700
           }
-        }, "✏️"), React.createElement("button", {
+        }, "\u270f\ufe0f"), React.createElement("button", {
           onClick: () => eliminarTarjeta(t.id),
           style: {
             background: "#FFE4E4",
@@ -8674,7 +8736,7 @@ function App({
             cursor: "pointer",
             fontWeight: 700
           }
-        }, "🗑")))), React.createElement("div", {
+        }, "\ud83d\uddd1")))), React.createElement("div", {
           style: {
             display: "flex",
             gap: 6,
@@ -8756,7 +8818,7 @@ function App({
           style: {
             flex: 1
           }
-        }, fmtFecha(c.fecha), " · ", c.descripcion || c.tipo), React.createElement("span", {
+        }, fmtFecha(c.fecha), " \u00b7 ", c.descripcion || c.tipo), React.createElement("span", {
           style: {
             fontWeight: 700,
             color: c.tipo === "cargo" ? "#F0057F" : "#2D6A4F",
@@ -8773,7 +8835,7 @@ function App({
             fontSize: 10,
             cursor: "pointer"
           }
-        }, "✕")))), ecsTarjeta.length > 0 && React.createElement("div", null, React.createElement("button", {
+        }, "\u2715")))), ecsTarjeta.length > 0 && React.createElement("div", null, React.createElement("button", {
           onClick: () => setExpandedECTarjeta(isECOpen ? null : t.id),
           style: {
             width: "100%",
@@ -8786,7 +8848,7 @@ function App({
             cursor: "pointer",
             fontWeight: 600
           }
-        }, isECOpen ? "▲ Ocultar" : "▼", " Estados de cuenta (", ecsTarjeta.length, ")"), isECOpen && React.createElement("div", {
+        }, isECOpen ? "\u25b2 Ocultar" : "\u25bc", " Estados de cuenta (", ecsTarjeta.length, ")"), isECOpen && React.createElement("div", {
           style: {
             marginTop: 6
           }
@@ -8809,7 +8871,7 @@ function App({
             fontSize: 10,
             color: "#AAA"
           }
-        }, "Vence: ", ec.fechaMaxPago || "N/D", " · ", ec.fecha)), React.createElement("div", {
+        }, "Vence: ", ec.fechaMaxPago || "N/D", " \u00b7 ", ec.fecha)), React.createElement("div", {
           style: {
             textAlign: "right"
           }
@@ -8826,14 +8888,14 @@ function App({
             color: "#1BB6C8",
             fontWeight: 700
           }
-        }, "📄 Ver en Drive ↗") : ec.archivoB64 ? React.createElement("a", {
+        }, "\ud83d\udcc4 Ver en Drive \u2197") : ec.archivoB64 ? React.createElement("a", {
           href: "data:" + ec.mediaType + ";base64," + ec.archivoB64,
           download: "estado-" + ec.mes + "-" + ec.ano + ".pdf",
           style: {
             fontSize: 10,
             color: "#AAA"
           }
-        }, "📄 Descarga local") : null))))));
+        }, "\ud83d\udcc4 Descarga local") : null))))));
       }));
     })(), finSub === "compras" && (() => {
       const totalImportado = importaciones.reduce((s, i) => s + i.costoTotal, 0);
@@ -8848,9 +8910,9 @@ function App({
         "recibida": "#2D6A4F"
       };
       const estadoLabel = {
-        "ingresada": "📋 Ingresada",
-        "pagada": "💰 Pagada",
-        "recibida": "✅ Recibida"
+        "ingresada": "\ud83d\udccb Ingresada",
+        "pagada": "\ud83d\udcb0 Pagada",
+        "recibida": "\u2705 Recibida"
       };
       const nextEstado = {
         "ingresada": "pagada",
@@ -8928,7 +8990,7 @@ function App({
           ...S.btnD,
           marginBottom: 14
         }
-      }, "+ Nueva Importación"), consignaciones.filter(c => c.estado === "activo").length > 0 && React.createElement("div", {
+      }, "+ Nueva Importaci\u00f3n"), consignaciones.filter(c => c.estado === "activo").length > 0 && React.createElement("div", {
         style: {
           marginBottom: 14
         }
@@ -8941,7 +9003,7 @@ function App({
           textTransform: "uppercase",
           marginBottom: 8
         }
-      }, "📦 Lotes de Consignación Activos"), consignaciones.filter(c => c.estado === "activo").map(lote => {
+      }, "\ud83d\udce6 Lotes de Consignaci\u00f3n Activos"), consignaciones.filter(c => c.estado === "activo").map(lote => {
         const vendidas = lote.items.map(item => ({
           ...item,
           vendidas: pedidos.filter(p => p.consignItemId === item.id).reduce((s, p) => s + (p.qty || 1), 0)
@@ -8975,7 +9037,7 @@ function App({
             fontSize: 11,
             color: "#888"
           }
-        }, lote.proveedor, " · ", fmtFecha(lote.fecha), " · ", lote.items.length, " tipo", lote.items.length !== 1 ? "s" : "", " de prenda")), React.createElement("div", {
+        }, lote.proveedor, " \u00b7 ", fmtFecha(lote.fecha), " \u00b7 ", lote.items.length, " tipo", lote.items.length !== 1 ? "s" : "", " de prenda")), React.createElement("div", {
           style: {
             textAlign: "right"
           }
@@ -9011,7 +9073,7 @@ function App({
             style: {
               color: "#888"
             }
-          }, vend?.vendidas || 0, "/", item.cantidad, " · $", item.costoUnit, "/u · ", React.createElement("b", {
+          }, vend?.vendidas || 0, "/", item.cantidad, " \u00b7 $", item.costoUnit, "/u \u00b7 ", React.createElement("b", {
             style: {
               color: "#6D28D9"
             }
@@ -9024,7 +9086,7 @@ function App({
           }
         }, React.createElement("button", {
           onClick: () => {
-            if (!window.confirm("¿Liquidar lote " + lote.nombre + "? Se marcará como liquidado.")) return;
+            if (!window.confirm("\u00bfLiquidar lote " + lote.nombre + "? Se marcar\u00e1 como liquidado.")) return;
             const upd = consignaciones.map(c => c.id === lote.id ? {
               ...c,
               estado: "liquidado",
@@ -9032,7 +9094,7 @@ function App({
             } : c);
             setConsignaciones(upd);
             localStorage.setItem("camely_consig", JSON.stringify(upd));
-            toast_("✓ Lote liquidado: " + lote.nombre);
+            toast_("\u2713 Lote liquidado: " + lote.nombre);
           },
           style: {
             background: "#8B5CF6",
@@ -9044,9 +9106,9 @@ function App({
             fontWeight: 700,
             cursor: "pointer"
           }
-        }, "💰 Liquidar lote · Le debes $", totalVendido.toFixed(2)), React.createElement("button", {
+        }, "\ud83d\udcb0 Liquidar lote \u00b7 Le debes $", totalVendido.toFixed(2)), React.createElement("button", {
           onClick: () => {
-            if (!window.confirm("¿Eliminar este lote?")) return;
+            if (!window.confirm("\u00bfEliminar este lote?")) return;
             const upd = consignaciones.filter(c => c.id !== lote.id);
             setConsignaciones(upd);
             localStorage.setItem("camely_consig", JSON.stringify(upd));
@@ -9060,7 +9122,7 @@ function App({
             fontSize: 11,
             cursor: "pointer"
           }
-        }, "🗑")));
+        }, "\ud83d\uddd1")));
       })), importaciones.length === 0 ? React.createElement("div", {
         style: {
           textAlign: "center",
@@ -9102,7 +9164,7 @@ function App({
             fontSize: 11,
             color: "#AAA"
           }
-        }, imp.proveedor || "Sin proveedor", " · ", imp.fecha)), React.createElement("div", {
+        }, imp.proveedor || "Sin proveedor", " \u00b7 ", imp.fecha)), React.createElement("div", {
           style: {
             textAlign: "right",
             flexShrink: 0,
@@ -9140,7 +9202,7 @@ function App({
             fontSize: 11,
             color: "#888"
           }
-        }, "🧺 ", imp.numPrendas, " prendas · $", imp.costoUnit, "/u")), imp.items && imp.items.length > 0 && React.createElement("div", {
+        }, "\ud83e\uddfa ", imp.numPrendas, " prendas \u00b7 $", imp.costoUnit, "/u")), imp.items && imp.items.length > 0 && React.createElement("div", {
           style: {
             background: "#F5FDFE",
             borderRadius: 8,
@@ -9167,7 +9229,7 @@ function App({
             color: "#888",
             marginBottom: 8
           }
-        }, "💰 ", tarjetas.find(t => t.id === imp.tarjetaId)?.nombre), React.createElement("div", {
+        }, "\ud83d\udcb0 ", tarjetas.find(t => t.id === imp.tarjetaId)?.nombre), React.createElement("div", {
           style: {
             display: "flex",
             gap: 6
@@ -9189,7 +9251,7 @@ function App({
             fontWeight: 700,
             cursor: "pointer"
           }
-        }, "Marcar como Pagada →"), canEdit && est === "pagada" && React.createElement("button", {
+        }, "Marcar como Pagada \u2192"), canEdit && est === "pagada" && React.createElement("button", {
           onClick: () => {
             setExpandedLlegada(expandedLlegada === imp.id ? null : imp.id);
             setLlegadaItems(imp.items && imp.items.length > 0 ? [...imp.items] : []);
@@ -9205,7 +9267,7 @@ function App({
             fontWeight: 700,
             cursor: "pointer"
           }
-        }, "📦 ", expandedLlegada === imp.id ? "Cerrar llegada" : "Registrar llegada"), canAdmin && React.createElement("button", {
+        }, "\ud83d\udce6 ", expandedLlegada === imp.id ? "Cerrar llegada" : "Registrar llegada"), canAdmin && React.createElement("button", {
           onClick: () => eliminarImportacion(imp.id),
           style: {
             background: "#FFE4E4",
@@ -9217,7 +9279,7 @@ function App({
             fontWeight: 700,
             cursor: "pointer"
           }
-        }, "🗑")), expandedLlegada === imp.id && est === "pagada" && React.createElement("div", {
+        }, "\ud83d\uddd1")), expandedLlegada === imp.id && est === "pagada" && React.createElement("div", {
           style: {
             marginTop: 10,
             background: "#F0FBFD",
@@ -9232,7 +9294,7 @@ function App({
             color: "#1BB6C8",
             marginBottom: 10
           }
-        }, "📦 ¿Qué llegó? Confirma o ajusta los ítems:"), llegadaItems.map((it, idx) => React.createElement("div", {
+        }, "\ud83d\udce6 \u00bfQu\u00e9 lleg\u00f3? Confirma o ajusta los \u00edtems:"), llegadaItems.map((it, idx) => React.createElement("div", {
           key: it.id || idx,
           style: {
             background: "#fff",
@@ -9274,22 +9336,22 @@ function App({
             fontSize: 11,
             padding: "5px 8px"
           },
-          value: it.tipoRopa || "niña",
+          value: it.tipoRopa || "ni\u00f1a",
           onChange: e => setLlegadaItems(p => p.map((i, j) => j === idx ? {
             ...i,
             tipoRopa: e.target.value
           } : i))
         }, React.createElement("option", {
-          value: "niña"
-        }, "Niña"), React.createElement("option", {
-          value: "niño"
-        }, "Niño"), React.createElement("option", {
+          value: "ni\u00f1a"
+        }, "Ni\u00f1a"), React.createElement("option", {
+          value: "ni\u00f1o"
+        }, "Ni\u00f1o"), React.createElement("option", {
           value: "hombre"
         }, "Hombre"), React.createElement("option", {
           value: "mujer"
         }, "Mujer"), React.createElement("option", {
           value: "bebe"
-        }, "Bebé"), React.createElement("option", {
+        }, "Beb\u00e9"), React.createElement("option", {
           value: "dama"
         }, "Dama")), React.createElement("button", {
           onClick: () => setLlegadaItems(p => p.filter((_, j) => j !== idx)),
@@ -9303,7 +9365,7 @@ function App({
             cursor: "pointer",
             flexShrink: 0
           }
-        }, "✕")), React.createElement("div", {
+        }, "\u2715")), React.createElement("div", {
           style: {
             display: "flex",
             gap: 6
@@ -9343,7 +9405,7 @@ function App({
             fontSize: 11,
             padding: "5px 8px"
           },
-          placeholder: "Descripción (opcional)",
+          placeholder: "Descripci\u00f3n (opcional)",
           value: it.descripcion || "",
           onChange: e => setLlegadaItems(p => p.map((i, j) => j === idx ? {
             ...i,
@@ -9359,7 +9421,7 @@ function App({
           onClick: () => setLlegadaItems(p => [...p, {
             id: nextId(),
             categoria: "ropa",
-            tipoRopa: "niña",
+            tipoRopa: "ni\u00f1a",
             talla: "",
             cantidad: 1,
             descripcion: ""
@@ -9375,11 +9437,11 @@ function App({
             fontWeight: 600,
             cursor: "pointer"
           }
-        }, "+ Agregar ítem"), React.createElement("button", {
+        }, "+ Agregar \u00edtem"), React.createElement("button", {
           onClick: () => {
             const total = llegadaItems.reduce((s, i) => s + parseInt(i.cantidad || 1), 0);
             if (total === 0) {
-              toast_("Agrega al menos 1 ítem");
+              toast_("Agrega al menos 1 \u00edtem");
               return;
             }
             const updImps = importaciones.map(i => i.id === imp.id ? {
@@ -9405,7 +9467,7 @@ function App({
             fontWeight: 700,
             cursor: "pointer"
           }
-        }, "✅ Confirmar y marcar Recibida (", llegadaItems.reduce((s, i) => s + parseInt(i.cantidad || 1), 0), " prendas)"))));
+        }, "\u2705 Confirmar y marcar Recibida (", llegadaItems.reduce((s, i) => s + parseInt(i.cantidad || 1), 0), " prendas)"))));
       }));
     })(), finSub === "resultados" && (() => {
       const year = resAno !== "todos" ? resAno : String(new Date().getFullYear());
@@ -9475,8 +9537,8 @@ function App({
         uBruta: dm.reduce((s, d) => s + d.uBruta, 0),
         uNeta: dm.reduce((s, d) => s + d.uNeta, 0)
       };
-      const fv = v => v === 0 ? "—" : "$" + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-      const fc = v => v === 0 ? "—" : v;
+      const fv = v => v === 0 ? "\u2014" : "$" + v.toFixed(0).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+      const fc = v => v === 0 ? "\u2014" : v;
       const cell = (v, bold, color) => React.createElement("td", {
         style: {
           padding: "7px 10px",
@@ -9501,11 +9563,11 @@ function App({
       }, label);
       const renderDetail = tipo => {
         const tipoIcon = {
-          "servientrega": "🚚",
-          "isd": "🏦",
-          "interes": "💰",
-          "suministros": "🖨",
-          "otro": "📋"
+          "servientrega": "\ud83d\ude9a",
+          "isd": "\ud83c\udfe6",
+          "interes": "\ud83d\udcb0",
+          "suministros": "\ud83d\udda8",
+          "otro": "\ud83d\udccb"
         };
         const allG = gastos.filter(g => {
           const f = parseFecha(g.fecha);
@@ -9547,7 +9609,7 @@ function App({
             borderBottom: "1px solid #D0F2F6",
             paddingBottom: 2
           }
-        }, mes, " — $", items.reduce((s, g) => s + g.monto, 0).toFixed(2)), items.map(g => React.createElement("div", {
+        }, mes, " \u2014 $", items.reduce((s, g) => s + g.monto, 0).toFixed(2)), items.map(g => React.createElement("div", {
           key: g.id,
           style: {
             display: "flex",
@@ -9561,7 +9623,7 @@ function App({
           style: {
             flex: 1
           }
-        }, tipoIcon[g.tipo] || "📋", " ", g.descripcion || g.tipo), React.createElement("span", {
+        }, tipoIcon[g.tipo] || "\ud83d\udccb", " ", g.descripcion || g.tipo), React.createElement("span", {
           style: {
             fontWeight: 700,
             color: "#1BB6C8",
@@ -9578,20 +9640,20 @@ function App({
             fontSize: 10,
             cursor: "pointer"
           }
-        }, "✕"))))))));
+        }, "\u2715"))))))));
       };
       const rows = [{
-        label: "💵 Cobrado (Ingresos)",
+        label: "\ud83d\udcb5 Cobrado (Ingresos)",
         key: "cobrado",
         bold: true,
         color: "#1BB6C8"
       }, {
-        label: "🛍 Ventas (pedidos)",
+        label: "\ud83d\udecd Ventas (pedidos)",
         key: "ventas",
         bold: false,
         color: "#888"
       }, null, {
-        label: "🚢 (-) Costo de Venta",
+        label: "\ud83d\udea2 (-) Costo de Venta",
         key: "costo",
         bold: true,
         color: "#B7570A"
@@ -9601,35 +9663,35 @@ function App({
         bold: true,
         isUtil: true
       }, null, {
-        label: "🚚 Servientrega",
+        label: "\ud83d\ude9a Servientrega",
         key: "srv",
         tipo: "servientrega",
         clickable: true,
         bold: false,
         color: "#555"
       }, {
-        label: "🏦 ISD",
+        label: "\ud83c\udfe6 ISD",
         key: "isd",
         tipo: "isd",
         clickable: true,
         bold: false,
         color: "#555"
       }, {
-        label: "💰 Intereses",
+        label: "\ud83d\udcb0 Intereses",
         key: "int",
         tipo: "interes",
         clickable: true,
         bold: false,
         color: "#555"
       }, {
-        label: "🖨 Suministros",
+        label: "\ud83d\udda8 Suministros",
         key: "sum",
         tipo: "suministros",
         clickable: true,
         bold: false,
         color: "#555"
       }, {
-        label: "📋 Otros",
+        label: "\ud83d\udccb Otros",
         key: "otr",
         tipo: "otro",
         clickable: true,
@@ -9660,7 +9722,7 @@ function App({
           color: "#1BB6C8",
           fontWeight: 700
         }
-      }, "📅 AÑO:"), React.createElement("select", {
+      }, "\ud83d\udcc5 A\u00d1O:"), React.createElement("select", {
         style: {
           ...S.inp,
           width: 100,
@@ -9684,14 +9746,14 @@ function App({
           fontWeight: 700,
           cursor: "pointer"
         }
-      }, "🔄 Sincronizar"), React.createElement("button", {
+      }, "\ud83d\udd04 Sincronizar"), React.createElement("button", {
         onClick: () => {
           const current = localStorage.getItem("camely_ak") || "";
-          const key = window.prompt("API Key de Gemini (AIza...):\n\nObtén la tuya en aistudio.google.com/apikey", current);
+          const key = window.prompt("API Key de Gemini (AIza...):\n\nObt\u00e9n la tuya en aistudio.google.com/apikey", current);
           if (key === null) return;
           if (key.trim()) {
             localStorage.setItem("camely_ak", key.trim());
-            toast_("✓ API Key guardada");
+            toast_("\u2713 API Key guardada");
           } else {
             localStorage.removeItem("camely_ak");
             toast_("API Key eliminada");
@@ -9707,7 +9769,7 @@ function App({
           fontWeight: 700,
           cursor: "pointer"
         }
-      }, localStorage.getItem("camely_ak") ? "🔑 API Key ✓" : "🔑 API Key"), canAdmin && React.createElement("button", {
+      }, localStorage.getItem("camely_ak") ? "\ud83d\udd11 API Key \u2713" : "\ud83d\udd11 API Key"), canAdmin && React.createElement("button", {
         onClick: deduplicarGastos,
         style: {
           background: "#FFF5E0",
@@ -9719,7 +9781,7 @@ function App({
           fontWeight: 700,
           cursor: "pointer"
         }
-      }, "🧹 Duplicados"), React.createElement("button", {
+      }, "\ud83e\uddf9 Duplicados"), React.createElement("button", {
         onClick: () => {
           setGastoForm(f => ({
             ...f,
@@ -9808,7 +9870,7 @@ function App({
             color: "#1BB6C8",
             marginLeft: 4
           }
-        }, "ver detalle →")), dm.map(d => {
+        }, "ver detalle \u2192")), dm.map(d => {
           const v = d[row.key];
           const c = row.isUtil ? v >= 0 ? "#2D6A4F" : "#F0057F" : row.color || "#333";
           return React.createElement("td", {
@@ -9859,7 +9921,7 @@ function App({
             const k = (p.prenda || "-") + "__" + (p.invId || "sin-cod");
             if (!acc[k]) acc[k] = {
               prenda: p.prenda || "-",
-              codigo: p.invId || "—",
+              codigo: p.invId || "\u2014",
               qty: 0,
               cu,
               subtotal: 0,
@@ -9880,9 +9942,9 @@ function App({
                 button{background:#1BB6C8;color:#fff;border:none;padding:5px 14px;border-radius:5px;cursor:pointer;margin-bottom:10px}
                 @media print{button{display:none}}
               </style></head><body>
-              <div class="hdr"><b>Detalle Costo de Venta — ${showCOGSDetail.year}</b><span>${new Date().toLocaleDateString("es-EC")}</span></div>
-              <button onclick="window.print()">🖨 Imprimir</button>
-              <table><thead><tr><th>Prenda</th><th>Código</th><th>Live</th><th class="r">Qty</th><th class="r">Costo Unit.</th><th class="r">Subtotal</th></tr></thead>
+              <div class="hdr"><b>Detalle Costo de Venta \u2014 ${showCOGSDetail.year}</b><span>${new Date().toLocaleDateString("es-EC")}</span></div>
+              <button onclick="window.print()">\ud83d\udda8 Imprimir</button>
+              <table><thead><tr><th>Prenda</th><th>C\u00f3digo</th><th>Live</th><th class="r">Qty</th><th class="r">Costo Unit.</th><th class="r">Subtotal</th></tr></thead>
               <tbody>${rows.map(r => `<tr><td>${r.prenda}</td><td style="color:#888">${r.codigo}</td><td style="color:#888;font-size:9px">${r.live || ""}</td><td class="r">${r.qty}</td><td class="r">${r.cu.toFixed(2)}</td><td class="r"><b>${r.subtotal.toFixed(2)}</b></td></tr>`).join("")}
               <tr class="tot"><td colspan="3"><b>TOTAL COGS</b></td><td class="r">${rows.reduce((s, r) => s + r.qty, 0)}</td><td></td><td class="r"><b>${total.toFixed(2)}</b></td></tr>
               </tbody></table></body></html>`;
@@ -9898,14 +9960,14 @@ function App({
           padding: "7px 14px",
           fontSize: 12
         }
-      }, "📄 PDF")), (() => {
+      }, "\ud83d\udcc4 PDF")), (() => {
         const rows = Object.values(showCOGSDetail.ped.reduce((acc, p) => {
           const invItem = p.invId ? inventario.find(i => String(i.id || i.codigo || "") === String(p.invId || "") && String(p.invId || "") !== "0") : null;
           const cu = invItem?.precio || costosManuales[p.prenda] || 0;
           const k = (p.prenda || "-") + "__" + (p.invId || "sin-cod");
           if (!acc[k]) acc[k] = {
             prenda: p.prenda || "-",
-            codigo: p.invId || "—",
+            codigo: p.invId || "\u2014",
             qty: 0,
             cu,
             subtotal: 0,
@@ -9937,7 +9999,7 @@ function App({
             padding: "7px 8px",
             textAlign: "left"
           }
-        }, "Código"), React.createElement("th", {
+        }, "C\u00f3digo"), React.createElement("th", {
           style: {
             padding: "7px 6px",
             textAlign: "center"
@@ -9981,7 +10043,7 @@ function App({
             textAlign: "right",
             color: r.cu === 0 ? "#D00" : "#555"
           }
-        }, r.cu === 0 ? "⚠ $0.00" : "$" + r.cu.toFixed(2)), React.createElement("td", {
+        }, r.cu === 0 ? "\u26a0 $0.00" : "$" + r.cu.toFixed(2)), React.createElement("td", {
           style: {
             padding: "6px 6px",
             textAlign: "right",
@@ -10022,7 +10084,7 @@ function App({
             fontSize: 11,
             color: "#D00"
           }
-        }, "⚠ ", rows.filter(r => r.cu === 0).length, " prenda(s) con costo $0 — asigna costo en \"Prendas sin código\" para incluirlas en el COGS"));
+        }, "\u26a0 ", rows.filter(r => r.cu === 0).length, " prenda(s) con costo $0 \u2014 asigna costo en \"Prendas sin c\u00f3digo\" para incluirlas en el COGS"));
       })(), React.createElement("button", {
         onClick: () => setShowCOGSDetail(null),
         style: {
@@ -10066,7 +10128,7 @@ function App({
             fontSize: 13,
             color: "#B45309"
           }
-        }, "⚠ Prendas sin código (", sinCod.length, " pedidos) — asignar costo para COGS"), React.createElement("select", {
+        }, "\u26a0 Prendas sin c\u00f3digo (", sinCod.length, " pedidos) \u2014 asignar costo para COGS"), React.createElement("select", {
           style: {
             ...S.inp,
             width: "auto",
@@ -10087,7 +10149,7 @@ function App({
             color: "#888",
             marginBottom: 10
           }
-        }, filtroSinCodLive ? "Live: " + filtroSinCodLive + " · " : "", "Puedes asignar código o costo manual para el COGS."), grouped.map(g => React.createElement("div", {
+        }, filtroSinCodLive ? "Live: " + filtroSinCodLive + " \u00b7 " : "", "Puedes asignar c\u00f3digo o costo manual para el COGS."), grouped.map(g => React.createElement("div", {
           key: g.prenda,
           style: {
             background: "#fff",
@@ -10115,7 +10177,7 @@ function App({
             fontSize: 11,
             color: "#888"
           }
-        }, g.qty, " unidad", g.qty !== 1 ? "es" : "", " · Venta: $", g.totalVenta.toFixed(2)), React.createElement("div", {
+        }, g.qty, " unidad", g.qty !== 1 ? "es" : "", " \u00b7 Venta: $", g.totalVenta.toFixed(2)), React.createElement("div", {
           style: {
             marginTop: 4
           }
@@ -10133,7 +10195,7 @@ function App({
             color: "#888",
             minWidth: 80
           }
-        }, fmtFecha(p.fecha), " · ", p.cliente.substring(0, 12)), React.createElement("input", {
+        }, fmtFecha(p.fecha), " \u00b7 ", p.cliente.substring(0, 12)), React.createElement("input", {
           placeholder: "CONS00001 o C-0001",
           style: {
             ...S.inp,
@@ -10156,7 +10218,7 @@ function App({
             setPedidos(updP);
             lSet(K.pedidos, updP);
             sheetsSync("savePedidos", updP);
-            toast_("✓ Código " + codigoFinal + " asignado a " + p.cliente);
+            toast_("\u2713 C\u00f3digo " + codigoFinal + " asignado a " + p.cliente);
           },
           onKeyDown: e => {
             if (e.key === "Enter") e.target.blur();
@@ -10167,7 +10229,7 @@ function App({
             color: "#2D6A4F",
             fontWeight: 700
           }
-        }, p.invId, " ✓"))))), React.createElement("div", {
+        }, p.invId, " \u2713"))))), React.createElement("div", {
           style: {
             display: "flex",
             alignItems: "center",
@@ -10209,7 +10271,7 @@ function App({
             marginTop: 8,
             textAlign: "right"
           }
-        }, "COGS total sin código: $", grouped.reduce((s, g) => s + g.qty * (costosManuales[g.prenda] || 0), 0).toFixed(2)));
+        }, "COGS total sin c\u00f3digo: $", grouped.reduce((s, g) => s + g.qty * (costosManuales[g.prenda] || 0), 0).toFixed(2)));
       })());
     })());
   })())), showStatusModal && statusImpId && (() => {
@@ -10257,7 +10319,7 @@ function App({
         padding: "3px 10px",
         fontWeight: 700
       }
-    }, est), React.createElement("span", null, "→"), React.createElement("span", {
+    }, est), React.createElement("span", null, "\u2192"), React.createElement("span", {
       style: {
         background: isPagada ? "#E6F4EC" : "#E8F9FB",
         color: isPagada ? "#2D6A4F" : "#1BB6C8",
@@ -10271,7 +10333,7 @@ function App({
       }
     }, React.createElement("label", {
       style: S.lbl
-    }, "TARJETA CON QUE SE PAGÓ"), React.createElement("select", {
+    }, "TARJETA CON QUE SE PAG\u00d3"), React.createElement("select", {
       style: S.inp,
       value: statusTarjetaId,
       onChange: e => setStatusTarjetaId(e.target.value)
@@ -10280,13 +10342,13 @@ function App({
     }, "Sin tarjeta / efectivo"), tarjetas.map(t => React.createElement("option", {
       key: t.id,
       value: t.id
-    }, t.nombre, " — $", saldoTarjeta(t.id).toFixed(2)))), React.createElement("div", {
+    }, t.nombre, " \u2014 $", saldoTarjeta(t.id).toFixed(2)))), React.createElement("div", {
       style: {
         fontSize: 11,
         color: "#1BB6C8",
         marginTop: 4
       }
-    }, "Cargo de ", React.createElement("b", null, "$", imp.costoTotal.toFixed(2)), " (mercadería)")), nxt === "pagada" && React.createElement("div", {
+    }, "Cargo de ", React.createElement("b", null, "$", imp.costoTotal.toFixed(2)), " (mercader\u00eda)")), nxt === "pagada" && React.createElement("div", {
       style: {
         marginBottom: 14,
         background: "#FFF8E0",
@@ -10298,7 +10360,7 @@ function App({
         ...S.lbl,
         color: "#B45309"
       }
-    }, "FLETE / TRAÍDA ($) — cargo adicional ", React.createElement("span", {
+    }, "FLETE / TRA\u00cdDA ($) \u2014 cargo adicional ", React.createElement("span", {
       style: {
         fontWeight: 400,
         color: "#AAA"
@@ -10345,7 +10407,7 @@ function App({
         background: nxt === "pagada" ? "#F0057F" : "#2D6A4F",
         marginBottom: 8
       }
-    }, "Confirmar → ", nxt), React.createElement("button", {
+    }, "Confirmar \u2192 ", nxt), React.createElement("button", {
       onClick: () => setShowStatusModal(false),
       style: S.cancelBtn
     }, "Cancelar")));
@@ -10403,7 +10465,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "AÑO"), React.createElement("input", {
+  }, "A\u00d1O"), React.createElement("input", {
     style: S.inp,
     value: ecAno,
     onChange: e => setEcAno(e.target.value),
@@ -10432,7 +10494,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "FECHA MÁX. PAGO"), React.createElement("input", {
+  }, "FECHA M\u00c1X. PAGO"), React.createElement("input", {
     type: "date",
     style: S.inp,
     value: ecFechaMax,
@@ -10455,7 +10517,7 @@ function App({
     onClick: () => ecFileRef.current.click(),
     style: S.btnComp,
     disabled: ecUploading
-  }, ecUploading ? "⏳ Subiendo a Google Drive..." : ecDriveUrl ? "✅ Guardado en Drive — toca para reemplazar" : ecFilePrev ? "📎 Archivo cargado localmente" : "📄 Subir PDF o imagen"), ecDriveUrl && React.createElement("div", {
+  }, ecUploading ? "\u23f3 Subiendo a Google Drive..." : ecDriveUrl ? "\u2705 Guardado en Drive \u2014 toca para reemplazar" : ecFilePrev ? "\ud83d\udcce Archivo cargado localmente" : "\ud83d\udcc4 Subir PDF o imagen"), ecDriveUrl && React.createElement("div", {
     style: {
       display: "flex",
       alignItems: "center",
@@ -10468,20 +10530,20 @@ function App({
       color: "#2D6A4F",
       fontWeight: 700
     }
-  }, "✓ En Google Drive"), React.createElement("a", {
+  }, "\u2713 En Google Drive"), React.createElement("a", {
     href: ecDriveUrl,
     target: "_blank",
     style: {
       fontSize: 11,
       color: "#1BB6C8"
     }
-  }, "Ver PDF ↗")), !ecDriveUrl && ecFilePrev && !ecUploading && React.createElement("div", {
+  }, "Ver PDF \u2197")), !ecDriveUrl && ecFilePrev && !ecUploading && React.createElement("div", {
     style: {
       fontSize: 11,
       color: "#B7570A",
       marginTop: 4
     }
-  }, "⚠ Solo guardado localmente")), React.createElement("button", {
+  }, "\u26a0 Solo guardado localmente")), React.createElement("button", {
     onClick: guardarEstadoCuenta,
     disabled: !ecTarjetaId || !ecMonto,
     style: {
@@ -10508,36 +10570,36 @@ function App({
       const tc = cps.reduce((s, p) => s + p.total, 0);
       const ta = abo.reduce((s, a) => s + a.monto, 0);
       const saldo = tc - ta;
-      let msg = "✨ *Camely Ropa Infantil* ✨\n━━━━━━━━━━━━━━━━━━\n";
-      msg += "👋 Hola *" + c.alias + "*!\n\n";
-      msg += "💰 *Resumen de tu cuenta:*\n";
-      msg += "🛒 Compras:\t $" + tc.toFixed(2) + "\n";
-      msg += "✅ Abonado:\t $" + ta.toFixed(2) + "\n";
-      msg += "🔴 *Pendiente: $" + saldo.toFixed(2) + "*\n";
+      let msg = "\u2728 *Camely Ropa Infantil* \u2728\n\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\u2501\n";
+      msg += "\ud83d\udc4b Hola *" + c.alias + "*!\n\n";
+      msg += "\ud83d\udcb0 *Resumen de tu cuenta:*\n";
+      msg += "\ud83d\uded2 Compras:\t $" + tc.toFixed(2) + "\n";
+      msg += "\u2705 Abonado:\t $" + ta.toFixed(2) + "\n";
+      msg += "\ud83d\udd34 *Pendiente: $" + saldo.toFixed(2) + "*\n";
       if (cps.length > 0) {
-        msg += "\n👗 *Detalle:*\n";
+        msg += "\n\ud83d\udc57 *Detalle:*\n";
         cps.slice(0, 8).forEach(p => {
-          msg += "  • " + (p.prenda && p.prenda !== "-" ? p.prenda : "Prenda") + ": $" + p.total.toFixed(2) + "\n";
+          msg += "  \u2022 " + (p.prenda && p.prenda !== "-" ? p.prenda : "Prenda") + ": $" + p.total.toFixed(2) + "\n";
         });
-        if (cps.length > 8) msg += "  ... y " + (cps.length - 8) + " más\n";
+        if (cps.length > 8) msg += "  ... y " + (cps.length - 8) + " m\u00e1s\n";
       }
-      msg += "\n─────────────────\n";
-      msg += "🏦 *Cuentas bancarias:*\n";
-      msg += "  🟡 Pichincha Ahorros *2203554582*\n";
-      msg += "  🔵 Guayaquil Ahorros *0029388062*\n";
-      msg += "  📋 Cédula: *0926345752* Martha Rosado\n";
-      msg += "\n─────────────────\n";
-      msg += "🚚 *Envío:*\n";
-      msg += "  Guayaquil *$3.60* · Provincia *$6.50*\n";
+      msg += "\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n";
+      msg += "\ud83c\udfe6 *Cuentas bancarias:*\n";
+      msg += "  \ud83d\udfe1 Pichincha Ahorros *2203554582*\n";
+      msg += "  \ud83d\udd35 Guayaquil Ahorros *0029388062*\n";
+      msg += "  \ud83d\udccb C\u00e9dula: *0926345752* Martha Rosado\n";
+      msg += "\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n";
+      msg += "\ud83d\ude9a *Env\u00edo:*\n";
+      msg += "  Guayaquil *$3.60* \u00b7 Provincia *$6.50*\n";
       if (diaEnvio) {
         const d = new Date(diaEnvio + "T12:00:00");
         if (!isNaN(d)) {
-          const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+          const dias = ["domingo", "lunes", "martes", "mi\u00e9rcoles", "jueves", "viernes", "s\u00e1bado"];
           const meses = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
-          msg += "📅 *Día de envío: " + dias[d.getDay()] + " " + d.getDate() + " de " + meses[d.getMonth()] + "*\n";
+          msg += "\ud83d\udcc5 *D\u00eda de env\u00edo: " + dias[d.getDay()] + " " + d.getDate() + " de " + meses[d.getMonth()] + "*\n";
         }
       }
-      msg += "\n💕 ¡Gracias por tu compra en Camely!";
+      msg += "\n\ud83d\udc95 \u00a1Gracias por tu compra en Camely!";
       return msg;
     };
     const enviarActual = () => {
@@ -10576,7 +10638,7 @@ function App({
         marginBottom: 14,
         textAlign: "center"
       }
-    }, "📲 Envío masivo WhatsApp"), React.createElement("div", {
+    }, "\ud83d\udcf2 Env\u00edo masivo WhatsApp"), React.createElement("div", {
       style: {
         marginBottom: 14
       }
@@ -10608,7 +10670,7 @@ function App({
         color: "#888",
         marginBottom: 4
       }
-    }, done ? "✅ Completado" : "Cliente " + (envioIdx + 1) + " de " + cliEnvio.length), !done && current && React.createElement(React.Fragment, null, React.createElement("div", {
+    }, done ? "\u2705 Completado" : "Cliente " + (envioIdx + 1) + " de " + cliEnvio.length), !done && current && React.createElement(React.Fragment, null, React.createElement("div", {
       style: {
         fontSize: 18,
         fontWeight: 900,
@@ -10630,20 +10692,20 @@ function App({
           color: "#888",
           marginTop: 2
         }
-      }, "📞 ", tel) : React.createElement("div", {
+      }, "\ud83d\udcde ", tel) : React.createElement("div", {
         style: {
           fontSize: 11,
           color: "#E07040",
           marginTop: 2
         }
-      }, "⚠ Sin número guardado");
+      }, "\u26a0 Sin n\u00famero guardado");
     })()), done && React.createElement("div", {
       style: {
         fontSize: 13,
         color: "#2D6A4F",
         fontWeight: 700
       }
-    }, "Todos los mensajes enviados 🎉"), React.createElement("div", {
+    }, "Todos los mensajes enviados \ud83c\udf89"), React.createElement("div", {
       style: {
         background: "#D0F2F6",
         borderRadius: 6,
@@ -10672,7 +10734,7 @@ function App({
         fontSize: 15,
         padding: 14
       }
-    }, "📲 Enviar a ", current?.alias, " → WhatsApp"), !done && envioIdx > 0 && React.createElement("button", {
+    }, "\ud83d\udcf2 Enviar a ", current?.alias, " \u2192 WhatsApp"), !done && envioIdx > 0 && React.createElement("button", {
       onClick: () => setEnvioIdx(i => i + 1),
       style: {
         background: "#F5F5F5",
@@ -10683,7 +10745,7 @@ function App({
         color: "#888",
         cursor: "pointer"
       }
-    }, "Saltar este cliente →"), React.createElement("button", {
+    }, "Saltar este cliente \u2192"), React.createElement("button", {
       onClick: () => {
         setShowEnvioModal(false);
         setEnvioIdx(0);
@@ -10713,7 +10775,7 @@ function App({
       color: "#AAA",
       marginBottom: 14
     }
-  }, "Para ventas pasadas que no están registradas en ningún live"), React.createElement("div", {
+  }, "Para ventas pasadas que no est\u00e1n registradas en ning\u00fan live"), React.createElement("div", {
     style: {
       marginBottom: 10
     }
@@ -10782,14 +10844,14 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "DESCRIPCIÓN ", React.createElement("span", {
+  }, "DESCRIPCI\u00d3N ", React.createElement("span", {
     style: {
       fontWeight: 400,
       color: "#AAA"
     }
   }, "(opcional)")), React.createElement("input", {
     style: S.inp,
-    placeholder: "Ej: Blusa niña T-S, Zapatos T-34...",
+    placeholder: "Ej: Blusa ni\u00f1a T-S, Zapatos T-34...",
     value: deudaForm.descripcion,
     onChange: e => setDeudaForm(f => ({
       ...f,
@@ -10843,7 +10905,7 @@ function App({
       padding: "12px",
       fontSize: 14
     }
-  }, "✓ Registrar Deuda $", deudaForm.monto ? parseFloat(deudaForm.monto || 0).toFixed(2) : "0.00"))), showGastoModal && React.createElement("div", {
+  }, "\u2713 Registrar Deuda $", deudaForm.monto ? parseFloat(deudaForm.monto || 0).toFixed(2) : "0.00"))), showGastoModal && React.createElement("div", {
     style: S.ov,
     onClick: () => setShowGastoModal(false)
   }, React.createElement("div", {
@@ -10867,15 +10929,15 @@ function App({
     }))
   }, React.createElement("option", {
     value: "servientrega"
-  }, "🚚 Servientrega"), React.createElement("option", {
+  }, "\ud83d\ude9a Servientrega"), React.createElement("option", {
     value: "isd"
-  }, "🏦 Impuesto Salida Divisas"), React.createElement("option", {
+  }, "\ud83c\udfe6 Impuesto Salida Divisas"), React.createElement("option", {
     value: "interes"
-  }, "💰 Intereses Tarjeta"), React.createElement("option", {
+  }, "\ud83d\udcb0 Intereses Tarjeta"), React.createElement("option", {
     value: "suministros"
-  }, "🖨 Suministros (rollos, empaques...)"), React.createElement("option", {
+  }, "\ud83d\udda8 Suministros (rollos, empaques...)"), React.createElement("option", {
     value: "otro"
-  }, "📋 Otro gasto"))), gastoForm.tipo === "servientrega" && React.createElement("div", {
+  }, "\ud83d\udccb Otro gasto"))), gastoForm.tipo === "servientrega" && React.createElement("div", {
     style: {
       marginBottom: 10
     }
@@ -10896,12 +10958,12 @@ function App({
       ...S.btnComp,
       marginBottom: 4
     }
-  }, "📂 Cargar XMLs Servientrega"), React.createElement("div", {
+  }, "\ud83d\udcc2 Cargar XMLs Servientrega"), React.createElement("div", {
     style: {
       fontSize: 10,
       color: "#AAA"
     }
-  }, "Se sumará el importeTotal de cada XML · En iPhone: toca el archivo, luego \"Seleccionar\" y elige varios desde la app Archivos")), gastoForm.tipo === "interes" && tarjetas.length > 0 && React.createElement("div", {
+  }, "Se sumar\u00e1 el importeTotal de cada XML \u00b7 En iPhone: toca el archivo, luego \"Seleccionar\" y elige varios desde la app Archivos")), gastoForm.tipo === "interes" && tarjetas.length > 0 && React.createElement("div", {
     style: {
       marginBottom: 10
     }
@@ -10916,7 +10978,7 @@ function App({
     }))
   }, React.createElement("option", {
     value: ""
-  }, "Sin tarjeta específica"), tarjetas.map(t => React.createElement("option", {
+  }, "Sin tarjeta espec\u00edfica"), tarjetas.map(t => React.createElement("option", {
     key: t.id,
     value: t.id
   }, t.nombre)))), gastoForm.tipo === "isd" && tarjetas.length > 0 && React.createElement("div", {
@@ -10934,7 +10996,7 @@ function App({
     }))
   }, React.createElement("option", {
     value: ""
-  }, "Sin tarjeta específica"), tarjetas.map(t => React.createElement("option", {
+  }, "Sin tarjeta espec\u00edfica"), tarjetas.map(t => React.createElement("option", {
     key: t.id,
     value: t.id
   }, t.nombre)))), React.createElement("div", {
@@ -10943,7 +11005,7 @@ function App({
     }
   }, React.createElement("label", {
     style: S.lbl
-  }, "DESCRIPCIÓN"), React.createElement("input", {
+  }, "DESCRIPCI\u00d3N"), React.createElement("input", {
     style: S.inp,
     placeholder: "Detalle del gasto...",
     value: gastoForm.descripcion,
@@ -11002,27 +11064,27 @@ function App({
     style: S.bnav
   }, [{
     id: "pedido",
-    icon: "🛍",
+    icon: "\ud83d\udecd",
     l: "Pedido"
   }, {
     id: "saldos",
-    icon: "📋",
+    icon: "\ud83d\udccb",
     l: "Saldos"
   }, {
     id: "pago",
-    icon: "💵",
+    icon: "\ud83d\udcb5",
     l: "Pago"
   }, {
     id: "inventario",
-    icon: "📦",
+    icon: "\ud83d\udce6",
     l: "Stock"
   }, {
     id: "clientes",
-    icon: "👥",
+    icon: "\ud83d\udc65",
     l: "Clientes"
   }, ...(canFinanciero ? [{
     id: "financiero",
-    icon: "📊",
+    icon: "\ud83d\udcca",
     l: "Finanzas"
   }] : [])].map(t => React.createElement("button", {
     key: t.id,
@@ -11368,10 +11430,10 @@ function Root() {
     currentUser: currentUser
   });
 }
-console.log("CAMELY build v-2026-07-21-j");
+console.log("CAMELY build v-2026-07-21-P");
 try {
   var _cv = document.createElement("div");
-  _cv.textContent = "v-2026-07-21-j";
+  _cv.textContent = "v-2026-07-21-P";
   _cv.style.cssText = "position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";
   addEventListener("load", function () {
     document.body && document.body.appendChild(_cv);
