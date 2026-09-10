@@ -762,6 +762,7 @@ function App({
   });
   const [filtroAbonoCli, setFiltroAbonoCli] = useState("");
   const [showDupAbonos, setShowDupAbonos] = useState(false);
+  const [soloGenericos, setSoloGenericos] = useState(false);
   const [editAbonoId, setEditAbonoId] = useState(null);
   const [livePagoMontos, setLivePagoMontos] = useState({});
   const [showPS, setShowPS] = useState(false);
@@ -4103,22 +4104,55 @@ function App({
   })(), showCobrarLive && (() => {
     try {
       const livesSel = cobrarLives && cobrarLives.length ? cobrarLives : [live];
-      const sentKey = "cobrar_global";
+      const skey = lv => "live::" + lv;
       const pedLive = pedidos.filter(p => livesSel.includes(p.live));
       const clientesLive = [...new Set(pedLive.map(p => p.cliente))].filter(Boolean).filter(alias => balancePorLive(alias).filter(lv => livesSel.includes(lv.live)).reduce((s, lv) => s + lv.pendiente, 0) > 0.009).sort();
-      const cobrarWASent = new Set(cobrarSentMap[sentKey] || []);
+      // "Enviado" se guarda POR LIVE (no global). Un cliente esta enviado si lo esta en TODOS los lives seleccionados.
+      // Asi un live nuevo empieza con todos "por enviar", y cambiar la seleccion no reinicia lo ya enviado.
+      const cobrarWASent = {
+        has: alias => livesSel.length > 0 && livesSel.every(lv => (cobrarSentMap[skey(lv)] || []).includes(alias))
+      };
       const marcarSent = alias => setCobrarSentMap(prev => {
-        const cur = new Set(prev[sentKey] || []);
-        cur.add(alias);
         const n = {
-          ...prev,
-          [sentKey]: [...cur]
+          ...prev
         };
+        livesSel.forEach(lv => {
+          const cur = new Set(n[skey(lv)] || []);
+          cur.add(alias);
+          n[skey(lv)] = [...cur];
+        });
         try {
           localStorage.setItem("camely_cobrar_sent", JSON.stringify(n));
         } catch {}
         return n;
       });
+      // Orden de chips de lives: seleccionados primero, luego por fecha (mas reciente primero). NUNCA se ocultan.
+      const MES3 = {
+        Ene: 1, Feb: 2, Mar: 3, Abr: 4, May: 5, Jun: 6, Jul: 7, Ago: 8, Sep: 9, Oct: 10, Nov: 11, Dic: 12
+      };
+      const fechaVal = f => {
+        if (!f) return 0;
+        let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f);
+        if (m) return (+m[1]) * 10000 + (+m[2]) * 100 + (+m[3]);
+        m = /^(\d{1,2})-([A-Za-z]{3})[A-Za-z]*-(\d{4})$/.exec(f);
+        if (m && MES3[m[2]]) return (+m[3]) * 10000 + MES3[m[2]] * 100 + (+m[1]);
+        return 0;
+      };
+      const liveMax = {};
+      pedidos.forEach(p => {
+        if (p.live) {
+          const v = fechaVal(p.fecha);
+          if (v > (liveMax[p.live] || 0)) liveMax[p.live] = v;
+        }
+      });
+      const resto = allLivesAll.filter(l => !livesSel.includes(l)).sort((a, b) => (liveMax[b] || 0) - (liveMax[a] || 0) || b.localeCompare(a));
+      const livesChips = [...livesSel, ...resto];
+      // Un live esta "cobrado" si todos sus clientes con saldo ya fueron enviados en ese live.
+      const liveCobrado = lv => {
+        const sset = new Set(cobrarSentMap[skey(lv)] || []);
+        const cl = [...new Set(pedidos.filter(p => p.live === lv).map(p => p.cliente))].filter(a => balancePorLive(a).filter(x => x.live === lv).reduce((s, x) => s + x.pendiente, 0) > 0.009);
+        return cl.length > 0 && cl.every(a => sset.has(a));
+      };
       const pendCount = clientesLive.filter(a => !cobrarWASent.has(a)).length;
       const sentCount = clientesLive.filter(a => cobrarWASent.has(a)).length;
       const clientesView = clientesLive.filter(a => cobrarFiltro === "all" ? true : cobrarFiltro === "sent" ? cobrarWASent.has(a) : !cobrarWASent.has(a)).sort((x, y) => {
@@ -4158,12 +4192,12 @@ function App({
         }
       }, clientesLive.filter(a => !cobrarWASent.has(a)).length, " pendientes"), React.createElement("button", {
         onClick: () => {
-          if (window.confirm("\u00bfReiniciar la lista de enviados? Todas volver\u00e1n a aparecer como por enviar.")) {
+          if (window.confirm("\u00bfReiniciar los enviados de este/estos live(s)? Volver\u00e1n a aparecer como por enviar.")) {
             setCobrarSentMap(prev => {
               const n = {
                 ...prev
               };
-              delete n[sentKey];
+              livesSel.forEach(lv => delete n[skey(lv)]);
               try {
                 localStorage.setItem("camely_cobrar_sent", JSON.stringify(n));
               } catch {}
@@ -4193,25 +4227,28 @@ function App({
           gap: 6,
           marginBottom: 10
         }
-      }, allLivesAll.slice(0, 8).map(lv => {
+      }, livesChips.map(lv => {
         const on = livesSel.includes(lv);
+        const cobrado = !on && liveCobrado(lv);
         return React.createElement("button", {
           key: lv,
           onClick: () => setCobrarLives(prev => {
             const base = prev && prev.length ? prev : [live];
             return base.includes(lv) ? base.filter(x => x !== lv) : [...base, lv];
           }),
+          title: cobrado ? "Ya cobrado (todos enviados)" : "",
           style: {
-            border: "1.5px solid " + (on ? "#1BB6C8" : "#DDD"),
-            background: on ? "#1BB6C8" : "#fff",
-            color: on ? "#fff" : "#555",
+            border: "1.5px solid " + (on ? "#1BB6C8" : cobrado ? "#A7D7C5" : "#DDD"),
+            background: on ? "#1BB6C8" : cobrado ? "#EAF6F0" : "#fff",
+            color: on ? "#fff" : cobrado ? "#7A9E8E" : "#555",
             borderRadius: 20,
             padding: "5px 12px",
             fontSize: 11,
             fontWeight: 700,
-            cursor: "pointer"
+            cursor: "pointer",
+            opacity: cobrado ? 0.7 : 1
           }
-        }, on ? "\u2713 " : "", lv);
+        }, on ? "\u2713 " : cobrado ? "\u2713\u2713 " : "", lv);
       })), diaEnvio && React.createElement("div", {
         style: {
           background: "#E8F9FB",
@@ -4419,7 +4456,7 @@ function App({
           color: "#2D6A4F",
           fontSize: 16
         }
-      }, cobrarWASent.size), React.createElement("div", {
+      }, sentCount), React.createElement("div", {
         style: {
           fontSize: 10,
           color: "#888"
@@ -6825,13 +6862,25 @@ function App({
       fontWeight: 700,
       cursor: "pointer"
     }
-  }, "\ud83d\udd0d Duplicados"), filtroAbonoCli && React.createElement("span", {
+  }, "\ud83d\udd0d Duplicados"), React.createElement("button", {
+    onClick: () => setSoloGenericos(v => !v),
+    style: {
+      background: soloGenericos ? "#F0057F" : "#FDECF5",
+      color: soloGenericos ? "#fff" : "#F0057F",
+      border: "1px solid #F8B3D4",
+      borderRadius: 8,
+      padding: "5px 10px",
+      fontSize: 11,
+      fontWeight: 700,
+      cursor: "pointer"
+    }
+  }, "\u26a1 Gen\u00e9ricos (", abonos.filter(a => !a.liveVinculado).length, ")"), (filtroAbonoCli || soloGenericos) && React.createElement("span", {
     style: {
       fontSize: 11,
       color: "#1BB6C8",
       fontWeight: 700
     }
-  }, "Total: $", abonos.filter(a => (a.cliente || "").toUpperCase().includes(filtroAbonoCli.toUpperCase())).reduce((s, a) => s + a.monto, 0).toFixed(2))), React.createElement("input", {
+  }, "Total: $", abonos.filter(a => (!filtroAbonoCli || (a.cliente || "").toUpperCase().includes(filtroAbonoCli.toUpperCase())) && (!soloGenericos || !a.liveVinculado)).reduce((s, a) => s + a.monto, 0).toFixed(2))), React.createElement("input", {
     style: {
       ...S.inp,
       marginBottom: 10
@@ -6844,7 +6893,7 @@ function App({
       maxHeight: 300,
       overflowY: "auto"
     }
-  }, [...abonos].filter(a => !filtroAbonoCli || (a.cliente || "").toUpperCase().includes(filtroAbonoCli.toUpperCase())).reverse().map(a => React.createElement("div", {
+  }, [...abonos].filter(a => (!filtroAbonoCli || (a.cliente || "").toUpperCase().includes(filtroAbonoCli.toUpperCase())) && (!soloGenericos || !a.liveVinculado)).reverse().map(a => React.createElement("div", {
     key: a.id,
     style: {
       ...S.li,
@@ -11430,10 +11479,10 @@ function Root() {
     currentUser: currentUser
   });
 }
-console.log("CAMELY build v-2026-07-21-P");
+console.log("CAMELY build v-2026-07-21-R");
 try {
   var _cv = document.createElement("div");
-  _cv.textContent = "v-2026-07-21-P";
+  _cv.textContent = "v-2026-07-21-R";
   _cv.style.cssText = "position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";
   addEventListener("load", function () {
     document.body && document.body.appendChild(_cv);
