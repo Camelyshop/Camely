@@ -532,6 +532,18 @@ function hoy() {
     d = n.getDate().toString().padStart(2, "0");
   return `${d}-${["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][n.getMonth()]}-${n.getFullYear()}`;
 }
+// Convierte una fecha ("DD-Mmm-YYYY" o "YYYY-MM-DD") a un numero ordenable cronologicamente.
+function fechaOrden(f) {
+  if (!f) return 0;
+  let m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(f);
+  if (m) return (+m[1]) * 10000 + (+m[2]) * 100 + (+m[3]);
+  const MES = {
+    Ene: 1, Feb: 2, Mar: 3, Abr: 4, May: 5, Jun: 6, Jul: 7, Ago: 8, Sep: 9, Oct: 10, Nov: 11, Dic: 12
+  };
+  m = /^(\d{1,2})-([A-Za-z]{3})[A-Za-z]*-(\d{4})$/.exec(f);
+  if (m && MES[m[2]]) return (+m[3]) * 10000 + MES[m[2]] * 100 + (+m[1]);
+  return 0;
+}
 function liveDefault() {
   const n = new Date();
   return fmtLive(1, MESES[n.getMonth()], String(n.getFullYear()).slice(2));
@@ -631,6 +643,7 @@ function App({
   });
   const [cobrarFiltro, setCobrarFiltro] = useState("pend");
   const [cobrarLives, setCobrarLives] = useState([]);
+  const [cobrarBusca, setCobrarBusca] = useState("");
   const [ventasPDFLive, setVentasPDFLive] = useState("");
   const [gastos, setGastos] = useState([]);
   const [estadosCuenta, setEstadosCuenta] = useState([]);
@@ -1636,25 +1649,34 @@ function App({
   }
   function balancePorLive(alias) {
     const A = normCli(alias);
-    const lives = [...new Set(pedidos.filter(p => normCli(p.cliente) === A).map(p => p.live))].sort();
+    const pedsA = pedidos.filter(p => normCli(p.cliente) === A);
+    // Ordenar lives CRONOLOGICAMENTE (mas antiguo primero) para que los abonos genericos
+    // (sin live asignado) cubran primero las deudas viejas y el saldo real quede en el live mas nuevo.
+    const liveFecha = {};
+    pedsA.forEach(p => {
+      const v = fechaOrden(p.fecha);
+      if (!(p.live in liveFecha) || v < liveFecha[p.live]) liveFecha[p.live] = v;
+    });
+    const lives = [...new Set(pedsA.map(p => p.live))].sort((a, b) => (liveFecha[a] || 0) - (liveFecha[b] || 0) || String(a).localeCompare(String(b)));
     const result = lives.map(lv => {
-      const totalLive = pedidos.filter(p => normCli(p.cliente) === A && p.live === lv).reduce((s, p) => s + p.total, 0);
-      const abonosVinc = abonos.filter(a => normCli(a.cliente) === A && a.liveVinculado === lv).reduce((s, a) => s + a.monto, 0);
+      const totalLive = pedsA.filter(p => p.live === lv).reduce((s, p) => s + p.total, 0);
       return {
         live: lv,
         total: totalLive,
-        pagado: abonosVinc,
-        pendiente: Math.max(0, totalLive - abonosVinc),
-        prendas: pedidos.filter(p => normCli(p.cliente) === A && p.live === lv)
+        pagado: 0,
+        pendiente: totalLive,
+        prendas: pedsA.filter(p => p.live === lv)
       };
     });
-    const noVinc = abonos.filter(a => normCli(a.cliente) === A && !a.liveVinculado).reduce((s, a) => s + a.monto, 0);
-    let restante = noVinc;
+    // TODOS los abonos (vinculados a un live o no) forman un solo fondo que se aplica de lo MAS ANTIGUO
+    // a lo mas nuevo. Asi el saldo pendiente siempre queda en los lives mas recientes (los que se estan
+    // cobrando) y ningun cliente que aun debe desaparece de la lista de cobro por un pago mal etiquetado.
+    let pool = abonos.filter(a => normCli(a.cliente) === A).reduce((s, a) => s + a.monto, 0);
     result.forEach(lv => {
-      const aplicado = Math.min(restante, lv.pendiente);
+      const aplicado = Math.min(pool, lv.pendiente);
       lv.pagado += aplicado;
       lv.pendiente = Math.max(0, lv.pendiente - aplicado);
-      restante -= aplicado;
+      pool -= aplicado;
     });
     return result;
   }
@@ -4105,8 +4127,13 @@ function App({
     try {
       const livesSel = cobrarLives && cobrarLives.length ? cobrarLives : [live];
       const skey = lv => "live::" + lv;
-      const pedLive = pedidos.filter(p => livesSel.includes(p.live));
-      const clientesLive = [...new Set(pedLive.map(p => p.cliente))].filter(Boolean).filter(alias => balancePorLive(alias).filter(lv => livesSel.includes(lv.live)).reduce((s, lv) => s + lv.pendiente, 0) > 0.009).sort();
+      // Comparacion de lives tolerante a mayusculas/espacios (por si un pedido quedo guardado con el nombre distinto).
+      const normLive = s => String(s || "").trim().toUpperCase();
+      const livesSelN = livesSel.map(normLive);
+      const enLiveSel = x => livesSelN.includes(normLive(x));
+      const pedLive = pedidos.filter(p => enLiveSel(p.live));
+      const clientesTodosLive = [...new Set(pedLive.map(p => p.cliente))].filter(Boolean).sort();
+      const clientesLive = clientesTodosLive.filter(alias => balancePorLive(alias).filter(lv => enLiveSel(lv.live)).reduce((s, lv) => s + lv.pendiente, 0) > 0.009);
       // "Enviado" se guarda POR LIVE (no global). Un cliente esta enviado si lo esta en TODOS los lives seleccionados.
       // Asi un live nuevo empieza con todos "por enviar", y cambiar la seleccion no reinicia lo ya enviado.
       const cobrarWASent = {
@@ -4155,7 +4182,10 @@ function App({
       };
       const pendCount = clientesLive.filter(a => !cobrarWASent.has(a)).length;
       const sentCount = clientesLive.filter(a => cobrarWASent.has(a)).length;
-      const clientesView = clientesLive.filter(a => cobrarFiltro === "all" ? true : cobrarFiltro === "sent" ? cobrarWASent.has(a) : !cobrarWASent.has(a)).sort((x, y) => {
+      const buscaN = cobrarBusca.trim().toUpperCase();
+      // Si hay busqueda: mostrar a CUALQUIER cliente del live (aunque su saldo calcule 0), para poder hallarlo/diagnosticarlo.
+      // Sin busqueda: comportamiento normal por pestana (por enviar / enviados / todos).
+      const clientesView = (buscaN ? clientesTodosLive.filter(a => a.toUpperCase().includes(buscaN)) : clientesLive.filter(a => cobrarFiltro === "all" ? true : cobrarFiltro === "sent" ? cobrarWASent.has(a) : !cobrarWASent.has(a))).sort((x, y) => {
         const sx = cobrarWASent.has(x) ? 1 : 0,
           sy = cobrarWASent.has(y) ? 1 : 0;
         return sx - sy || x.localeCompare(y);
@@ -4279,17 +4309,32 @@ function App({
           background: cobrarFiltro === k ? "#1BB6C8" : "#F5FDFE",
           color: cobrarFiltro === k ? "#fff" : "#555"
         }
-      }, lbl, " (", n, ")"))), clientesView.length === 0 && React.createElement("div", {
+      }, lbl, " (", n, ")"))), React.createElement("input", {
+        style: {
+          ...S.inp,
+          marginBottom: 10
+        },
+        placeholder: "\ud83d\udd0d Buscar cliente en este live...",
+        value: cobrarBusca,
+        onChange: e => setCobrarBusca(e.target.value)
+      }), buscaN && React.createElement("div", {
+        style: {
+          fontSize: 10,
+          color: "#888",
+          marginBottom: 8,
+          marginTop: -4
+        }
+      }, "Mostrando cualquier cliente del live (con o sin saldo). Borra la b\u00fasqueda para volver a la lista normal."), clientesView.length === 0 && React.createElement("div", {
         style: {
           textAlign: "center",
           color: "#999",
           fontSize: 12,
           padding: "18px 0"
         }
-      }, cobrarFiltro === "pend" ? "\ud83c\udf89 No quedan clientes por enviar" : cobrarFiltro === "sent" ? "A\u00fan no has enviado a nadie" : "Sin clientes"), clientesView.map(alias => {
+      }, buscaN ? "Sin coincidencias en este live" : cobrarFiltro === "pend" ? "\ud83c\udf89 No quedan clientes por enviar" : cobrarFiltro === "sent" ? "A\u00fan no has enviado a nadie" : "Sin clientes"), clientesView.map(alias => {
         const cliPeds = pedLive.filter(p => p.cliente === alias);
         const totalLive = cliPeds.reduce((s, p) => s + (p.total || 0), 0);
-        const _bpl = balancePorLive(alias).filter(lv => livesSel.includes(lv.live));
+        const _bpl = balancePorLive(alias).filter(lv => enLiveSel(lv.live));
         const saldoEste = _bpl.reduce((s, lv) => s + lv.pendiente, 0);
         const abonosLive = _bpl.reduce((s, lv) => s + lv.pagado, 0);
         const sent = cobrarWASent.has(alias);
@@ -6335,6 +6380,7 @@ function App({
   }, "TOTAL VENDIDO (sin descontar pagos)"))), React.createElement("button", {
     onClick: () => {
       setCobrarFiltro("pend");
+      setCobrarBusca("");
       setCobrarLives([live]);
       setShowCobrarLive(true);
     },
@@ -11479,10 +11525,10 @@ function Root() {
     currentUser: currentUser
   });
 }
-console.log("CAMELY build v-2026-07-21-R");
+console.log("CAMELY build v-2026-07-21-U");
 try {
   var _cv = document.createElement("div");
-  _cv.textContent = "v-2026-07-21-R";
+  _cv.textContent = "v-2026-07-21-U";
   _cv.style.cssText = "position:fixed;bottom:2px;right:4px;font-size:9px;color:#bbb;z-index:99999;pointer-events:none;font-family:system-ui";
   addEventListener("load", function () {
     document.body && document.body.appendChild(_cv);
